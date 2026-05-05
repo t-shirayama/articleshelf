@@ -5,6 +5,7 @@
 - フロントエンド: Vue.js アプリ（Vue 3 + Vue Router + Pinia）
 - バックエンド: Spring Boot アプリ（Spring Web, Spring Data JPA）
 - データベース: PostgreSQL
+- 実行基盤: Docker / Docker Compose
 - 通信: REST API（JSON）
 
 ## 2. 層構造
@@ -106,7 +107,16 @@
 
 ## 6. 開発環境
 
-- ローカル PostgreSQL
-- Spring Boot の `application.yml` で DB URL を設定
-- Vue 開発サーバーと Spring Boot サーバーを別プロセスで実行
+- バックエンドは Docker コンテナでビルド・起動する
+- PostgreSQL は Docker Compose で起動し、バックエンドコンテナから接続する
+- Spring Boot の `application.yml` では環境変数ベースで DB URL を設定できるようにする
+- フロントエンドは開発サーバーのローカル実行を基本としつつ、必要に応じてコンテナ実行にも対応する
 - CORS 設定をバックエンドで許可
+
+### 6.1 Docker 開発方針
+
+- `backend` サービスに Spring Boot アプリを配置する
+- `db` サービスに PostgreSQL を配置する
+- バックエンドは `db` をホスト名として DB 接続する
+- 開発時は `docker compose up` でバックエンドと DB をまとめて起動できる構成を目指す
+- 本番向けにもコンテナイメージを再利用しやすいよう、Dockerfile はアプリ単体で完結する形を採用する

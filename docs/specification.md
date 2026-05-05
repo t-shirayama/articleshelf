@@ -127,6 +127,7 @@
 - フロントエンド: Vue.js 3 + Vue Router + Pinia（状態管理）
 - バックエンド: Spring Boot 3 + Spring Data JPA
 - DB: PostgreSQL
+- バックエンドとDBは Docker / Docker Compose で起動できる構成とする
 - バリデーション: フロントエンドとバックエンド両方で実施
 - API形式: JSON
 - ロギング: バックエンドでリクエスト/エラーを記録
