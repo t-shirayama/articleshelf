@@ -12,6 +12,14 @@ import { ApiRequestError } from './services/api'
 import { useArticlesStore } from './stores/articles'
 import type { Article, ArticleInput, ArticleSort, ArticleStatus } from './types'
 
+type PersistedArticleStatus = Exclude<ArticleStatus, 'ALL'>
+
+interface StatusUndoState {
+  articleId: string
+  status: PersistedArticleStatus
+  readDate: string | null
+}
+
 const store = useArticlesStore()
 const modalOpen = ref(false)
 const filterDialogOpen = ref(false)
@@ -21,6 +29,9 @@ const searchDraft = ref('')
 const viewMode = ref<'list' | 'detail'>('list')
 const deleteCandidate = ref<Article | null>(null)
 const motivationIndex = ref(randomMotivationIndex())
+const statusUndo = ref<StatusUndoState | null>(null)
+const statusSnackbarOpen = ref(false)
+const statusSnackbarMessage = ref('')
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined
 
 const availableTagNames = computed<string[]>(() => store.tags.map((tag) => tag.name))
@@ -125,6 +136,34 @@ async function toggleFavorite(article: Article): Promise<void> {
   await store.toggleFavorite(article)
 }
 
+async function toggleArticleStatus(article: Article): Promise<void> {
+  const previousStatus = article.status
+  const previousReadDate = article.readDate || null
+  const nextStatus: PersistedArticleStatus = article.status === 'READ' ? 'UNREAD' : 'READ'
+  const nextReadDate = nextStatus === 'READ' ? todayString() : null
+  const updated = await store.updateArticleStatus(article, nextStatus, nextReadDate)
+  if (!updated) return
+
+  statusUndo.value = {
+    articleId: article.id,
+    status: previousStatus,
+    readDate: previousReadDate
+  }
+  statusSnackbarMessage.value = nextStatus === 'READ' ? '読了にしました' : '未読に戻しました'
+  statusSnackbarOpen.value = true
+}
+
+async function undoArticleStatus(): Promise<void> {
+  if (!statusUndo.value) return
+  const undo = statusUndo.value
+  const article = store.articles.find((item) => item.id === undo.articleId)
+  if (!article) return
+
+  statusSnackbarOpen.value = false
+  statusUndo.value = null
+  await store.updateArticleStatus(article, undo.status, undo.readDate)
+}
+
 function showList(): void {
   if (viewMode.value !== 'list') rotateMotivation()
   viewMode.value = 'list'
@@ -215,6 +254,14 @@ function formatRange(from: string, to: string): string {
   if (from) return `${from} 以降`
   if (to) return `${to} 以前`
   return ''
+}
+
+function todayString(): string {
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 </script>
 
@@ -326,6 +373,7 @@ function formatRange(from: string, to: string): string {
               :selected="store.selectedArticle?.id === article.id"
               @click="openArticle(article)"
               @delete="requestDeleteArticle(article)"
+              @toggle-status="toggleArticleStatus(article)"
               @toggle-favorite="toggleFavorite(article)"
             />
           </template>
@@ -379,5 +427,12 @@ function formatRange(from: string, to: string): string {
         </VCardActions>
       </VCard>
     </VDialog>
+
+    <VSnackbar v-model="statusSnackbarOpen" timeout="5000">
+      {{ statusSnackbarMessage }}
+      <template #actions>
+        <VBtn variant="text" @click="undoArticleStatus">元に戻す</VBtn>
+      </template>
+    </VSnackbar>
   </VApp>
 </template>

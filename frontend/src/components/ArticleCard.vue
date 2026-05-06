@@ -15,6 +15,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   click: []
   delete: []
+  'toggle-status': []
   'toggle-favorite': []
 }>()
 
@@ -112,11 +113,25 @@ function domainFrom(url: string): string {
         <div class="article-card-topline">
           <span class="domain">{{ domainFrom(article.url) }}</span>
           <div class="article-card-actions">
-            <VChip :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
-              <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
-              <Circle v-else :size="14" />
-              {{ article.status === 'READ' ? '読了' : '未読' }}
-            </VChip>
+            <div class="status-toggle-group">
+              <VChip class="status-chip" :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
+                <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
+                <Circle v-else :size="14" />
+                {{ article.status === 'READ' ? '読了' : '未読' }}
+              </VChip>
+              <VBtn
+                class="status-toggle-button"
+                size="small"
+                type="button"
+                variant="outlined"
+                :title="article.status === 'READ' ? '未読に戻す' : '読了にする'"
+                @click.stop="emit('toggle-status')"
+                @keydown.enter.stop="emit('toggle-status')"
+                @keydown.space.stop.prevent="emit('toggle-status')"
+              >
+                {{ article.status === 'READ' ? '未読に戻す' : '読了にする' }}
+              </VBtn>
+            </div>
             <VBtn
               class="favorite-button"
               :class="{ 'is-active': article.favorite }"

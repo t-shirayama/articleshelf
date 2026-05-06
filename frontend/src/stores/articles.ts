@@ -95,11 +95,11 @@ export const useArticlesStore = defineStore('articles', {
       const previousSelectedArticle = this.selectedArticle
       const optimisticArticle = { ...article, favorite: !article.favorite }
       this.error = ''
-      this.applyFavoriteUpdate(optimisticArticle)
+      this.applyArticleUpdate(optimisticArticle)
 
       try {
         const updated = await api.updateArticle(article.id, toArticleInput(optimisticArticle))
-        this.applyFavoriteUpdate(updated)
+        this.applyArticleUpdate(updated)
       } catch (error: unknown) {
         this.articles = previousArticles
         this.allArticles = previousAllArticles
@@ -107,7 +107,27 @@ export const useArticlesStore = defineStore('articles', {
         this.error = error instanceof Error ? error.message : 'お気に入りの更新に失敗しました'
       }
     },
-    applyFavoriteUpdate(article: Article): void {
+    async updateArticleStatus(article: Article, status: Exclude<ArticleStatus, 'ALL'>, readDate: string | null): Promise<Article | null> {
+      const previousArticles = this.articles
+      const previousAllArticles = this.allArticles
+      const previousSelectedArticle = this.selectedArticle
+      const optimisticArticle = { ...article, status, readDate }
+      this.error = ''
+      this.applyArticleUpdate(optimisticArticle)
+
+      try {
+        const updated = await api.updateArticle(article.id, toArticleInput(optimisticArticle))
+        this.applyArticleUpdate(updated)
+        return updated
+      } catch (error: unknown) {
+        this.articles = previousArticles
+        this.allArticles = previousAllArticles
+        this.selectedArticle = previousSelectedArticle
+        this.error = error instanceof Error ? error.message : 'ステータスの更新に失敗しました'
+        return null
+      }
+    },
+    applyArticleUpdate(article: Article): void {
       this.allArticles = replaceArticle(this.allArticles, article)
       this.articles = replaceArticle(this.articles, article)
 
