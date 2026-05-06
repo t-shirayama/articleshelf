@@ -1559,8 +1559,6 @@ a {
   border: 1px solid transparent;
   border-radius: 8px;
   transition:
-    background-color 0.16s ease,
-    border-color 0.16s ease,
     color 0.16s ease,
     transform 0.16s ease;
 }
@@ -1571,8 +1569,6 @@ a {
 
 .star-rating:not(.is-readonly) .star-rating-button.is-preview {
   color: #d69b16;
-  background: #fff7df;
-  border-color: rgba(214, 155, 22, 0.28);
 }
 
 .star-rating:not(.is-readonly) .star-rating-button:hover {
