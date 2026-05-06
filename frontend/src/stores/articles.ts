@@ -1,8 +1,18 @@
 import { defineStore } from 'pinia'
 import { api } from '../services/api'
+import type { Article, ArticleFilters, ArticleInput, ArticleStatus, Tag } from '../types'
+
+interface ArticlesState {
+  articles: Article[]
+  tags: Tag[]
+  selectedArticle: Article | null
+  filters: ArticleFilters
+  loading: boolean
+  error: string
+}
 
 export const useArticlesStore = defineStore('articles', {
-  state: () => ({
+  state: (): ArticlesState => ({
     articles: [],
     tags: [],
     selectedArticle: null,
@@ -24,66 +34,68 @@ export const useArticlesStore = defineStore('articles', {
     })
   },
   actions: {
-    async fetchArticles() {
+    async fetchArticles(): Promise<void> {
       this.loading = true
       this.error = ''
       try {
         this.articles = await api.findArticles(this.filters)
         if (this.selectedArticle) {
-          this.selectedArticle = this.articles.find((article) => article.id === this.selectedArticle.id) || null
+          const selectedId = this.selectedArticle.id
+          this.selectedArticle = this.articles.find((article) => article.id === selectedId) || null
         }
-      } catch (error) {
-        this.error = error.message
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : '記事の取得に失敗しました'
       } finally {
         this.loading = false
       }
     },
-    async fetchTags() {
+    async fetchTags(): Promise<void> {
       this.tags = await api.findTags()
     },
-    async selectArticle(article) {
+    async selectArticle(article: Article): Promise<void> {
       this.selectedArticle = await api.findArticle(article.id)
     },
-    async createArticle(article) {
+    async createArticle(article: ArticleInput): Promise<void> {
       const created = await api.createArticle(article)
       await this.fetchTags()
       await this.fetchArticles()
       this.selectedArticle = created
     },
-    async updateArticle(article) {
+    async updateArticle(article: ArticleInput): Promise<void> {
+      if (!article.id) throw new Error('更新対象の記事IDがありません')
       const updated = await api.updateArticle(article.id, article)
       await this.fetchTags()
       await this.fetchArticles()
       this.selectedArticle = updated
     },
-    async toggleFavorite(article) {
-      const tagNames = article.tags?.map((tag) => tag.name || tag).filter(Boolean) || []
+    async toggleFavorite(article: Article): Promise<void> {
+      const tagNames = article.tags?.map((tag) => tag.name).filter(Boolean) || []
       await this.updateArticle({
         ...article,
         favorite: !article.favorite,
         tags: tagNames
       })
     },
-    async deleteArticle(articleId) {
+    async deleteArticle(articleId: string): Promise<void> {
       await api.deleteArticle(articleId)
       this.selectedArticle = null
       await this.fetchTags()
       await this.fetchArticles()
     },
-    setStatus(status) {
+    setStatus(status: ArticleStatus): Promise<void> {
       this.filters.status = status
       this.filters.favorite = false
       return this.fetchArticles()
     },
-    setTag(tag) {
+    setTag(tag: string): Promise<void> {
       this.filters.tag = tag
       return this.fetchArticles()
     },
-    setSearch(search) {
+    setSearch(search: string): Promise<void> {
       this.filters.search = search
       return this.fetchArticles()
     },
-    setFavoriteOnly() {
+    setFavoriteOnly(): Promise<void> {
       this.filters.status = 'ALL'
       this.filters.tag = ''
       this.filters.favorite = true

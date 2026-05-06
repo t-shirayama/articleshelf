@@ -1,20 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart } from 'lucide-vue-next'
+import type { Article } from '../types'
 
-defineProps({
-  article: {
-    type: Object,
-    required: true
-  },
-  selected: {
-    type: Boolean,
-    default: false
-  }
+withDefaults(defineProps<{
+  article: Article
+  selected?: boolean
+}>(), {
+  selected: false
 })
 
-const emit = defineEmits(['click', 'toggle-favorite'])
+const emit = defineEmits<{
+  click: []
+  'toggle-favorite': []
+}>()
 
-function domainFrom(url) {
+function domainFrom(url: string): string {
   try {
     return new URL(url).hostname.replace(/^www\./, '')
   } catch {

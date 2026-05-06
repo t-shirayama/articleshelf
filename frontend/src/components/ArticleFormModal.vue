@@ -1,18 +1,30 @@
-<script setup>
+<script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import type { ArticleInput, Tag } from '../types'
 
-const props = defineProps({
-  open: {
-    type: Boolean,
-    default: false
-  },
-  tags: {
-    type: Array,
-    default: () => []
-  }
+interface ArticleFormState {
+  url: string
+  title: string
+  summary: string
+  readLater: boolean
+  readDate: string | null
+  favorite: boolean
+  notes: string
+  tags: string[]
+}
+
+const props = withDefaults(defineProps<{
+  open?: boolean
+  tags?: Tag[]
+}>(), {
+  open: false,
+  tags: () => []
 })
 
-const emit = defineEmits(['close', 'submit'])
+const emit = defineEmits<{
+  close: []
+  submit: [article: ArticleInput]
+}>()
 
 const form = reactive(defaultForm())
 const submitted = ref(false)
@@ -36,7 +48,7 @@ watch(
   }
 )
 
-function defaultForm() {
+function defaultForm(): ArticleFormState {
   return {
     url: '',
     title: '',
@@ -49,7 +61,7 @@ function defaultForm() {
   }
 }
 
-function submit() {
+function submit(): void {
   submitted.value = true
   if (urlError.value) return
 

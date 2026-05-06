@@ -1,10 +1,9 @@
-<script setup>
-defineProps({
-  card: {
-    type: Object,
-    required: true
-  }
-})
+<script setup lang="ts">
+import type { MotivationCardData } from '../types'
+
+defineProps<{
+  card: MotivationCardData
+}>()
 </script>
 
 <template>

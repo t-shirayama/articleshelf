@@ -2,7 +2,7 @@
 
 ## 1. システム構成
 
-- フロントエンド: Vue.js アプリ（Vue 3 + Pinia + Vuetify）
+- フロントエンド: Vue.js アプリ（Vue 3 + TypeScript + Pinia + Vuetify）
 - バックエンド: Spring Boot アプリ（Spring Web, Spring Data JPA）
 - データベース: PostgreSQL
 - 実行基盤: Docker / Docker Compose

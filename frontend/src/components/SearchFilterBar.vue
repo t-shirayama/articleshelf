@@ -1,18 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { Plus, Search, SlidersHorizontal } from 'lucide-vue-next'
+import type { ArticleStatus } from '../types'
 
-defineProps({
-  search: {
-    type: String,
-    default: ''
-  },
-  status: {
-    type: String,
-    default: 'ALL'
-  }
+withDefaults(defineProps<{
+  search?: string
+  status?: ArticleStatus
+}>(), {
+  search: '',
+  status: 'ALL'
 })
 
-const emit = defineEmits(['update:search', 'update:status', 'add'])
+const emit = defineEmits<{
+  'update:search': [value: string]
+  'update:status': [value: ArticleStatus]
+  add: []
+}>()
 </script>
 
 <template>
@@ -24,7 +26,7 @@ const emit = defineEmits(['update:search', 'update:status', 'add'])
       clearable
       hide-details
       placeholder="タイトル・URL・メモで検索"
-      @update:model-value="emit('update:search', $event)"
+      @update:model-value="emit('update:search', String($event || ''))"
     >
       <template #prepend-inner>
         <Search :size="18" />
@@ -37,7 +39,7 @@ const emit = defineEmits(['update:search', 'update:status', 'add'])
       mandatory
       density="comfortable"
       aria-label="ステータスフィルター"
-      @update:model-value="emit('update:status', $event)"
+      @update:model-value="emit('update:status', $event as ArticleStatus)"
     >
       <VBtn value="ALL">すべて</VBtn>
       <VBtn value="UNREAD">未読</VBtn>

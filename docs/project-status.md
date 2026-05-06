@@ -5,7 +5,7 @@
 ## 1. 現在の状況
 
 ReadStack は、記事の登録・一覧表示・詳細編集・削除までを一通り触れる MVP の土台ができています。  
-フロントエンドは Vue 3 + Pinia + Vuetify で一覧画面と詳細画面を切り替える操作フローが実装されており、バックエンドは Spring Boot + PostgreSQL で REST API と永続化が動く構成です。
+フロントエンドは Vue 3 + TypeScript + Pinia + Vuetify で一覧画面と詳細画面を切り替える操作フローが実装されており、バックエンドは Spring Boot + PostgreSQL で REST API と永続化が動く構成です。
 `docker-compose.yml` には `frontend` / `backend` / `db` が定義されており、ローカルでまとめて起動できます。フロントエンドとバックエンドは開発時のホットリロードにも対応しています。
 
 ## 2. 実装済み

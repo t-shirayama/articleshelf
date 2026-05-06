@@ -1,3 +1,5 @@
+import type { MotivationCardData } from '../types'
+
 const palettes = [
   ['#FFF4DF', '#F1B84F', '#2D7C5D'],
   ['#EAF7F3', '#64B987', '#186C74'],
@@ -147,7 +149,7 @@ const messages = [
   ['学びは集めた分だけ味方になる', '少しずつ、頼れる棚に育っています。']
 ]
 
-export const motivationCards = messages.map(([title, note], index) => {
+export const motivationCards: MotivationCardData[] = messages.map(([title, note], index) => {
   const [background, accent, ink] = palettes[index % palettes.length]
   return {
     id: index + 1,

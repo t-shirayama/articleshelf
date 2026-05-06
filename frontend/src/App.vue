@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { BookOpen, CheckCircle2, Circle, Heart, Library, Tag } from 'lucide-vue-next'
 import ArticleCard from './components/ArticleCard.vue'
@@ -8,19 +8,20 @@ import MotivationCard from './components/MotivationCard.vue'
 import SearchFilterBar from './components/SearchFilterBar.vue'
 import { motivationCards } from './data/motivationCards'
 import { useArticlesStore } from './stores/articles'
+import type { Article, ArticleInput, ArticleStatus, Tag as ArticleTag } from './types'
 
 const store = useArticlesStore()
 const modalOpen = ref(false)
 const searchDraft = ref('')
-const viewMode = ref('list')
+const viewMode = ref<'list' | 'detail'>('list')
 const motivationIndex = ref(new Date().getDate() % motivationCards.length)
-let searchTimer = 0
+let searchTimer: ReturnType<typeof window.setTimeout> | undefined
 
-const visibleTags = computed(() => store.tags)
+const visibleTags = computed<ArticleTag[]>(() => store.tags)
 const currentMotivation = computed(() => motivationCards[motivationIndex.value])
 
 watch(searchDraft, (value) => {
-  window.clearTimeout(searchTimer)
+  if (searchTimer) window.clearTimeout(searchTimer)
   searchTimer = window.setTimeout(() => {
     store.setSearch(value)
   }, 250)
@@ -30,52 +31,52 @@ onMounted(async () => {
   await Promise.all([store.fetchArticles(), store.fetchTags()])
 })
 
-async function createArticle(article) {
+async function createArticle(article: ArticleInput): Promise<void> {
   await store.createArticle(article)
   rotateMotivation()
   modalOpen.value = false
   viewMode.value = 'detail'
 }
 
-async function saveArticle(article) {
+async function saveArticle(article: ArticleInput): Promise<void> {
   await store.updateArticle(article)
 }
 
-async function deleteArticle(articleId) {
+async function deleteArticle(articleId: string): Promise<void> {
   await store.deleteArticle(articleId)
   showList()
 }
 
-async function openArticle(article) {
+async function openArticle(article: Article): Promise<void> {
   await store.selectArticle(article)
   rotateMotivation()
   viewMode.value = 'detail'
 }
 
-async function toggleFavorite(article) {
+async function toggleFavorite(article: Article): Promise<void> {
   await store.toggleFavorite(article)
 }
 
-function showList() {
+function showList(): void {
   if (viewMode.value !== 'list') rotateMotivation()
   viewMode.value = 'list'
 }
 
-function rotateMotivation() {
+function rotateMotivation(): void {
   motivationIndex.value = (motivationIndex.value + 1) % motivationCards.length
 }
 
-function setStatus(status) {
+function setStatus(status: ArticleStatus): Promise<void> {
   showList()
   return store.setStatus(status)
 }
 
-function setTag(tag) {
+function setTag(tag: string): Promise<void> {
   showList()
   return store.setTag(tag)
 }
 
-function setFavoriteOnly() {
+function setFavoriteOnly(): Promise<void> {
   showList()
   return store.setFavoriteOnly()
 }

@@ -1,26 +1,42 @@
-<script setup>
+<script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
+import type { Article, ArticleInput, ArticleStatus } from '../types'
 
-const props = defineProps({
-  article: {
-    type: Object,
-    default: null
-  }
+interface ArticleDetailForm {
+  id: string
+  url: string
+  title: string
+  summary: string
+  status: Exclude<ArticleStatus, 'ALL'>
+  readDate: string | null
+  favorite: boolean
+  notes: string
+  tags: string[]
+}
+
+const props = withDefaults(defineProps<{
+  article?: Article | null
+}>(), {
+  article: null
 })
 
-const emit = defineEmits(['back', 'save', 'delete'])
+const emit = defineEmits<{
+  back: []
+  save: [article: ArticleInput]
+  delete: [articleId: string]
+}>()
 
 const form = reactive(emptyForm())
 const deleteDialogOpen = ref(false)
 const statusOptions = [
   { label: '未読', value: 'UNREAD' },
   { label: '読了', value: 'READ' }
-]
+] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
 
 const tagText = computed({
   get: () => form.tags.join(', '),
-  set: (value) => {
+  set: (value: string) => {
     form.tags = value.split(',').map((tag) => tag.trim()).filter(Boolean)
   }
 })
@@ -33,7 +49,7 @@ watch(
   { immediate: true }
 )
 
-function emptyForm() {
+function emptyForm(): ArticleDetailForm {
   return {
     id: '',
     url: '',
@@ -47,7 +63,7 @@ function emptyForm() {
   }
 }
 
-function toForm(article) {
+function toForm(article: Article): ArticleDetailForm {
   return {
     id: article.id,
     url: article.url,
@@ -61,11 +77,12 @@ function toForm(article) {
   }
 }
 
-function submit() {
+function submit(): void {
   emit('save', { ...form, readDate: form.readDate || null })
 }
 
-function confirmDelete() {
+function confirmDelete(): void {
+  if (!props.article) return
   deleteDialogOpen.value = false
   emit('delete', props.article.id)
 }
