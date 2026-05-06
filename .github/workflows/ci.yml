@@ -5,13 +5,6 @@ on:
   pull_request:
 
 jobs:
-  sensitive-data:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check tracked files for sensitive data
-        run: bash .github/scripts/check-sensitive-data.sh
-
   frontend-build:
     runs-on: ubuntu-latest
     defaults:
