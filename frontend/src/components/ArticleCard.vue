@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
+import { Bookmark, CalendarDays, Check, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { loadThumbnailFromCache } from '../services/thumbnailCache'
 import type { Article } from '../types'
@@ -126,7 +126,7 @@ function domainFrom(url: string): string {
               @keydown.enter.stop="emit('toggle-status')"
               @keydown.space.stop.prevent="emit('toggle-status')"
             >
-              <CheckCircle2 :size="17" />
+              <Check :size="18" :stroke-width="3" />
             </VBtn>
             <VBtn
               class="favorite-button card-favorite-button"
