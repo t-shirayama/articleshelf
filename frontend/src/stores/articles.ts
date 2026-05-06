@@ -103,6 +103,12 @@ export const useArticlesStore = defineStore('articles', {
       this.filters.tag = tag
       return this.fetchArticles()
     },
+    setAllArticles(): Promise<void> {
+      this.filters.status = 'ALL'
+      this.filters.tag = ''
+      this.filters.favorite = false
+      return this.fetchArticles()
+    },
     setSearch(search: string): Promise<void> {
       this.filters.search = search
       return this.fetchArticles()

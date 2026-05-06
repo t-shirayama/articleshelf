@@ -107,17 +107,26 @@ function randomMotivationIndex(currentIndex = -1): number {
 
 function setStatus(status: ArticleStatus): Promise<void> {
   showList()
+  rotateMotivation()
   return store.setStatus(status)
 }
 
 function setTag(tag: string): Promise<void> {
   showList()
+  rotateMotivation()
   return store.setTag(tag)
 }
 
 function setFavoriteOnly(): Promise<void> {
   showList()
+  rotateMotivation()
   return store.setFavoriteOnly()
+}
+
+function setAllArticles(): Promise<void> {
+  showList()
+  rotateMotivation()
+  return store.setAllArticles()
 }
 
 function setSort(sort: ArticleSort): void {
@@ -165,7 +174,7 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
             block
             variant="text"
             :color="store.filters.status === 'ALL' && !store.filters.tag && !store.filters.favorite ? 'primary' : undefined"
-            @click="setStatus('ALL'); setTag('')"
+            @click="setAllArticles"
           >
             <template #prepend>
               <Library :size="18" />
