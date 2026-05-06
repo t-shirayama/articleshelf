@@ -502,13 +502,14 @@ a {
 }
 
 .calendar-summary {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(96px, 1fr));
   gap: 8px;
-  justify-content: flex-end;
+  place-items: center;
+  justify-content: center;
   justify-self: end;
   min-height: 42px;
-  padding: 0 6px;
+  padding: 0 10px;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(222, 217, 206, 0.86);
   border-radius: 8px;
@@ -520,8 +521,9 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 42px;
-  min-width: 96px;
-  padding: 0 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -1777,12 +1779,11 @@ a {
   }
 
   .calendar-summary {
-    justify-content: stretch;
     justify-self: stretch;
   }
 
   .calendar-summary span {
-    flex: 1 1 96px;
+    min-width: 0;
   }
 
   .calendar-grid {
