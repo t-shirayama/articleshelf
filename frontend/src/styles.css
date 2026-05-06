@@ -814,7 +814,9 @@ a {
 }
 
 .detail-meta-control .v-field--disabled {
-  color: var(--text);
+  color: var(--muted);
+  background: rgba(105, 112, 109, 0.06);
+  cursor: not-allowed;
   opacity: 1;
 }
 
@@ -825,7 +827,14 @@ a {
 
 .detail-meta-control .v-field--disabled .v-field__input,
 .detail-meta-control .v-field--disabled .v-select__selection-text {
-  color: var(--text);
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.detail-meta-control .v-field--disabled .v-field__append-inner,
+.detail-meta-control .v-field--disabled .v-icon {
+  color: rgba(105, 112, 109, 0.58);
   opacity: 1;
 }
 
@@ -950,16 +959,25 @@ a {
 .star-rating.is-readonly .star-rating-button {
   width: 24px;
   height: 24px;
-  cursor: default;
+  cursor: not-allowed;
   opacity: 1;
+}
+
+.star-rating.is-readonly .star-rating-button.is-active {
+  color: #8e7a56;
+}
+
+.star-rating.is-readonly .star-rating-button:not(.is-active) {
+  color: #a9b0aa;
+}
+
+.detail-meta .star-rating.is-readonly .star-rating-button {
+  width: 28px;
+  height: 28px;
 }
 
 .detail-rating-field {
   padding: 0;
-}
-
-.readonly-rating-field {
-  gap: 2px;
 }
 
 .readstack-date-field,
