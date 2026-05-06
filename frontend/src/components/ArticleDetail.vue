@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { ArrowLeft, ExternalLink, Heart, Pencil, Save, Trash2, X } from 'lucide-vue-next'
+import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
 import StarRating from './StarRating.vue'
 import TagEditor from './TagEditor.vue'
 import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
@@ -36,15 +36,24 @@ const emit = defineEmits<{
 const form = reactive(emptyForm())
 const deleteDialogOpen = ref(false)
 const isEditing = ref(false)
+const detailMode = computed<'view' | 'edit'>({
+  get: () => (isEditing.value ? 'edit' : 'view'),
+  set: (value) => {
+    if (value === 'edit') {
+      startEditing()
+      return
+    }
+
+    if (isEditing.value) {
+      cancelEditing()
+    }
+  }
+})
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
 const statusOptions = [
   { label: '未読', value: 'UNREAD' },
   { label: '読了', value: 'READ' }
 ] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
-const statusLabelMap = {
-  UNREAD: '未読',
-  READ: '読了'
-} satisfies Record<Exclude<ArticleStatus, 'ALL'>, string>
 const summaryText = computed(() => props.article?.summary?.trim() || '概要はまだありません')
 const notesText = computed(() => props.article?.notes?.trim() || 'メモはまだありません')
 
@@ -130,19 +139,25 @@ function confirmDelete(): void {
 </script>
 
 <template>
-  <main class="detail-page">
+  <main class="detail-page" :class="{ 'is-editing': isEditing }">
     <div v-if="!article" class="empty-detail">
       <span>記事を選択すると詳細を編集できます。</span>
     </div>
 
     <VForm v-else class="detail-form" @submit.prevent="submit">
       <div class="detail-topbar">
-        <VBtn class="action-button action-button-secondary compact-button" variant="outlined" @click="emit('back')">
+        <VBtn class="action-button action-button-secondary compact-button detail-back-button" variant="outlined" @click="emit('back')">
           <template #prepend>
             <ArrowLeft :size="17" />
           </template>
           戻る
         </VBtn>
+
+        <VBtnToggle v-model="detailMode" class="detail-mode-toggle" mandatory>
+          <VBtn value="view">閲覧</VBtn>
+          <VBtn value="edit">編集</VBtn>
+        </VBtnToggle>
+
         <div class="detail-topbar-actions">
           <VBtn
             class="favorite-button detail-favorite-button"
@@ -154,25 +169,23 @@ function confirmDelete(): void {
           >
             <Heart :size="19" :fill="(isEditing ? form.favorite : article.favorite) ? 'currentColor' : 'none'" />
           </VBtn>
-          <template v-if="isEditing">
-            <VBtn class="action-button action-button-secondary compact-button" variant="outlined" @click="cancelEditing">
-              <template #prepend>
-                <X :size="17" />
-              </template>
-              キャンセル
-            </VBtn>
-            <VBtn color="primary" variant="flat" type="submit" class="action-button action-button-primary compact-button">
-              <template #prepend>
-                <Save :size="17" />
-              </template>
-              保存
-            </VBtn>
-          </template>
-          <VBtn v-else color="primary" variant="flat" class="action-button action-button-primary compact-button" @click="startEditing">
+          <VBtn
+            color="primary"
+            variant="flat"
+            type="submit"
+            class="action-button action-button-primary compact-button"
+            :disabled="!isEditing"
+          >
             <template #prepend>
-              <Pencil :size="17" />
+              <Save :size="17" />
             </template>
-            編集
+            保存
+          </VBtn>
+          <VBtn class="action-button action-button-danger-outline compact-button" color="error" variant="outlined" @click="deleteDialogOpen = true">
+            <template #prepend>
+              <Trash2 :size="17" />
+            </template>
+            削除
           </VBtn>
         </div>
       </div>
@@ -300,18 +313,6 @@ function confirmDelete(): void {
                 <template v-else>
                   <StarRating :model-value="article.rating" readonly :size="20" />
                 </template>
-              </div>
-            </div>
-
-            <div class="detail-meta-block detail-delete-block">
-              <span class="detail-meta-label">操作</span>
-              <div class="detail-actions">
-                <VBtn class="action-button action-button-danger-outline" color="error" variant="outlined" @click="deleteDialogOpen = true">
-                  <template #prepend>
-                    <Trash2 :size="17" />
-                  </template>
-                  削除
-                </VBtn>
               </div>
             </div>
           </VCardText>

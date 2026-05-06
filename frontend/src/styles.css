@@ -36,6 +36,14 @@ body,
   overflow: hidden;
 }
 
+html:has(.detail-page.is-editing),
+body:has(.detail-page.is-editing),
+#app:has(.detail-page.is-editing) {
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
 body {
   margin: 0;
   min-width: 320px;
@@ -741,7 +749,6 @@ a {
 
 .article-card-topline,
 .article-card-footer,
-.detail-actions,
 .modal-actions,
 .detail-header {
   display: flex;
@@ -1004,6 +1011,12 @@ a {
   padding: 26px;
 }
 
+.detail-page.is-editing {
+  height: auto;
+  min-height: calc(100vh - 36px);
+  overflow: visible;
+}
+
 .empty-detail,
 .empty-state,
 .loading-state {
@@ -1029,7 +1042,6 @@ a {
   gap: 16px;
 }
 
-.detail-topbar,
 .detail-topbar-actions {
   display: flex;
   align-items: center;
@@ -1037,19 +1049,60 @@ a {
   gap: 10px;
 }
 
+.detail-topbar {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-back-button {
+  justify-self: start;
+  width: auto;
+  min-width: 112px;
+}
+
 .detail-topbar-actions {
   justify-content: flex-end;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .detail-topbar .v-btn {
-  min-height: 44px;
-  height: 44px;
+  min-height: 42px;
+  height: 42px;
 }
 
 .detail-topbar .v-btn--icon {
-  width: 44px;
-  min-width: 44px;
+  width: 42px;
+  min-width: 42px;
   padding: 0;
+}
+
+.detail-mode-toggle {
+  display: inline-flex;
+  justify-self: center;
+  height: 46px;
+  width: 184px;
+  padding: 5px;
+  overflow: visible;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(222, 217, 206, 0.86);
+  border-radius: 8px;
+}
+
+.detail-mode-toggle .v-btn {
+  flex: 1 1 0;
+  height: 36px;
+  min-height: 36px;
+  min-width: 0;
+  border-radius: 7px;
+  font-weight: 800;
+}
+
+.detail-mode-toggle .v-btn--active {
+  color: #ffffff !important;
+  background: var(--accent-strong) !important;
 }
 
 .detail-header {
@@ -1246,14 +1299,6 @@ a {
 .detail-meta .star-rating-button {
   width: 28px;
   height: 28px;
-}
-
-.detail-delete-block {
-  align-items: center;
-}
-
-.detail-delete-block .detail-actions {
-  justify-content: flex-start;
 }
 
 .field-row {
@@ -1840,7 +1885,22 @@ a {
   }
 
   .detail-topbar {
+    grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .detail-back-button {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .detail-mode-toggle,
+  .detail-topbar-actions {
+    justify-self: stretch;
+  }
+
+  .detail-mode-toggle .v-btn {
+    flex: 1 1 0;
   }
 
   .search-filter-bar .v-btn {
