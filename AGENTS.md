@@ -70,8 +70,11 @@
 
 - コードを変更した場合は、その変更に影響するドキュメントも同じ作業内で更新する
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
+- 今後追加したい機能や構想段階のアイデアは、まず `docs/requirements/future-considerations.md` に整理する
+- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification.md` または `docs/specification/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
   - 要件や目的の変更: `docs/requirements.md`
+  - 構想段階の追加候補や将来案: `docs/requirements/future-considerations.md`
   - 機能仕様や API 契約の変更: `docs/specification.md`
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture.md`
   - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/design.md`
