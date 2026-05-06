@@ -436,7 +436,7 @@ a {
   grid-template-columns: var(--article-thumb-width) minmax(0, 1fr);
   gap: 16px;
   height: 100%;
-  padding: 14px 14px 16px;
+  padding: 14px 14px 4px;
 }
 
 .article-card:hover,
@@ -473,7 +473,7 @@ a {
 
 .article-card-body {
   display: grid;
-  grid-template-rows: 24px 28px 44px 30px;
+  grid-template-rows: 24px 28px 44px 34px;
   row-gap: 4px;
   min-width: 0;
   min-height: 0;
@@ -512,7 +512,36 @@ a {
 }
 
 .article-card-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-self: start;
+  padding-top: 8px;
+  overflow: hidden;
+}
+
+.card-date-list {
+  display: inline-grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  gap: 6px;
+  flex: 0 1 auto;
+  align-items: center;
+  height: 18px;
+  margin-left: auto;
+  min-width: 0;
+  color: var(--muted);
+  overflow: hidden;
+}
+
+.card-date-list > svg {
+  align-self: center;
+  color: var(--muted);
+}
+
+.card-date-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -562,16 +591,25 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 26px;
+  max-height: 8px;
   overflow: hidden;
 }
 
 .article-meta-group {
   display: grid;
-  grid-template-columns: 78px minmax(0, 1fr);
-  gap: 10px;
+  grid-template-rows: 18px 8px;
+  gap: 0;
   align-items: start;
   min-width: 0;
+  overflow: hidden;
+}
+
+.article-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  height: 18px;
   overflow: hidden;
 }
 
@@ -591,18 +629,14 @@ a {
 }
 
 .date-meta {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 5px;
-  max-width: 150px;
+  display: inline-block;
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: hidden;
+  font-size: 0.78rem;
+  line-height: 18px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.date-meta svg {
-  flex: 0 0 auto;
 }
 
 .detail-page {

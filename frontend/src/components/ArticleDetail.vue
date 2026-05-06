@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Pencil, Save, Trash2, X } from 'lucide-vue-next'
 import StarRating from './StarRating.vue'
 import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
+import { formatDateTime } from '../utils/dateFormat'
 
 interface ArticleDetailForm {
   id: string
@@ -45,16 +46,6 @@ const statusLabelMap = {
 } satisfies Record<Exclude<ArticleStatus, 'ALL'>, string>
 const summaryText = computed(() => props.article?.summary?.trim() || '概要はまだありません')
 const notesText = computed(() => props.article?.notes?.trim() || 'メモはまだありません')
-const formattedReadDate = computed(() => {
-  if (!props.article?.readDate) return '未設定'
-  const parsed = new Date(props.article.readDate)
-  if (Number.isNaN(parsed.getTime())) return props.article.readDate
-  return new Intl.DateTimeFormat('ja-JP', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  }).format(parsed)
-})
 
 watch(
   () => props.article,
@@ -271,6 +262,30 @@ function confirmDelete(): void {
                 hide-details
                 variant="outlined"
                 :clearable="isEditing"
+              />
+            </div>
+
+            <div class="detail-meta-block">
+              <span class="detail-meta-label">登録日時</span>
+              <VTextField
+                class="readstack-date-field detail-meta-control"
+                :model-value="formatDateTime(article.createdAt)"
+                density="comfortable"
+                disabled
+                hide-details
+                variant="outlined"
+              />
+            </div>
+
+            <div class="detail-meta-block">
+              <span class="detail-meta-label">更新日時</span>
+              <VTextField
+                class="readstack-date-field detail-meta-control"
+                :model-value="formatDateTime(article.updatedAt)"
+                density="comfortable"
+                disabled
+                hide-details
+                variant="outlined"
               />
             </div>
 

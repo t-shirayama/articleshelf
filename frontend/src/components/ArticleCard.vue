@@ -3,6 +3,7 @@ import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star, Trash2 } fro
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { loadThumbnailFromCache } from '../services/thumbnailCache'
 import type { Article } from '../types'
+import { formatDate } from '../utils/dateFormat'
 
 const props = withDefaults(defineProps<{
   article: Article
@@ -148,17 +149,22 @@ function domainFrom(url: string): string {
         <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
         <div class="article-card-footer">
           <div class="article-meta-group">
-            <div class="rating-inline" :class="{ 'is-empty': article.rating <= 0 }" :aria-label="`おすすめ度 ${article.rating} / 5`">
-              <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
+            <div class="article-meta-line">
+              <div class="rating-inline" :class="{ 'is-empty': article.rating <= 0 }" :aria-label="`おすすめ度 ${article.rating} / 5`">
+                <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
+              </div>
+              <div class="card-date-list" aria-label="記事の日付">
+                <CalendarDays :size="14" />
+                <div class="card-date-values">
+                  <span v-if="article.createdAt" class="date-meta">登録 {{ formatDate(article.createdAt) }}</span>
+                  <span class="date-meta">読了 {{ formatDate(article.readDate) }}</span>
+                </div>
+              </div>
             </div>
             <div class="tag-list">
               <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
             </div>
           </div>
-          <span v-if="article.readDate" class="date-meta">
-            <CalendarDays :size="14" />
-            {{ article.readDate }}
-          </span>
         </div>
       </div>
     </div>
