@@ -13,8 +13,8 @@ import java.util.regex.Pattern;
 
 @Component
 public class OgpClient {
-    private static final Pattern OGP_TITLE = Pattern.compile("<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>", Pattern.CASE_INSENSITIVE);
-    private static final Pattern OGP_DESCRIPTION = Pattern.compile("<meta[^>]+property=[\"']og:description[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern META_TAG = Pattern.compile("<meta\\s+[^>]*>", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ATTRIBUTE = Pattern.compile("([\\w:-]+)\\s*=\\s*([\"'])(.*?)\\2", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern HTML_TITLE = Pattern.compile("<title[^>]*>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -34,13 +34,50 @@ public class OgpClient {
                 return OgpMetadata.empty();
             }
             String body = response.body();
+            String title = extractMeta(body, "og:title").or(() -> extract(HTML_TITLE, body)).orElse("");
+            String description = extractMeta(body, "og:description")
+                    .or(() -> extractMeta(body, "description"))
+                    .orElse("");
+            String imageUrl = extractMeta(body, "og:image")
+                    .or(() -> extractMeta(body, "twitter:image"))
+                    .map(image -> resolveUrl(url, image))
+                    .orElse("");
             return new OgpMetadata(
-                    extract(OGP_TITLE, body).or(() -> extract(HTML_TITLE, body)).orElse(""),
-                    extract(OGP_DESCRIPTION, body).orElse("")
+                    title,
+                    description,
+                    imageUrl
             );
         } catch (Exception ignored) {
             return OgpMetadata.empty();
         }
+    }
+
+    private Optional<String> extractMeta(String html, String key) {
+        Matcher matcher = META_TAG.matcher(html);
+        while (matcher.find()) {
+            String tag = matcher.group();
+            String content = null;
+            String property = null;
+            String name = null;
+
+            Matcher attributeMatcher = ATTRIBUTE.matcher(tag);
+            while (attributeMatcher.find()) {
+                String attributeName = attributeMatcher.group(1).toLowerCase();
+                String attributeValue = clean(attributeMatcher.group(3));
+                if ("content".equals(attributeName)) {
+                    content = attributeValue;
+                } else if ("property".equals(attributeName)) {
+                    property = attributeValue;
+                } else if ("name".equals(attributeName)) {
+                    name = attributeValue;
+                }
+            }
+
+            if (content != null && (key.equalsIgnoreCase(property) || key.equalsIgnoreCase(name))) {
+                return Optional.of(content);
+            }
+        }
+        return Optional.empty();
     }
 
     private Optional<String> extract(Pattern pattern, String html) {
@@ -60,5 +97,13 @@ public class OgpClient {
                 .replace("&#39;", "'")
                 .replaceAll("\\s+", " ")
                 .trim();
+    }
+
+    private String resolveUrl(String pageUrl, String imageUrl) {
+        try {
+            return URI.create(pageUrl).resolve(imageUrl).toString();
+        } catch (Exception ignored) {
+            return imageUrl;
+        }
     }
 }

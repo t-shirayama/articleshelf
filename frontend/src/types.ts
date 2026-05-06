@@ -13,6 +13,7 @@ export interface Article {
   url: string
   title: string
   summary?: string | null
+  thumbnailUrl?: string | null
   status: Exclude<ArticleStatus, 'ALL'>
   readDate?: string | null
   favorite: boolean

@@ -73,6 +73,7 @@
   - url: VARCHAR
   - title: VARCHAR
   - summary: TEXT
+  - thumbnail_url: VARCHAR
   - status: VARCHAR
   - read_date: DATE
   - favorite: BOOLEAN

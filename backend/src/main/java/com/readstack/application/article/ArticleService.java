@@ -63,6 +63,7 @@ public class ArticleService {
                 command.url(),
                 firstPresent(command.title(), metadata.title(), command.url()),
                 firstPresent(command.summary(), metadata.description(), ""),
+                metadata.imageUrl(),
                 command.status(),
                 command.readDate(),
                 Boolean.TRUE.equals(command.favorite()),
@@ -82,12 +83,15 @@ public class ArticleService {
         if (articleRepository.existsByUrlAndIdNot(command.url(), id)) {
             throw new DuplicateArticleUrlException(command.url());
         }
+        boolean shouldRefreshMetadata = !command.url().equals(current.getUrl()) || current.getThumbnailUrl().isBlank();
+        OgpMetadata metadata = shouldRefreshMetadata ? ogpService.fetch(command.url()) : OgpMetadata.empty();
 
         Article updated = new Article(
                 current.getId(),
                 command.url(),
                 firstPresent(command.title(), current.getTitle()),
                 command.summary(),
+                firstPresent(metadata.imageUrl(), current.getThumbnailUrl()),
                 command.status() == null ? current.getStatus() : command.status(),
                 command.readDate(),
                 command.favorite() == null ? current.isFavorite() : command.favorite(),

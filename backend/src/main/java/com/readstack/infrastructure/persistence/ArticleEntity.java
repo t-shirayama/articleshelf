@@ -35,6 +35,9 @@ public class ArticleEntity {
     @Column(columnDefinition = "TEXT")
     private String summary;
 
+    @Column(length = 2048)
+    private String thumbnailUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ArticleStatus status;
@@ -108,6 +111,14 @@ public class ArticleEntity {
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
+
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
     }
 
     public ArticleStatus getStatus() {

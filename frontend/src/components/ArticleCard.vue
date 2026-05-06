@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star } from 'lucide-vue-next'
+import { ref, watch } from 'vue'
 import type { Article } from '../types'
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   article: Article
   selected?: boolean
 }>(), {
@@ -13,6 +14,12 @@ const emit = defineEmits<{
   click: []
   'toggle-favorite': []
 }>()
+
+const thumbnailFailed = ref(false)
+
+watch(() => props.article.thumbnailUrl, () => {
+  thumbnailFailed.value = false
+})
 
 function domainFrom(url: string): string {
   try {
@@ -36,7 +43,14 @@ function domainFrom(url: string): string {
   >
     <div class="article-card-content">
       <div class="article-thumb">
-        <Bookmark :size="24" />
+        <img
+          v-if="article.thumbnailUrl && !thumbnailFailed"
+          :src="article.thumbnailUrl"
+          :alt="`${article.title} のサムネイル`"
+          loading="lazy"
+          @error="thumbnailFailed = true"
+        >
+        <Bookmark v-else :size="24" />
       </div>
       <div class="article-card-body">
         <div class="article-card-topline">

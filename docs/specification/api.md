@@ -5,6 +5,7 @@
 ### `GET /api/articles`
 
 - 説明: 記事一覧を取得
+- レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
 - パラメータ: `status`, `tag`, `search`, `favorite`
 - `status` は `UNREAD` または `READ`
 - `favorite` は `true` または `false`
@@ -13,6 +14,7 @@
 ### `GET /api/articles/{id}`
 
 - 説明: 記事詳細を取得
+- レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
 
 ### `POST /api/articles`
 

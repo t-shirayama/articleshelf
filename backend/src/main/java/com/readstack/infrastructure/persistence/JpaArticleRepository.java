@@ -51,6 +51,7 @@ public class JpaArticleRepository implements ArticleRepository {
         entity.setUrl(article.getUrl());
         entity.setTitle(article.getTitle());
         entity.setSummary(article.getSummary());
+        entity.setThumbnailUrl(article.getThumbnailUrl());
         entity.setStatus(article.getStatus());
         entity.setReadDate(article.getReadDate());
         entity.setFavorite(article.isFavorite());
@@ -102,6 +103,7 @@ public class JpaArticleRepository implements ArticleRepository {
                 entity.getUrl(),
                 entity.getTitle(),
                 entity.getSummary(),
+                entity.getThumbnailUrl(),
                 entity.getStatus(),
                 entity.getReadDate(),
                 entity.isFavorite(),

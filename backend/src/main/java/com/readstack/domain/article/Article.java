@@ -11,6 +11,7 @@ public class Article {
     private String url;
     private String title;
     private String summary;
+    private String thumbnailUrl;
     private ArticleStatus status;
     private LocalDate readDate;
     private boolean favorite;
@@ -25,6 +26,7 @@ public class Article {
             String url,
             String title,
             String summary,
+            String thumbnailUrl,
             ArticleStatus status,
             LocalDate readDate,
             boolean favorite,
@@ -38,6 +40,7 @@ public class Article {
         this.url = url;
         this.title = title;
         this.summary = summary == null ? "" : summary;
+        this.thumbnailUrl = thumbnailUrl == null ? "" : thumbnailUrl;
         this.status = status == null ? ArticleStatus.UNREAD : status;
         this.readDate = readDate;
         this.favorite = favorite;
@@ -62,6 +65,10 @@ public class Article {
 
     public String getSummary() {
         return summary;
+    }
+
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
     }
 
     public ArticleStatus getStatus() {
