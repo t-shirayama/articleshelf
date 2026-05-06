@@ -1,20 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue'
-import StarRating from './StarRating.vue'
+import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
+import { createEmptyArticleCreateForm, createFormToArticleInput } from '../domain/articleForms'
 import type { ArticleInput, Tag } from '../types'
-
-interface ArticleFormState {
-  url: string
-  title: string
-  summary: string
-  readLater: boolean
-  readDate: string | null
-  favorite: boolean
-  rating: number
-  notes: string
-  tags: string[]
-}
 
 const props = withDefaults(defineProps<{
   open?: boolean
@@ -34,7 +23,7 @@ const emit = defineEmits<{
   submit: [article: ArticleInput]
 }>()
 
-const form = reactive(defaultForm())
+const form = reactive(createEmptyArticleCreateForm())
 const submitted = ref(false)
 const urlInput = ref<{ focus: () => void } | null>(null)
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
@@ -44,26 +33,12 @@ watch(
   () => props.open,
   (open) => {
     if (open) {
-      Object.assign(form, defaultForm())
+      Object.assign(form, createEmptyArticleCreateForm())
       submitted.value = false
       focusUrlInput()
     }
   }
 )
-
-function defaultForm(): ArticleFormState {
-  return {
-    url: '',
-    title: '',
-    summary: '',
-    readLater: true,
-    readDate: null,
-    favorite: false,
-    rating: 0,
-    notes: '',
-    tags: []
-  }
-}
 
 function focusUrlInput(): void {
   nextTick(() => {
@@ -86,19 +61,7 @@ function submit(): void {
   submitted.value = true
   if (urlError.value) return
 
-  const readLater = form.readLater
-  const tags = [...new Set(form.tags.map((tag) => tag.trim()).filter(Boolean))]
-  emit('submit', {
-    url: form.url.trim(),
-    title: form.title,
-    summary: form.summary,
-    status: readLater ? 'UNREAD' : 'READ',
-    readDate: readLater ? null : form.readDate || null,
-    favorite: form.favorite,
-    rating: form.rating,
-    notes: form.notes,
-    tags
-  })
+  emit('submit', createFormToArticleInput(form))
 }
 </script>
 

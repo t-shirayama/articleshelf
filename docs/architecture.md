@@ -12,10 +12,15 @@
 
 ### 2.1 フロントエンド
 
-- `pages` / `views`: 画面コンポーネント
-- `components`: 共有コンポーネント
-- `store`: アプリ状態管理
-- `services`: API呼び出しラッパー
+- `features/articles`: 記事管理機能の画面、コンポーネント、Pinia store、API adapter、ドメイン helper
+- `features/articles/views`: 一覧 / カレンダー / 詳細を切り替える feature workspace
+- `features/articles/components`: 記事カード、詳細、追加モーダル、フィルタ、サイドバーなど記事機能の UI
+- `features/articles/domain`: フィルタ、ソート、フォーム変換、API 入力変換など副作用を持たない関数
+- `features/articles/api`: 記事 / タグ API を型付きで呼び出す feature adapter
+- `shared`: API client、共通 UI、IndexedDB キャッシュ、日付 formatting など機能横断の部品
+- `styles`: design token、base、layout、controls、feature styles、responsive を責務単位で分割
+- `App.vue`: Vuetify アプリの最上位 shell と feature workspace の接続
+- `services/api.ts` / `types.ts`: 既存 import 互換の re-export
 - `Vuetify`: ボタン、入力、カード、ダイアログ、チップなどのUIコンポーネント
 
 ### 2.2 バックエンド

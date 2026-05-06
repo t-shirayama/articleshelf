@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Bookmark, CalendarDays, Check, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { loadThumbnailFromCache } from '../services/thumbnailCache'
+import { loadThumbnailFromCache } from '../../../shared/services/thumbnailCache'
 import type { Article } from '../types'
-import { formatDate } from '../utils/dateFormat'
+import { formatDate } from '../../../shared/utils/dateFormat'
 
 const props = withDefaults(defineProps<{
   article: Article

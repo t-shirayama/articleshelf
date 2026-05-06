@@ -1,0 +1,56 @@
+.readstack-select .v-field {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.88),
+    rgba(238, 245, 242, 0.96)
+  );
+  border-radius: 10px;
+  box-shadow:
+    inset 0 0 0 1px rgba(24, 108, 116, 0.16),
+    0 5px 12px rgba(24, 108, 116, 0.08);
+}
+
+.readstack-select .v-field__outline {
+  color: rgba(24, 108, 116, 0.42);
+}
+
+.readstack-select .v-label {
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.readstack-select .v-select__selection-text {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.readstack-select .v-field__append-inner {
+  color: var(--accent-strong);
+  padding-inline-start: 6px;
+}
+
+.readstack-select:hover .v-field {
+  background: linear-gradient(180deg, #ffffff, rgba(232, 243, 239, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(24, 108, 116, 0.28),
+    0 8px 16px rgba(24, 108, 116, 0.1);
+}
+
+.search-filter-bar > .v-btn {
+  height: var(--header-control-height);
+  min-height: var(--header-control-height);
+  padding-inline: 12px;
+}
+
+.article-list {
+  flex: 1 1 auto;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+

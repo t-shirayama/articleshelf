@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
-import { api } from '../services/api'
+import { articlesApi } from '../api/articlesApi'
+import { createDefaultArticleFilters, filterArticles, sortArticles } from '../domain/articleFilters'
+import { replaceArticle, toArticleInput } from '../domain/articleMappers'
 import type { Article, ArticleFilters, ArticleInput, ArticleSort, ArticleStatus, Tag } from '../types'
 
 interface ArticlesState {
@@ -18,29 +20,14 @@ export const useArticlesStore = defineStore('articles', {
     allArticles: [],
     tags: [],
     selectedArticle: null,
-    filters: {
-      status: 'ALL',
-      tags: [],
-      ratings: [],
-      createdRange: {
-        from: '',
-        to: ''
-      },
-      readRange: {
-        from: '',
-        to: ''
-      },
-      search: '',
-      favorite: false,
-      sort: 'CREATED_DESC'
-    },
+    filters: createDefaultArticleFilters(),
     loading: false,
     error: ''
   }),
   getters: {
-    filteredArticles: (state): Article[] => state.articles.filter((article) => matchesFilters(article, state.filters)),
+    filteredArticles: (state): Article[] => filterArticles(state.articles, state.filters),
     sortedArticles(): Article[] {
-      return [...this.filteredArticles].sort((left, right) => compareArticles(left, right, this.filters.sort))
+      return sortArticles(this.filteredArticles, this.filters.sort)
     },
     counts: (state) => ({
       all: state.articles.length,
@@ -54,7 +41,7 @@ export const useArticlesStore = defineStore('articles', {
       this.loading = true
       this.error = ''
       try {
-        const articles = await api.findArticles(allArticleFilters())
+        const articles = await articlesApi.findArticles(createDefaultArticleFilters())
         this.articles = articles
         this.allArticles = articles
         if (this.selectedArticle) {
@@ -68,23 +55,23 @@ export const useArticlesStore = defineStore('articles', {
       }
     },
     async fetchTags(): Promise<void> {
-      this.tags = await api.findTags()
+      this.tags = await articlesApi.findTags()
     },
     async selectArticle(article: Article): Promise<void> {
-      this.selectedArticle = await api.findArticle(article.id)
+      this.selectedArticle = await articlesApi.findArticle(article.id)
     },
     async selectArticleById(articleId: string): Promise<void> {
-      this.selectedArticle = await api.findArticle(articleId)
+      this.selectedArticle = await articlesApi.findArticle(articleId)
     },
     async createArticle(article: ArticleInput): Promise<void> {
-      const created = await api.createArticle(article)
+      const created = await articlesApi.createArticle(article)
       await this.fetchTags()
       await this.fetchArticles()
       this.selectedArticle = created
     },
     async updateArticle(article: ArticleInput): Promise<void> {
       if (!article.id) throw new Error('更新対象の記事IDがありません')
-      const updated = await api.updateArticle(article.id, article)
+      const updated = await articlesApi.updateArticle(article.id, article)
       await this.fetchTags()
       await this.fetchArticles()
       this.selectedArticle = updated
@@ -98,7 +85,7 @@ export const useArticlesStore = defineStore('articles', {
       this.applyArticleUpdate(optimisticArticle)
 
       try {
-        const updated = await api.updateArticle(article.id, toArticleInput(optimisticArticle))
+        const updated = await articlesApi.updateArticle(article.id, toArticleInput(optimisticArticle))
         this.applyArticleUpdate(updated)
       } catch (error: unknown) {
         this.articles = previousArticles
@@ -116,7 +103,7 @@ export const useArticlesStore = defineStore('articles', {
       this.applyArticleUpdate(optimisticArticle)
 
       try {
-        const updated = await api.updateArticle(article.id, toArticleInput(optimisticArticle))
+        const updated = await articlesApi.updateArticle(article.id, toArticleInput(optimisticArticle))
         this.applyArticleUpdate(updated)
         return updated
       } catch (error: unknown) {
@@ -136,7 +123,7 @@ export const useArticlesStore = defineStore('articles', {
       }
     },
     async deleteArticle(articleId: string): Promise<void> {
-      await api.deleteArticle(articleId)
+      await articlesApi.deleteArticle(articleId)
       this.selectedArticle = null
       await this.fetchTags()
       await this.fetchArticles()
@@ -184,125 +171,3 @@ export const useArticlesStore = defineStore('articles', {
     }
   }
 })
-
-function compareArticles(left: Article, right: Article, sort: ArticleSort): number {
-  switch (sort) {
-    case 'CREATED_ASC':
-      return compareDate(left.createdAt, right.createdAt)
-    case 'UPDATED_DESC':
-      return compareDate(right.updatedAt, left.updatedAt)
-    case 'READ_DATE_DESC':
-      return compareDate(right.readDate, left.readDate) || compareDate(right.updatedAt, left.updatedAt)
-    case 'TITLE_ASC':
-      return left.title.localeCompare(right.title, 'ja')
-    case 'RATING_DESC':
-      return right.rating - left.rating || compareDate(right.updatedAt, left.updatedAt)
-    case 'CREATED_DESC':
-    default:
-      return compareDate(right.createdAt, left.createdAt)
-  }
-}
-
-function compareDate(left?: string | null, right?: string | null): number {
-  const leftTime = left ? Date.parse(left) : Number.NEGATIVE_INFINITY
-  const rightTime = right ? Date.parse(right) : Number.NEGATIVE_INFINITY
-  return leftTime - rightTime
-}
-
-function replaceArticle(articles: Article[], updated: Article): Article[] {
-  return articles.map((article) => article.id === updated.id ? updated : article)
-}
-
-function toArticleInput(article: Article): ArticleInput {
-  return {
-    id: article.id,
-    url: article.url,
-    title: article.title,
-    summary: article.summary || '',
-    status: article.status,
-    readDate: article.readDate || null,
-    favorite: article.favorite,
-    rating: article.rating,
-    notes: article.notes || '',
-    tags: article.tags?.map((tag) => tag.name).filter(Boolean) || []
-  }
-}
-
-function allArticleFilters(): ArticleFilters {
-  return {
-    status: 'ALL',
-    tags: [],
-    ratings: [],
-    createdRange: {
-      from: '',
-      to: ''
-    },
-    readRange: {
-      from: '',
-      to: ''
-    },
-    search: '',
-    favorite: false,
-    sort: 'CREATED_DESC'
-  }
-}
-
-function matchesFilters(article: Article, filters: ArticleFilters): boolean {
-  if (filters.status !== 'ALL' && article.status !== filters.status) {
-    return false
-  }
-
-  if (filters.favorite && !article.favorite) {
-    return false
-  }
-
-  if (filters.tags.length > 0) {
-    const articleTagNames = article.tags.map((tag) => tag.name)
-    const matchesTag = filters.tags.some((tag) => articleTagNames.includes(tag))
-    if (!matchesTag) {
-      return false
-    }
-  }
-
-  if (filters.ratings.length > 0 && !filters.ratings.includes(article.rating)) {
-    return false
-  }
-
-  if (!matchesDateRange(article.createdAt, filters.createdRange.from, filters.createdRange.to)) {
-    return false
-  }
-
-  if (!matchesDateRange(article.readDate, filters.readRange.from, filters.readRange.to)) {
-    return false
-  }
-
-  if (!matchesSearch(article, filters.search)) {
-    return false
-  }
-
-  return true
-}
-
-function matchesSearch(article: Article, search: string): boolean {
-  const keyword = search.trim().toLocaleLowerCase('ja')
-  if (!keyword) return true
-
-  const haystacks = [
-    article.title,
-    article.url,
-    article.notes || '',
-    article.tags.map((tag) => tag.name).join(' ')
-  ]
-
-  return haystacks.some((value) => value.toLocaleLowerCase('ja').includes(keyword))
-}
-
-function matchesDateRange(value: string | null | undefined, from: string, to: string): boolean {
-  if (!from && !to) return true
-  if (!value) return false
-
-  const target = value.slice(0, 10)
-  if (from && target < from) return false
-  if (to && target > to) return false
-  return true
-}

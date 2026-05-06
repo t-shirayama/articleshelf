@@ -1,23 +1,16 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
-import StarRating from './StarRating.vue'
+import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
+import {
+  articleToDetailForm,
+  createEmptyArticleDetailForm,
+  detailFormToArticleInput,
+  favoriteToggleInput
+} from '../domain/articleForms'
 import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
-import { formatDateTime } from '../utils/dateFormat'
-
-interface ArticleDetailForm {
-  id: string
-  url: string
-  title: string
-  summary: string
-  status: Exclude<ArticleStatus, 'ALL'>
-  readDate: string | null
-  favorite: boolean
-  rating: number
-  notes: string
-  tags: string[]
-}
+import { formatDateTime } from '../../../shared/utils/dateFormat'
 
 const props = withDefaults(defineProps<{
   article?: Article | null
@@ -33,7 +26,7 @@ const emit = defineEmits<{
   delete: [articleId: string]
 }>()
 
-const form = reactive(emptyForm())
+const form = reactive(createEmptyArticleDetailForm())
 const deleteDialogOpen = ref(false)
 const isEditing = ref(false)
 const detailMode = computed<'view' | 'edit'>({
@@ -60,59 +53,25 @@ const notesText = computed(() => props.article?.notes?.trim() || '')
 watch(
   () => props.article,
   (article) => {
-    Object.assign(form, article ? toForm(article) : emptyForm())
+    Object.assign(form, article ? articleToDetailForm(article) : createEmptyArticleDetailForm())
     isEditing.value = false
   },
   { immediate: true }
 )
 
-function emptyForm(): ArticleDetailForm {
-  return {
-    id: '',
-    url: '',
-    title: '',
-    summary: '',
-    status: 'UNREAD',
-    readDate: null,
-    favorite: false,
-    rating: 0,
-    notes: '',
-    tags: []
-  }
-}
-
-function toForm(article: Article): ArticleDetailForm {
-  return {
-    id: article.id,
-    url: article.url,
-    title: article.title,
-    summary: article.summary || '',
-    status: article.status || 'UNREAD',
-    readDate: article.readDate || null,
-    favorite: article.favorite,
-    rating: article.rating || 0,
-    notes: article.notes || '',
-    tags: article.tags?.map((tag) => tag.name) || []
-  }
-}
-
 function submit(): void {
-  emit('save', {
-    ...form,
-    tags: [...new Set(form.tags.map((tag) => tag.trim()).filter(Boolean))],
-    readDate: form.readDate || null
-  })
+  emit('save', detailFormToArticleInput(form))
   isEditing.value = false
 }
 
 function startEditing(): void {
   if (!props.article) return
-  Object.assign(form, toForm(props.article))
+  Object.assign(form, articleToDetailForm(props.article))
   isEditing.value = true
 }
 
 function cancelEditing(): void {
-  Object.assign(form, props.article ? toForm(props.article) : emptyForm())
+  Object.assign(form, props.article ? articleToDetailForm(props.article) : createEmptyArticleDetailForm())
   isEditing.value = false
 }
 
@@ -123,12 +82,7 @@ function toggleFavorite(): void {
     return
   }
 
-  emit('save', {
-    ...toForm(props.article),
-    tags: props.article.tags.map((tag) => tag.name),
-    readDate: props.article.readDate || null,
-    favorite: !props.article.favorite
-  })
+  emit('save', favoriteToggleInput(props.article))
 }
 
 function confirmDelete(): void {
