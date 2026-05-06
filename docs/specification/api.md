@@ -6,6 +6,8 @@
 
 - 説明: 記事一覧を取得
 - パラメータ: `status`, `tag`, `search`, `favorite`
+- `status` は `UNREAD` または `READ`
+- `favorite` は `true` または `false`
 - 備考: 並び替えは現状フロントエンド側で実施する
 
 ### `GET /api/articles/{id}`
@@ -33,3 +35,11 @@
 ### `POST /api/tags`
 
 - 説明: タグを追加
+
+## エラーレスポンス
+
+- バリデーションエラーや不正なパラメータは `400 Bad Request`
+- 存在しない記事 ID は `404 Not Found`
+- 重複 URL は `409 Conflict`
+- エラー時のレスポンス形式は `timestamp` と `messages` を持つ JSON
+- `status` の不正値、`id` の不正な UUID、`readDate` の不正な日付形式も `messages` 配列に説明文を入れて返す
