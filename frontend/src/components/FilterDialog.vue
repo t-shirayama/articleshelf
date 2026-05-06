@@ -116,7 +116,7 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
             <strong>おすすめ度</strong>
-            <span>未設定を含めて、左から低い順に複数選択できます</span>
+            <span>複数選択したおすすめ度のいずれかに一致する記事を表示します</span>
           </div>
           <div class="filter-rating-grid">
             <VBtn
