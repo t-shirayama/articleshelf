@@ -1,12 +1,12 @@
 const DB_NAME = 'readstack-thumbnail-cache'
-const DB_VERSION = 1
+const DB_VERSION = 2
 const STORE_NAME = 'thumbnails'
 const FAILURE_RETRY_MS = 24 * 60 * 60 * 1000
 const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024
 
 interface ThumbnailCacheRecord {
   url: string
-  blob?: Blob
+  imageBlob?: Blob
   cachedAt?: number
   failedAt?: number
 }
@@ -31,7 +31,7 @@ async function loadThumbnail(url: string): Promise<string | null> {
 
   const db = await openDatabase()
   const cached = await getRecord(db, url)
-  if (cached?.blob) return URL.createObjectURL(cached.blob)
+  if (cached?.imageBlob) return URL.createObjectURL(cached.imageBlob)
   if (cached?.failedAt && Date.now() - cached.failedAt < FAILURE_RETRY_MS) return null
 
   try {
@@ -46,11 +46,11 @@ async function loadThumbnail(url: string): Promise<string | null> {
     const contentType = response.headers.get('content-type') || ''
     if (!contentType.startsWith('image/')) throw new Error(`Unsupported thumbnail content type: ${contentType}`)
 
-    const blob = await response.blob()
-    if (blob.size > MAX_THUMBNAIL_BYTES) throw new Error('Thumbnail is too large to cache')
+    const imageBlob = await response.blob()
+    if (imageBlob.size > MAX_THUMBNAIL_BYTES) throw new Error('Thumbnail is too large to cache')
 
-    await putRecord(db, { url, blob, cachedAt: Date.now() })
-    return URL.createObjectURL(blob)
+    await putRecord(db, { url, imageBlob, cachedAt: Date.now() })
+    return URL.createObjectURL(imageBlob)
   } catch {
     await putRecord(db, { url, failedAt: Date.now() })
     return null
@@ -66,11 +66,38 @@ function openDatabase(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(STORE_NAME)) {
         db.createObjectStore(STORE_NAME, { keyPath: 'url' })
       }
+
+      normalizeLegacyRecords(db)
     }
 
     request.onsuccess = () => resolve(request.result)
     request.onerror = () => reject(request.error)
   })
+}
+
+function normalizeLegacyRecords(db: IDBDatabase): void {
+  const transaction = db.transaction(STORE_NAME, 'readwrite')
+  const store = transaction.objectStore(STORE_NAME)
+  const request = store.openCursor()
+
+  request.onsuccess = () => {
+    const cursor = request.result
+    if (!cursor) return
+
+    const record = cursor.value as ThumbnailCacheRecord & { blob?: Blob }
+    const legacyBlob = record.blob instanceof Blob ? record.blob : undefined
+
+    if (legacyBlob && !record.imageBlob) {
+      cursor.update({
+        url: record.url,
+        imageBlob: legacyBlob,
+        cachedAt: record.cachedAt,
+        failedAt: record.failedAt
+      } satisfies ThumbnailCacheRecord)
+    }
+
+    cursor.continue()
+  }
 }
 
 function getRecord(db: IDBDatabase, url: string): Promise<ThumbnailCacheRecord | undefined> {
