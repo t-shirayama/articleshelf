@@ -6,7 +6,7 @@ ReadStackの機能仕様、データモデル、API仕様、UI仕様、非機能
 
 ## 目次
 
-- [機能仕様](specification/features.md): 記事一覧、記事詳細、記事追加、タグ管理、検索・フィルター
+- [機能仕様](specification/features.md): 記事一覧、記事詳細、カレンダー、記事追加、タグ管理、検索・フィルター
 - [データモデル](specification/data-model.md): Article、Tag、ArticleTag
 - [API仕様](specification/api.md): 記事API、タグAPI
 - [UI仕様](specification/ui.md): 共通、記事一覧画面、記事詳細画面、追加モーダル

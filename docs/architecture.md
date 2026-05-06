@@ -77,6 +77,7 @@
   - status: VARCHAR
   - read_date: DATE
   - favorite: BOOLEAN
+  - rating: INTEGER
   - notes: TEXT
   - created_at: TIMESTAMP
   - updated_at: TIMESTAMP
@@ -94,9 +95,11 @@
 ## 4. APIクライアントフロー
 
 - フロントエンドは `GET /api/articles` で一覧を取得
-- 検索やフィルター条件はクエリパラメータで送信
+- 初回取得では検索、ステータス、お気に入り条件をクエリパラメータで送信できる
+- 複数タグ、おすすめ度、登録日範囲、既読日範囲、並び替えは取得後にフロントエンド側の Pinia store で適用する
 - `POST /api/articles` で記事を追加
 - `PUT /api/articles/{id}` で記事を更新
+- 記事一覧カードの未読 / 既読切り替えとお気に入り切り替えは、フロントエンドで楽観的に反映してから `PUT /api/articles/{id}` で保存する
 - `GET /api/tags` でタグ一覧を取得
 - `POST /api/tags` でタグを追加
 - OGP画像はDB上の `thumbnail_url` を直接表示せず、記事カードのサムネイル領域が表示範囲に近づいた時だけフロントエンドが取得し、IndexedDBに画像Blobとして保存したものを表示する
@@ -104,7 +107,7 @@
 
 ## 5. 拡張ポイント
 
-- URLからOGP取得をバックエンドで実装
+- URLからOGP取得はバックエンドで実装済み。今後は手動再取得や保存済み画像の扱いを拡張できる
 - ユーザー認証を追加してユーザースコープを分離
 - 画像アップロードは将来的な拡張として検討
 - AI要約やメタ情報抽出をバックエンドで行う
