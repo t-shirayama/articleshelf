@@ -1211,17 +1211,33 @@ a {
 
 .filter-dialog-header {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px;
+  align-items: start;
 }
 
 .filter-dialog-header strong {
   font-size: 0.95rem;
 }
 
+.filter-dialog-header > div {
+  display: grid;
+  gap: 4px;
+}
+
 .filter-dialog-header span {
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.6;
+}
+
+.filter-section-clear {
+  align-self: start;
+  min-height: 32px;
+  padding-inline: 4px;
+  color: var(--accent-strong) !important;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .filter-rating-grid {
@@ -1310,6 +1326,10 @@ a {
   }
 
   .filter-date-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-dialog-header {
     grid-template-columns: 1fr;
   }
 

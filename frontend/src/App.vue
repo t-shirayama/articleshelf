@@ -50,7 +50,11 @@ const activeFilterSummary = computed<string[]>(() => {
   }
 
   if (store.filters.ratings.length > 0) {
-    const ratingText = store.filters.ratings.slice().sort((left, right) => right - left).join(', ')
+    const ratingText = store.filters.ratings
+      .slice()
+      .sort((left, right) => left - right)
+      .map((rating) => rating === 0 ? '未設定' : `${rating}`)
+      .join(', ')
     summary.push(`おすすめ度: ${ratingText}`)
   }
 

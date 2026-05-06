@@ -34,7 +34,14 @@ watch(() => props.filters, (value) => {
   }
 }, { deep: true })
 
-const ratingOptions = [5, 4, 3, 2, 1]
+const ratingOptions = [
+  { label: '未設定', value: 0 },
+  { label: '1 / 5', value: 1 },
+  { label: '2 / 5', value: 2 },
+  { label: '3 / 5', value: 3 },
+  { label: '4 / 5', value: 4 },
+  { label: '5 / 5', value: 5 }
+]
 const hasAnyDraft = computed(() => (
   draft.tags.length > 0 ||
   draft.ratings.length > 0 ||
@@ -53,6 +60,14 @@ function syncDraft(value: FilterDraft): void {
 
 function resetDraft(): void {
   syncDraft(createDraft())
+}
+
+function clearCreatedRange(): void {
+  draft.createdRange = { from: '', to: '' }
+}
+
+function clearReadRange(): void {
+  draft.readRange = { from: '', to: '' }
 }
 
 function applyFilters(): void {
@@ -101,26 +116,29 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
             <strong>おすすめ度</strong>
-            <span>該当する星の数を複数選べます</span>
+            <span>未設定を含めて、左から低い順に複数選択できます</span>
           </div>
           <div class="filter-rating-grid">
             <VBtn
               v-for="rating in ratingOptions"
-              :key="rating"
+              :key="rating.value"
               class="filter-rating-chip"
-              :class="{ 'is-active': draft.ratings.includes(rating) }"
+              :class="{ 'is-active': draft.ratings.includes(rating.value) }"
               variant="outlined"
-              @click="draft.ratings = draft.ratings.includes(rating) ? draft.ratings.filter(value => value !== rating) : [...draft.ratings, rating].sort((left, right) => left - right)"
+              @click="draft.ratings = draft.ratings.includes(rating.value) ? draft.ratings.filter(value => value !== rating.value) : [...draft.ratings, rating.value].sort((left, right) => left - right)"
             >
-              {{ rating }} / 5
+              {{ rating.label }}
             </VBtn>
           </div>
         </div>
 
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
-            <strong>登録日</strong>
-            <span>期間を指定して追加タイミングで絞り込みます</span>
+            <div>
+              <strong>登録日</strong>
+              <span>期間を指定して追加タイミングで絞り込みます</span>
+            </div>
+            <VBtn class="filter-section-clear" variant="text" :disabled="!draft.createdRange.from && !draft.createdRange.to" @click="clearCreatedRange">登録日のみクリア</VBtn>
           </div>
           <div class="filter-date-grid">
             <VTextField
@@ -144,8 +162,11 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
 
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
-            <strong>読了日</strong>
-            <span>読了済み記事だけを期間で見たいときに使えます</span>
+            <div>
+              <strong>読了日</strong>
+              <span>読了済み記事だけを期間で見たいときに使えます</span>
+            </div>
+            <VBtn class="filter-section-clear" variant="text" :disabled="!draft.readRange.from && !draft.readRange.to" @click="clearReadRange">読了日のみクリア</VBtn>
           </div>
           <div class="filter-date-grid">
             <VTextField
