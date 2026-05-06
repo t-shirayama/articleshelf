@@ -776,7 +776,7 @@ a {
   gap: 6px;
   flex: 0 1 auto;
   align-items: center;
-  height: 18px;
+  height: 20px;
   min-width: 0;
   color: var(--muted);
   overflow: hidden;
@@ -791,6 +791,7 @@ a {
   display: flex;
   align-items: center;
   gap: 8px;
+  height: 20px;
   min-width: 0;
   overflow: hidden;
 }
@@ -992,12 +993,14 @@ a {
 }
 
 .date-meta {
-  display: inline-block;
-  flex: 0 1 auto;
-  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  height: 20px;
+  min-width: 118px;
   overflow: hidden;
   font-size: 0.78rem;
-  line-height: 18px;
+  line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
