@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, nextTick, reactive, ref, watch } from 'vue'
 import StarRating from './StarRating.vue'
 import type { ArticleInput, Tag } from '../types'
 
@@ -35,6 +35,7 @@ const emit = defineEmits<{
 
 const form = reactive(defaultForm())
 const submitted = ref(false)
+const urlInput = ref<{ focus: () => void } | null>(null)
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
 const urlError = computed(() => (form.url.trim() ? '' : 'URLは必須です'))
 
@@ -51,6 +52,7 @@ watch(
     if (open) {
       Object.assign(form, defaultForm())
       submitted.value = false
+      focusUrlInput()
     }
   }
 )
@@ -67,6 +69,14 @@ function defaultForm(): ArticleFormState {
     notes: '',
     tags: []
   }
+}
+
+function focusUrlInput(): void {
+  nextTick(() => {
+    window.requestAnimationFrame(() => {
+      urlInput.value?.focus()
+    })
+  })
 }
 
 function submit(): void {
@@ -110,6 +120,7 @@ function submit(): void {
 
           <div class="modal-field">
             <VTextField
+              ref="urlInput"
               v-model="form.url"
               label="URL"
               type="url"
