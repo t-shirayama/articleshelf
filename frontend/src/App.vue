@@ -238,7 +238,6 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
       <main class="content">
         <header class="page-header">
           <div>
-            <p class="eyebrow">ReadStack</p>
             <h1>{{ pageTitle }}</h1>
           </div>
           <SearchFilterBar

@@ -180,7 +180,6 @@ function confirmDelete(): void {
 
       <div class="detail-header">
         <div>
-          <p class="eyebrow">Article Detail</p>
           <h2>{{ article.title }}</h2>
           <a :href="article.url" :title="article.url" target="_blank" rel="noreferrer">
             <ExternalLink :size="15" />
