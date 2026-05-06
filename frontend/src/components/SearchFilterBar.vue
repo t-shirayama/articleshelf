@@ -45,18 +45,42 @@ const sortOptions = [
       </template>
     </VTextField>
 
-    <VBtnToggle
+    <div
       class="status-tabs"
-      :model-value="status"
-      mandatory
-      density="comfortable"
+      role="radiogroup"
       aria-label="ステータスフィルター"
-      @update:model-value="emit('update:status', $event as ArticleStatus)"
     >
-      <VBtn value="ALL">すべて</VBtn>
-      <VBtn value="UNREAD">未読</VBtn>
-      <VBtn value="READ">読了</VBtn>
-    </VBtnToggle>
+      <button
+        type="button"
+        class="status-tab"
+        :class="{ 'is-selected': status === 'ALL' }"
+        :aria-checked="status === 'ALL'"
+        role="radio"
+        @click="emit('update:status', 'ALL')"
+      >
+        すべて
+      </button>
+      <button
+        type="button"
+        class="status-tab"
+        :class="{ 'is-selected': status === 'UNREAD' }"
+        :aria-checked="status === 'UNREAD'"
+        role="radio"
+        @click="emit('update:status', 'UNREAD')"
+      >
+        未読
+      </button>
+      <button
+        type="button"
+        class="status-tab"
+        :class="{ 'is-selected': status === 'READ' }"
+        :aria-checked="status === 'READ'"
+        role="radio"
+        @click="emit('update:status', 'READ')"
+      >
+        読了
+      </button>
+    </div>
 
     <VSelect
       class="sort-select"
