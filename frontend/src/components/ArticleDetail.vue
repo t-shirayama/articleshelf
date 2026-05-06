@@ -55,7 +55,7 @@ const statusOptions = [
   { label: '既読', value: 'READ' }
 ] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
 const summaryText = computed(() => props.article?.summary?.trim() || '概要はまだありません')
-const notesText = computed(() => props.article?.notes?.trim() || 'メモはまだありません')
+const notesText = computed(() => props.article?.notes?.trim() || '')
 
 watch(
   () => props.article,
