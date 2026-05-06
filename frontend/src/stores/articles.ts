@@ -4,6 +4,7 @@ import type { Article, ArticleFilters, ArticleInput, ArticleSort, ArticleStatus,
 
 interface ArticlesState {
   articles: Article[]
+  allArticles: Article[]
   tags: Tag[]
   selectedArticle: Article | null
   filters: ArticleFilters
@@ -14,6 +15,7 @@ interface ArticlesState {
 export const useArticlesStore = defineStore('articles', {
   state: (): ArticlesState => ({
     articles: [],
+    allArticles: [],
     tags: [],
     selectedArticle: null,
     filters: {
@@ -29,10 +31,10 @@ export const useArticlesStore = defineStore('articles', {
   getters: {
     sortedArticles: (state): Article[] => [...state.articles].sort((left, right) => compareArticles(left, right, state.filters.sort)),
     counts: (state) => ({
-      all: state.articles.length,
-      unread: state.articles.filter((article) => article.status === 'UNREAD').length,
-      read: state.articles.filter((article) => article.status === 'READ').length,
-      favorite: state.articles.filter((article) => article.favorite).length
+      all: state.allArticles.length,
+      unread: state.allArticles.filter((article) => article.status === 'UNREAD').length,
+      read: state.allArticles.filter((article) => article.status === 'READ').length,
+      favorite: state.allArticles.filter((article) => article.favorite).length
     })
   },
   actions: {
@@ -40,7 +42,12 @@ export const useArticlesStore = defineStore('articles', {
       this.loading = true
       this.error = ''
       try {
-        this.articles = await api.findArticles(this.filters)
+        const [articles, allArticles] = await Promise.all([
+          api.findArticles(this.filters),
+          api.findArticles(allArticleFilters())
+        ])
+        this.articles = articles
+        this.allArticles = allArticles
         if (this.selectedArticle) {
           const selectedId = this.selectedArticle.id
           this.selectedArticle = this.articles.find((article) => article.id === selectedId) || null
@@ -134,4 +141,14 @@ function compareDate(left?: string | null, right?: string | null): number {
   const leftTime = left ? Date.parse(left) : Number.NEGATIVE_INFINITY
   const rightTime = right ? Date.parse(right) : Number.NEGATIVE_INFINITY
   return leftTime - rightTime
+}
+
+function allArticleFilters(): ArticleFilters {
+  return {
+    status: 'ALL',
+    tag: '',
+    search: '',
+    favorite: false,
+    sort: 'CREATED_DESC'
+  }
 }
