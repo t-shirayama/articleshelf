@@ -43,7 +43,7 @@ const sortOptions = [
     </VTextField>
 
     <VSelect
-      class="sort-select"
+      class="readstack-select sort-select"
       :model-value="sort"
       :items="sortOptions"
       item-title="title"

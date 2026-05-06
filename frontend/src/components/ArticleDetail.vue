@@ -249,7 +249,7 @@ function confirmDelete(): void {
               <span class="detail-meta-label">ステータス</span>
               <VSelect
                 v-model="form.status"
-                class="detail-meta-control"
+                class="readstack-select detail-meta-control"
                 :items="statusOptions"
                 item-title="label"
                 item-value="value"
