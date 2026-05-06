@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import {
   BookOpen,
+  CalendarDays,
   CheckCircle2,
   Circle,
   Heart,
@@ -9,6 +10,7 @@ import {
 } from "lucide-vue-next";
 import ArticleCard from "./components/ArticleCard.vue";
 import ArticleDetail from "./components/ArticleDetail.vue";
+import CalendarView from "./components/CalendarView.vue";
 import FilterDialog from "./components/FilterDialog.vue";
 import ArticleFormModal from "./components/ArticleFormModal.vue";
 import MotivationCard from "./components/MotivationCard.vue";
@@ -37,7 +39,7 @@ const filterDialogOpen = ref(false);
 const articleFormError = ref("");
 const duplicateArticleId = ref("");
 const searchDraft = ref("");
-const viewMode = ref<"list" | "detail">("list");
+const viewMode = ref<"list" | "calendar" | "detail">("list");
 const deleteCandidate = ref<Article | null>(null);
 const motivationIndex = ref(randomMotivationIndex());
 const statusUndo = ref<StatusUndoState | null>(null);
@@ -200,6 +202,11 @@ function showList(): void {
   viewMode.value = "list";
 }
 
+function showCalendar(): void {
+  if (viewMode.value !== "calendar") rotateMotivation();
+  viewMode.value = "calendar";
+}
+
 function rotateMotivation(): void {
   motivationIndex.value = randomMotivationIndex(motivationIndex.value);
 }
@@ -298,7 +305,7 @@ function todayString(): string {
 
 <template>
   <VApp>
-    <div v-if="viewMode === 'list'" class="app-shell">
+    <div v-if="viewMode !== 'detail'" class="app-shell">
       <aside class="sidebar">
         <div class="brand">
           <div class="brand-mark">
@@ -366,66 +373,87 @@ function todayString(): string {
             <span>お気に入り</span>
             <strong>{{ store.counts.favorite }}</strong>
           </VBtn>
+          <div class="side-nav-divider" aria-hidden="true" />
+          <VBtn
+            block
+            variant="text"
+            :color="viewMode === 'calendar' ? 'primary' : undefined"
+            @click="showCalendar"
+          >
+            <template #prepend>
+              <CalendarDays :size="18" />
+            </template>
+            <span>カレンダー</span>
+            <strong>{{ store.counts.all }}</strong>
+          </VBtn>
         </nav>
 
         <MotivationCard :card="currentMotivation" />
       </aside>
 
       <main class="content">
-        <header class="page-header">
-          <div>
-            <h1>{{ pageTitle }}</h1>
-          </div>
-          <SearchFilterBar
-            :search="searchDraft"
-            :sort="store.filters.sort"
-            :filter-summary="activeFilterSummary"
-            :active-filter-count="activeFilterCount"
-            @update:search="searchDraft = $event"
-            @update:sort="setSort($event)"
-            @open-filters="openFilterDialog"
-            @add="openArticleModal"
-          />
-        </header>
-
-        <div
-          v-if="store.error"
-          class="error-banner"
-          role="alert"
-          aria-live="assertive"
-        >
-          <strong>データを読み込めませんでした</strong>
-          <span>{{ store.error }}</span>
-        </div>
-
-        <section class="article-list" aria-live="polite">
-          <div v-if="store.loading" class="loading-state">
-            <VProgressCircular indeterminate color="primary" size="42" />
-          </div>
-          <div v-else-if="store.articles.length === 0" class="empty-state">
-            <h2>まだ記事がありません</h2>
-            <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
-            <VBtn
-              class="action-button action-button-primary"
-              color="primary"
-              variant="flat"
-              @click="openArticleModal"
-              >最初の記事を追加</VBtn
-            >
-          </div>
-          <template v-else>
-            <ArticleCard
-              v-for="article in store.sortedArticles"
-              :key="article.id"
-              :article="article"
-              :selected="store.selectedArticle?.id === article.id"
-              @click="openArticle(article)"
-              @delete="requestDeleteArticle(article)"
-              @toggle-status="toggleArticleStatus(article)"
-              @toggle-favorite="toggleFavorite(article)"
+        <template v-if="viewMode === 'list'">
+          <header class="page-header">
+            <div>
+              <h1>{{ pageTitle }}</h1>
+            </div>
+            <SearchFilterBar
+              :search="searchDraft"
+              :sort="store.filters.sort"
+              :filter-summary="activeFilterSummary"
+              :active-filter-count="activeFilterCount"
+              @update:search="searchDraft = $event"
+              @update:sort="setSort($event)"
+              @open-filters="openFilterDialog"
+              @add="openArticleModal"
             />
-          </template>
-        </section>
+          </header>
+
+          <div
+            v-if="store.error"
+            class="error-banner"
+            role="alert"
+            aria-live="assertive"
+          >
+            <strong>データを読み込めませんでした</strong>
+            <span>{{ store.error }}</span>
+          </div>
+
+          <section class="article-list" aria-live="polite">
+            <div v-if="store.loading" class="loading-state">
+              <VProgressCircular indeterminate color="primary" size="42" />
+            </div>
+            <div v-else-if="store.articles.length === 0" class="empty-state">
+              <h2>まだ記事がありません</h2>
+              <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
+              <VBtn
+                class="action-button action-button-primary"
+                color="primary"
+                variant="flat"
+                @click="openArticleModal"
+                >最初の記事を追加</VBtn
+              >
+            </div>
+            <template v-else>
+              <ArticleCard
+                v-for="article in store.sortedArticles"
+                :key="article.id"
+                :article="article"
+                :selected="store.selectedArticle?.id === article.id"
+                @click="openArticle(article)"
+                @delete="requestDeleteArticle(article)"
+                @toggle-status="toggleArticleStatus(article)"
+                @toggle-favorite="toggleFavorite(article)"
+              />
+            </template>
+          </section>
+        </template>
+
+        <CalendarView
+          v-else
+          :articles="store.articles"
+          @open-article="openArticle"
+        />
       </main>
     </div>
 
