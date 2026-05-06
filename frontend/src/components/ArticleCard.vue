@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
-import { ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { loadThumbnailFromCache } from '../services/thumbnailCache'
 import type { Article } from '../types'
 
 const props = withDefaults(defineProps<{
@@ -17,10 +18,63 @@ const emit = defineEmits<{
 }>()
 
 const thumbnailFailed = ref(false)
+const thumbnailRoot = ref<HTMLElement | null>(null)
+const thumbnailSrc = ref('')
+const shouldLoadThumbnail = ref(false)
+let objectUrl = ''
+let loadVersion = 0
+let thumbnailObserver: IntersectionObserver | null = null
 
-watch(() => props.article.thumbnailUrl, () => {
+watch([() => props.article.thumbnailUrl, shouldLoadThumbnail], async ([thumbnailUrl, shouldLoad]) => {
+  const version = ++loadVersion
+  revokeObjectUrl()
   thumbnailFailed.value = false
+  thumbnailSrc.value = ''
+
+  if (!thumbnailUrl || !shouldLoad) return
+
+  const cachedUrl = await loadThumbnailFromCache(thumbnailUrl)
+  if (version !== loadVersion) {
+    if (cachedUrl) URL.revokeObjectURL(cachedUrl)
+    return
+  }
+
+  if (!cachedUrl) {
+    thumbnailFailed.value = true
+    return
+  }
+
+  objectUrl = cachedUrl
+  thumbnailSrc.value = cachedUrl
+}, { immediate: true })
+
+onMounted(() => {
+  if (!thumbnailRoot.value || !('IntersectionObserver' in window)) {
+    shouldLoadThumbnail.value = true
+    return
+  }
+
+  thumbnailObserver = new IntersectionObserver((entries) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return
+    shouldLoadThumbnail.value = true
+    thumbnailObserver?.disconnect()
+    thumbnailObserver = null
+  }, { rootMargin: '160px' })
+
+  thumbnailObserver.observe(thumbnailRoot.value)
 })
+
+onBeforeUnmount(() => {
+  loadVersion += 1
+  thumbnailObserver?.disconnect()
+  revokeObjectUrl()
+})
+
+function revokeObjectUrl(): void {
+  if (!objectUrl) return
+  URL.revokeObjectURL(objectUrl)
+  objectUrl = ''
+}
 
 function domainFrom(url: string): string {
   try {
@@ -43,10 +97,10 @@ function domainFrom(url: string): string {
     @keydown.space.prevent="emit('click')"
   >
     <div class="article-card-content">
-      <div class="article-thumb">
+      <div ref="thumbnailRoot" class="article-thumb">
         <img
-          v-if="article.thumbnailUrl && !thumbnailFailed"
-          :src="article.thumbnailUrl"
+          v-if="thumbnailSrc && !thumbnailFailed"
+          :src="thumbnailSrc"
           :alt="`${article.title} のサムネイル`"
           loading="lazy"
           @error="thumbnailFailed = true"
