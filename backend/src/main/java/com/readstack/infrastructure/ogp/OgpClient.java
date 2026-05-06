@@ -31,7 +31,7 @@ public class OgpClient {
                     .build();
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() >= 400) {
-                return OgpMetadata.empty();
+                return OgpMetadata.unavailable();
             }
             String body = response.body();
             String title = extractMeta(body, "og:title").or(() -> extract(HTML_TITLE, body)).orElse("");
@@ -45,10 +45,11 @@ public class OgpClient {
             return new OgpMetadata(
                     title,
                     description,
-                    imageUrl
+                    imageUrl,
+                    true
             );
         } catch (Exception ignored) {
-            return OgpMetadata.empty();
+            return OgpMetadata.unavailable();
         }
     }
 

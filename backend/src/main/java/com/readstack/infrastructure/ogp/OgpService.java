@@ -12,7 +12,7 @@ public class OgpService {
 
     public OgpMetadata fetch(String url) {
         if (url == null || url.isBlank()) {
-            return OgpMetadata.empty();
+            return OgpMetadata.unavailable();
         }
         return ogpClient.fetch(url);
     }

@@ -4,6 +4,7 @@ import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleRepository;
 import com.readstack.domain.article.ArticleStatus;
+import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.Tag;
 import com.readstack.infrastructure.ogp.OgpMetadata;
@@ -59,6 +60,9 @@ public class ArticleService {
                 });
 
         OgpMetadata metadata = ogpService.fetch(command.url());
+        if (!metadata.accessible()) {
+            throw new ArticleUrlUnavailableException(command.url());
+        }
         Article article = new Article(
                 null,
                 command.url(),
@@ -88,6 +92,9 @@ public class ArticleService {
                 });
         boolean shouldRefreshMetadata = !command.url().equals(current.getUrl()) || current.getThumbnailUrl().isBlank();
         OgpMetadata metadata = shouldRefreshMetadata ? ogpService.fetch(command.url()) : OgpMetadata.empty();
+        if (!metadata.accessible() && !command.url().equals(current.getUrl())) {
+            throw new ArticleUrlUnavailableException(command.url());
+        }
 
         Article updated = new Article(
                 current.getId(),
