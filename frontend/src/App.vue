@@ -18,7 +18,7 @@ const duplicateArticleId = ref('')
 const searchDraft = ref('')
 const viewMode = ref<'list' | 'detail'>('list')
 const deleteCandidate = ref<Article | null>(null)
-const motivationIndex = ref(new Date().getDate() % motivationCards.length)
+const motivationIndex = ref(randomMotivationIndex())
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined
 
 const visibleTags = computed<ArticleTag[]>(() => store.tags)
@@ -92,7 +92,17 @@ function showList(): void {
 }
 
 function rotateMotivation(): void {
-  motivationIndex.value = (motivationIndex.value + 1) % motivationCards.length
+  motivationIndex.value = randomMotivationIndex(motivationIndex.value)
+}
+
+function randomMotivationIndex(currentIndex = -1): number {
+  if (motivationCards.length <= 1) return 0
+
+  let nextIndex = currentIndex
+  while (nextIndex === currentIndex) {
+    nextIndex = Math.floor(Math.random() * motivationCards.length)
+  }
+  return nextIndex
 }
 
 function setStatus(status: ArticleStatus): Promise<void> {
