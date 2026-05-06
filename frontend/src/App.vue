@@ -5,6 +5,7 @@ import ArticleCard from './components/ArticleCard.vue'
 import ArticleDetail from './components/ArticleDetail.vue'
 import ArticleFormModal from './components/ArticleFormModal.vue'
 import SearchFilterBar from './components/SearchFilterBar.vue'
+import learningPlant from './assets/learning-plant.svg'
 import { useArticlesStore } from './stores/articles'
 
 const store = useArticlesStore()
@@ -13,7 +14,7 @@ const searchDraft = ref('')
 const viewMode = ref('list')
 let searchTimer = 0
 
-const visibleTags = computed(() => store.tags.slice(0, 8))
+const visibleTags = computed(() => store.tags)
 
 watch(searchDraft, (value) => {
   window.clearTimeout(searchTimer)
@@ -44,6 +45,10 @@ async function deleteArticle(articleId) {
 async function openArticle(article) {
   await store.selectArticle(article)
   viewMode.value = 'detail'
+}
+
+async function toggleFavorite(article) {
+  await store.toggleFavorite(article)
 }
 
 function showList() {
@@ -133,19 +138,30 @@ function setFavoriteOnly() {
 
         <section class="tag-section">
           <h2>タグ</h2>
-          <VBtn
-            v-for="tag in visibleTags"
-            :key="tag.id"
-            block
-            variant="text"
-            :color="store.filters.tag === tag.name ? 'primary' : undefined"
-            @click="setTag(store.filters.tag === tag.name ? '' : tag.name)"
-          >
-            <template #prepend>
-              <Tag :size="16" />
-            </template>
-            {{ tag.name }}
-          </VBtn>
+          <div class="sidebar-tag-list">
+            <VBtn
+              v-for="tag in visibleTags"
+              :key="tag.id"
+              block
+              variant="text"
+              :color="store.filters.tag === tag.name ? 'primary' : undefined"
+              @click="setTag(store.filters.tag === tag.name ? '' : tag.name)"
+            >
+              <template #prepend>
+                <Tag :size="16" />
+              </template>
+              {{ tag.name }}
+            </VBtn>
+            <p v-if="visibleTags.length === 0" class="muted-note">タグはまだありません</p>
+          </div>
+        </section>
+
+        <section class="learning-boost-card" aria-label="学習継続のメッセージ">
+          <div>
+            <strong>今日も1つ学びを<br>ストックしよう</strong>
+            <span>小さな積み重ねが、あとで効いてきます。</span>
+          </div>
+          <img :src="learningPlant" alt="" aria-hidden="true">
         </section>
       </aside>
 
@@ -184,6 +200,7 @@ function setFavoriteOnly() {
               :article="article"
               :selected="store.selectedArticle?.id === article.id"
               @click="openArticle(article)"
+              @toggle-favorite="toggleFavorite(article)"
             />
           </template>
         </section>
@@ -200,6 +217,7 @@ function setFavoriteOnly() {
 
     <ArticleFormModal
       :open="modalOpen"
+      :tags="store.tags"
       @close="modalOpen = false"
       @submit="createArticle"
     />

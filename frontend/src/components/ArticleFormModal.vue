@@ -5,23 +5,17 @@ const props = defineProps({
   open: {
     type: Boolean,
     default: false
+  },
+  tags: {
+    type: Array,
+    default: () => []
   }
 })
 
 const emit = defineEmits(['close', 'submit'])
 
 const form = reactive(defaultForm())
-const statusOptions = [
-  { label: '未読', value: 'UNREAD' },
-  { label: '読了', value: 'READ' }
-]
-
-const tagText = computed({
-  get: () => form.tags.join(', '),
-  set: (value) => {
-    form.tags = value.split(',').map((tag) => tag.trim()).filter(Boolean)
-  }
-})
+const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
 
 const dialogOpen = computed({
   get: () => props.open,
@@ -42,7 +36,7 @@ function defaultForm() {
     url: '',
     title: '',
     summary: '',
-    status: 'UNREAD',
+    readLater: true,
     readDate: null,
     favorite: false,
     notes: '',
@@ -51,7 +45,18 @@ function defaultForm() {
 }
 
 function submit() {
-  emit('submit', { ...form, readDate: form.readDate || null })
+  const readLater = form.readLater
+  const tags = [...new Set(form.tags.map((tag) => tag.trim()).filter(Boolean))]
+  emit('submit', {
+    url: form.url,
+    title: form.title,
+    summary: form.summary,
+    status: readLater ? 'UNREAD' : 'READ',
+    readDate: readLater ? null : form.readDate || null,
+    favorite: form.favorite,
+    notes: form.notes,
+    tags
+  })
 }
 </script>
 
@@ -64,11 +69,25 @@ function submit() {
 
           <VTextField v-model="form.title" label="タイトル" placeholder="空欄ならOGPから補完します" />
 
-          <VTextField v-model="tagText" label="タグ" placeholder="React, Next.js, 学習" />
+          <VCombobox
+            v-model="form.tags"
+            label="タグ"
+            :items="tagOptions"
+            multiple
+            chips
+            closable-chips
+            clearable
+            placeholder="選択または入力"
+          />
 
           <div class="field-row">
-            <VSelect v-model="form.status" label="ステータス" :items="statusOptions" item-title="label" item-value="value" />
-            <VTextField v-model="form.readDate" label="読了日" type="date" clearable />
+            <VCheckbox
+              v-model="form.readLater"
+              label="あとで読む"
+              color="primary"
+              hide-details
+            />
+            <VTextField v-model="form.readDate" label="読了日" type="date" :disabled="form.readLater" clearable />
           </div>
 
           <VTextarea

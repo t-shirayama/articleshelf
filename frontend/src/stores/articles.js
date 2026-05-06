@@ -56,6 +56,14 @@ export const useArticlesStore = defineStore('articles', {
       await this.fetchArticles()
       this.selectedArticle = updated
     },
+    async toggleFavorite(article) {
+      const tagNames = article.tags?.map((tag) => tag.name || tag).filter(Boolean) || []
+      await this.updateArticle({
+        ...article,
+        favorite: !article.favorite,
+        tags: tagNames
+      })
+    },
     async deleteArticle(articleId) {
       await api.deleteArticle(articleId)
       this.selectedArticle = null

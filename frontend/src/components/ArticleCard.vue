@@ -1,5 +1,5 @@
 <script setup>
-import { Bookmark, CalendarDays, CheckCircle2, Circle } from 'lucide-vue-next'
+import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart } from 'lucide-vue-next'
 
 defineProps({
   article: {
@@ -12,7 +12,7 @@ defineProps({
   }
 })
 
-const emit = defineEmits(['click'])
+const emit = defineEmits(['click', 'toggle-favorite'])
 
 function domainFrom(url) {
   try {
@@ -41,11 +41,26 @@ function domainFrom(url) {
       <div class="article-card-body">
         <div class="article-card-topline">
           <span class="domain">{{ domainFrom(article.url) }}</span>
-          <VChip :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
-            <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
-            <Circle v-else :size="14" />
-            {{ article.status === 'READ' ? '読了' : '未読' }}
-          </VChip>
+          <div class="article-card-actions">
+            <VChip :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
+              <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
+              <Circle v-else :size="14" />
+              {{ article.status === 'READ' ? '読了' : '未読' }}
+            </VChip>
+            <VBtn
+              class="favorite-button"
+              :color="article.favorite ? 'primary' : undefined"
+              icon
+              size="small"
+              variant="text"
+              :title="article.favorite ? 'お気に入りを解除' : 'お気に入りに追加'"
+              @click.stop="emit('toggle-favorite')"
+              @keydown.enter.stop="emit('toggle-favorite')"
+              @keydown.space.stop.prevent="emit('toggle-favorite')"
+            >
+              <Heart :size="17" :fill="article.favorite ? 'currentColor' : 'none'" />
+            </VBtn>
+          </div>
         </div>
         <h3>{{ article.title }}</h3>
         <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
