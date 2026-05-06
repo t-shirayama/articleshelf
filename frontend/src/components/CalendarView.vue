@@ -125,27 +125,24 @@ function startOfMonth(date: Date): Date {
 
 <template>
   <section class="calendar-view">
-    <header class="calendar-header">
-      <div>
-        <h1>カレンダー</h1>
-      </div>
-    </header>
-
     <div class="calendar-toolbar">
-      <VBtnToggle v-model="mode" class="mode-toggle calendar-mode-toggle" mandatory>
-        <VBtn value="created">
-          <template #prepend>
-            <PlusCircle :size="16" />
-          </template>
-          追加日
-        </VBtn>
-        <VBtn value="read">
-          <template #prepend>
-            <CheckCircle2 :size="16" />
-          </template>
-          既読日
-        </VBtn>
-      </VBtnToggle>
+      <div class="calendar-heading-group">
+        <h1>カレンダー</h1>
+        <VBtnToggle v-model="mode" class="mode-toggle calendar-mode-toggle" mandatory>
+          <VBtn value="created">
+            <template #prepend>
+              <PlusCircle :size="16" />
+            </template>
+            追加日
+          </VBtn>
+          <VBtn value="read">
+            <template #prepend>
+              <CheckCircle2 :size="16" />
+            </template>
+            既読日
+          </VBtn>
+        </VBtnToggle>
+      </div>
 
       <div class="calendar-month-controls">
         <VBtn class="action-button action-button-secondary calendar-month-button" variant="outlined" @click="moveMonth(-1)">
