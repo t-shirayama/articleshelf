@@ -89,6 +89,7 @@
 - このプロジェクトでは、テスト作成は一通りの実装が揃った後にまとめて整備する方針とする
 - 実装途中の段階では、自動テストの追加を必須にしない
 - ただし、挙動変更を伴う修正では確認手順または確認結果を残す
+- コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI変更時は関連ドキュメント更新の注意喚起を行う
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
 - Maven が必要な確認は `docker compose exec backend mvn ...` または `docker compose run --rm backend mvn ...` のように Docker 経由で行う
@@ -99,6 +100,8 @@
 - データモデルや永続化方針を変更した場合は、`docs/architecture.md` と必要に応じて `docs/specification.md` を更新する
 - UI や操作フローを変更した場合は、`docs/design.md` を確認し、差分があるなら更新する
 - UI や見た目を修正する場合は、実装前に `docs/design.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
+- UI や見た目を修正する場合は、必要に応じて `.codex/skills/readstack-ui-polish/SKILL.md` を参照する
+- コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/readstack-change-sync/SKILL.md` を参照する
 - 新機能や大きな仕様変更では、実装前に影響範囲を確認し、必要な更新対象を整理してから着手する
 
 ### 6. project-status.md の扱い
