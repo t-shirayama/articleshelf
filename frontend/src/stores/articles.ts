@@ -81,12 +81,32 @@ export const useArticlesStore = defineStore('articles', {
       this.selectedArticle = updated
     },
     async toggleFavorite(article: Article): Promise<void> {
-      const tagNames = article.tags?.map((tag) => tag.name).filter(Boolean) || []
-      await this.updateArticle({
-        ...article,
-        favorite: !article.favorite,
-        tags: tagNames
-      })
+      const previousArticles = this.articles
+      const previousAllArticles = this.allArticles
+      const previousSelectedArticle = this.selectedArticle
+      const optimisticArticle = { ...article, favorite: !article.favorite }
+      this.error = ''
+      this.applyFavoriteUpdate(optimisticArticle)
+
+      try {
+        const updated = await api.updateArticle(article.id, toArticleInput(optimisticArticle))
+        this.applyFavoriteUpdate(updated)
+      } catch (error: unknown) {
+        this.articles = previousArticles
+        this.allArticles = previousAllArticles
+        this.selectedArticle = previousSelectedArticle
+        this.error = error instanceof Error ? error.message : 'お気に入りの更新に失敗しました'
+      }
+    },
+    applyFavoriteUpdate(article: Article): void {
+      this.allArticles = replaceArticle(this.allArticles, article)
+      this.articles = this.filters.favorite && !article.favorite
+        ? this.articles.filter((item) => item.id !== article.id)
+        : replaceArticle(this.articles, article)
+
+      if (this.selectedArticle?.id === article.id) {
+        this.selectedArticle = article
+      }
     },
     async deleteArticle(articleId: string): Promise<void> {
       await api.deleteArticle(articleId)
@@ -147,6 +167,25 @@ function compareDate(left?: string | null, right?: string | null): number {
   const leftTime = left ? Date.parse(left) : Number.NEGATIVE_INFINITY
   const rightTime = right ? Date.parse(right) : Number.NEGATIVE_INFINITY
   return leftTime - rightTime
+}
+
+function replaceArticle(articles: Article[], updated: Article): Article[] {
+  return articles.map((article) => article.id === updated.id ? updated : article)
+}
+
+function toArticleInput(article: Article): ArticleInput {
+  return {
+    id: article.id,
+    url: article.url,
+    title: article.title,
+    summary: article.summary || '',
+    status: article.status,
+    readDate: article.readDate || null,
+    favorite: article.favorite,
+    rating: article.rating,
+    notes: article.notes || '',
+    tags: article.tags?.map((tag) => tag.name).filter(Boolean) || []
+  }
 }
 
 function allArticleFilters(): ArticleFilters {
