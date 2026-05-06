@@ -165,16 +165,16 @@ function startOfMonth(date: Date): Date {
 
       <div class="calendar-summary">
         <span>
+          <span class="calendar-summary-label">追加</span>
           <strong>{{ createdInMonth.length }}</strong>
-          追加
         </span>
         <span>
+          <span class="calendar-summary-label">読了</span>
           <strong>{{ readInMonth.length }}</strong>
-          読了
         </span>
         <span :class="{ 'is-positive': backlogDelta > 0, 'is-negative': backlogDelta < 0 }">
+          <span class="calendar-summary-label">積読差分</span>
           <strong>{{ backlogDelta >= 0 ? '+' : '' }}{{ backlogDelta }}</strong>
-          積読差分
         </span>
       </div>
     </div>
