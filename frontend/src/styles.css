@@ -294,7 +294,7 @@ a {
 .search-filter-bar {
   justify-self: end;
   display: grid;
-  grid-template-columns: 280px 150px 118px 128px;
+  grid-template-columns: 280px repeat(3, 150px);
   gap: 12px;
   align-items: stretch;
   width: max-content;
@@ -332,13 +332,13 @@ a {
 }
 
 .article-add-button {
-  width: 128px;
-  min-width: 128px;
+  width: 150px;
+  min-width: 150px;
 }
 
 .filter-open-button {
-  width: 118px;
-  min-width: 118px;
+  width: 150px;
+  min-width: 150px;
 }
 
 .filter-open-badge {
