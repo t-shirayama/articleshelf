@@ -436,6 +436,11 @@ a {
   padding-bottom: 4px;
 }
 
+.detail-header > div {
+  width: 100%;
+  min-width: 0;
+}
+
 .detail-header a {
   display: flex;
   align-items: center;
@@ -447,8 +452,13 @@ a {
   font-size: 0.88rem;
 }
 
+.detail-header a svg {
+  flex: 0 0 auto;
+}
+
 .detail-link-text {
   display: block;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
