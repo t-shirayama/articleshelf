@@ -943,10 +943,13 @@ a {
   color: #d69b16;
 }
 
-.star-rating:not(.is-readonly) .star-rating-button:hover {
+.star-rating:not(.is-readonly) .star-rating-button.is-preview {
   color: #d69b16;
   background: #fff7df;
   border-color: rgba(214, 155, 22, 0.28);
+}
+
+.star-rating:not(.is-readonly) .star-rating-button:hover {
   transform: translateY(-1px);
 }
 
