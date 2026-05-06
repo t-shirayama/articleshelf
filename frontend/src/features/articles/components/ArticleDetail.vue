@@ -7,7 +7,8 @@ import {
   articleToDetailForm,
   createEmptyArticleDetailForm,
   detailFormToArticleInput,
-  favoriteToggleInput
+  favoriteToggleInput,
+  hasArticleDetailFormChanges
 } from '../domain/articleForms'
 import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
 import { formatDateTime } from '../../../shared/utils/dateFormat'
@@ -24,6 +25,7 @@ const emit = defineEmits<{
   back: []
   save: [article: ArticleInput]
   delete: [articleId: string]
+  'update:dirty': [value: boolean]
 }>()
 
 const form = reactive(createEmptyArticleDetailForm())
@@ -49,6 +51,9 @@ const statusOptions = [
 ] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
 const summaryText = computed(() => props.article?.summary?.trim() || '概要はまだありません')
 const notesText = computed(() => props.article?.notes?.trim() || '')
+const hasUnsavedChanges = computed(() => Boolean(
+  props.article && isEditing.value && hasArticleDetailFormChanges(form, props.article)
+))
 
 watch(
   () => props.article,
@@ -58,6 +63,10 @@ watch(
   },
   { immediate: true }
 )
+
+watch(hasUnsavedChanges, (value) => {
+  emit('update:dirty', value)
+}, { immediate: true })
 
 function submit(): void {
   emit('save', detailFormToArticleInput(form))

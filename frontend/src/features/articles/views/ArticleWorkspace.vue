@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ApiRequestError } from "../../../shared/api/client";
 import ArticleDetail from "../components/ArticleDetail.vue";
 import ArticleFormModal from "../components/ArticleFormModal.vue";
@@ -9,6 +9,7 @@ import CalendarView from "../components/CalendarView.vue";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog.vue";
 import FilterDialog from "../components/FilterDialog.vue";
 import StatusUndoSnackbar from "../components/StatusUndoSnackbar.vue";
+import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
 import { useArticlesStore } from "../stores/articles";
@@ -39,6 +40,9 @@ const deleteCandidate = ref<Article | null>(null);
 const statusUndo = ref<StatusUndoState | null>(null);
 const statusSnackbarOpen = ref(false);
 const statusSnackbarMessage = ref("");
+const detailHasUnsavedChanges = ref(false);
+const unsavedChangesDialogOpen = ref(false);
+const pendingNavigation = ref<(() => void) | null>(null);
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
@@ -75,7 +79,12 @@ watch(searchDraft, (value) => {
 });
 
 onMounted(async () => {
+  window.addEventListener("beforeunload", handleBeforeUnload);
   await Promise.all([store.fetchArticles(), store.fetchTags()]);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("beforeunload", handleBeforeUnload);
 });
 
 async function createArticle(article: ArticleInput): Promise<void> {
@@ -100,7 +109,8 @@ async function saveArticle(article: ArticleInput): Promise<void> {
 
 async function deleteArticle(articleId: string): Promise<void> {
   await store.deleteArticle(articleId);
-  showList();
+  detailHasUnsavedChanges.value = false;
+  navigateToList();
 }
 
 function requestDeleteArticle(article: Article): void {
@@ -159,31 +169,35 @@ async function undoArticleStatus(): Promise<void> {
 }
 
 function showList(): void {
-  if (viewMode.value !== "list") rotateMotivation();
-  viewMode.value = "list";
+  requestNavigation(navigateToList);
 }
 
 function showCalendar(): void {
-  if (viewMode.value !== "calendar") rotateMotivation();
-  viewMode.value = "calendar";
+  requestNavigation(navigateToCalendar);
 }
 
-function setStatus(status: ArticleStatus): Promise<void> {
-  showList();
-  rotateMotivation();
-  return store.setStatus(status);
+function setStatus(status: ArticleStatus): void {
+  requestNavigation(() => {
+    navigateToList();
+    rotateMotivation();
+    void store.setStatus(status);
+  });
 }
 
-function setFavoriteOnly(): Promise<void> {
-  showList();
-  rotateMotivation();
-  return store.setFavoriteOnly();
+function setFavoriteOnly(): void {
+  requestNavigation(() => {
+    navigateToList();
+    rotateMotivation();
+    void store.setFavoriteOnly();
+  });
 }
 
-function setAllArticles(): Promise<void> {
-  showList();
-  rotateMotivation();
-  return store.setAllArticles();
+function setAllArticles(): void {
+  requestNavigation(() => {
+    navigateToList();
+    rotateMotivation();
+    void store.setAllArticles();
+  });
 }
 
 function setSort(sort: ArticleSort): void {
@@ -208,13 +222,15 @@ function applyAdvancedFilters(filters: {
   createdRange: { from: string; to: string };
   readRange: { from: string; to: string };
 }): void {
-  showList();
-  rotateMotivation();
-  store.setTags(filters.tags);
-  store.setRatings(filters.ratings);
-  store.setCreatedRange(filters.createdRange);
-  store.setReadRange(filters.readRange);
-  filterDialogOpen.value = false;
+  requestNavigation(() => {
+    navigateToList();
+    rotateMotivation();
+    store.setTags(filters.tags);
+    store.setRatings(filters.ratings);
+    store.setCreatedRange(filters.createdRange);
+    store.setReadRange(filters.readRange);
+    filterDialogOpen.value = false;
+  });
 }
 
 async function openDuplicateArticle(articleId: string): Promise<void> {
@@ -232,6 +248,45 @@ function todayString(): string {
   const month = String(today.getMonth() + 1).padStart(2, "0");
   const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function requestNavigation(action: () => void): void {
+  if (viewMode.value === "detail" && detailHasUnsavedChanges.value) {
+    pendingNavigation.value = action;
+    unsavedChangesDialogOpen.value = true;
+    return;
+  }
+
+  action();
+}
+
+function navigateToList(): void {
+  if (viewMode.value !== "list") rotateMotivation();
+  viewMode.value = "list";
+}
+
+function navigateToCalendar(): void {
+  if (viewMode.value !== "calendar") rotateMotivation();
+  viewMode.value = "calendar";
+}
+
+function cancelPendingNavigation(): void {
+  pendingNavigation.value = null;
+  unsavedChangesDialogOpen.value = false;
+}
+
+function confirmPendingNavigation(): void {
+  const action = pendingNavigation.value;
+  pendingNavigation.value = null;
+  unsavedChangesDialogOpen.value = false;
+  detailHasUnsavedChanges.value = false;
+  action?.();
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent): void {
+  if (!detailHasUnsavedChanges.value) return;
+  event.preventDefault();
+  event.returnValue = "";
 }
 </script>
 
@@ -285,6 +340,7 @@ function todayString(): string {
     v-else
     :article="store.selectedArticle"
     :tags="store.tags"
+    @update:dirty="detailHasUnsavedChanges = $event"
     @back="showList"
     @save="saveArticle"
     @delete="deleteArticle"
@@ -324,5 +380,11 @@ function todayString(): string {
     :message="statusSnackbarMessage"
     @update:open="statusSnackbarOpen = $event"
     @undo="undoArticleStatus"
+  />
+
+  <UnsavedChangesDialog
+    :open="unsavedChangesDialogOpen"
+    @cancel="cancelPendingNavigation"
+    @confirm="confirmPendingNavigation"
   />
 </template>

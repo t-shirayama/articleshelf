@@ -77,6 +77,13 @@ export function detailFormToArticleInput(form: ArticleDetailForm): ArticleInput 
   }
 }
 
+export function hasArticleDetailFormChanges(form: ArticleDetailForm, article: Article): boolean {
+  return !areArticleInputsEqual(
+    detailFormToArticleInput(form),
+    detailFormToArticleInput(articleToDetailForm(article))
+  )
+}
+
 export function createFormToArticleInput(form: ArticleCreateForm): ArticleInput {
   const readLater = form.readLater
   return {
@@ -103,4 +110,23 @@ export function favoriteToggleInput(article: Article): ArticleInput {
 
 export function normalizeTagNames(tags: string[]): string[] {
   return [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))]
+}
+
+function areArticleInputsEqual(current: ArticleInput, original: ArticleInput): boolean {
+  return (
+    current.id === original.id &&
+    current.url === original.url &&
+    current.title === original.title &&
+    current.summary === original.summary &&
+    current.status === original.status &&
+    current.readDate === original.readDate &&
+    current.favorite === original.favorite &&
+    current.rating === original.rating &&
+    current.notes === original.notes &&
+    areStringArraysEqual(current.tags, original.tags)
+  )
+}
+
+function areStringArraysEqual(current: string[] = [], original: string[] = []): boolean {
+  return current.length === original.length && current.every((value, index) => value === original[index])
 }
