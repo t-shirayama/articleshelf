@@ -10,6 +10,7 @@ import { useArticlesStore } from './stores/articles'
 const store = useArticlesStore()
 const modalOpen = ref(false)
 const searchDraft = ref('')
+const viewMode = ref('list')
 let searchTimer = 0
 
 const visibleTags = computed(() => store.tags.slice(0, 8))
@@ -28,6 +29,7 @@ onMounted(async () => {
 async function createArticle(article) {
   await store.createArticle(article)
   modalOpen.value = false
+  viewMode.value = 'detail'
 }
 
 async function saveArticle(article) {
@@ -36,11 +38,36 @@ async function saveArticle(article) {
 
 async function deleteArticle(articleId) {
   await store.deleteArticle(articleId)
+  viewMode.value = 'list'
+}
+
+async function openArticle(article) {
+  await store.selectArticle(article)
+  viewMode.value = 'detail'
+}
+
+function showList() {
+  viewMode.value = 'list'
+}
+
+function setStatus(status) {
+  showList()
+  return store.setStatus(status)
+}
+
+function setTag(tag) {
+  showList()
+  return store.setTag(tag)
+}
+
+function setFavoriteOnly() {
+  showList()
+  return store.setFavoriteOnly()
 }
 </script>
 
 <template>
-  <div class="app-shell">
+  <div v-if="viewMode === 'list'" class="app-shell">
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">
@@ -53,22 +80,22 @@ async function deleteArticle(articleId) {
       </div>
 
       <nav class="side-nav">
-        <button :class="{ active: store.filters.status === 'ALL' && !store.filters.tag && !store.filters.favorite }" @click="store.setStatus('ALL'); store.setTag('')">
+        <button :class="{ active: store.filters.status === 'ALL' && !store.filters.tag && !store.filters.favorite }" @click="setStatus('ALL'); setTag('')">
           <Library :size="18" />
           すべての記事
           <span>{{ store.counts.all }}</span>
         </button>
-        <button :class="{ active: store.filters.status === 'UNREAD' }" @click="store.setStatus('UNREAD')">
+        <button :class="{ active: store.filters.status === 'UNREAD' }" @click="setStatus('UNREAD')">
           <Circle :size="18" />
           未読
           <span>{{ store.counts.unread }}</span>
         </button>
-        <button :class="{ active: store.filters.status === 'READ' }" @click="store.setStatus('READ')">
+        <button :class="{ active: store.filters.status === 'READ' }" @click="setStatus('READ')">
           <CheckCircle2 :size="18" />
           読了
           <span>{{ store.counts.read }}</span>
         </button>
-        <button :class="{ active: store.filters.favorite }" @click="store.setFavoriteOnly()">
+        <button :class="{ active: store.filters.favorite }" @click="setFavoriteOnly">
           <Heart :size="18" />
           お気に入り
           <span>{{ store.counts.favorite }}</span>
@@ -81,7 +108,7 @@ async function deleteArticle(articleId) {
           v-for="tag in visibleTags"
           :key="tag.id"
           :class="{ active: store.filters.tag === tag.name }"
-          @click="store.setTag(store.filters.tag === tag.name ? '' : tag.name)"
+          @click="setTag(store.filters.tag === tag.name ? '' : tag.name)"
         >
           <Tag :size="15" />
           {{ tag.name }}
@@ -99,7 +126,7 @@ async function deleteArticle(articleId) {
           :search="searchDraft"
           :status="store.filters.status"
           @update:search="searchDraft = $event"
-          @update:status="store.setStatus($event)"
+          @update:status="setStatus($event)"
           @add="modalOpen = true"
         />
       </header>
@@ -119,22 +146,25 @@ async function deleteArticle(articleId) {
             :key="article.id"
             :article="article"
             :selected="store.selectedArticle?.id === article.id"
-            @click="store.selectArticle(article)"
+            @click="openArticle(article)"
           />
         </template>
       </section>
     </main>
 
-    <ArticleDetail
-      :article="store.selectedArticle"
-      @save="saveArticle"
-      @delete="deleteArticle"
-    />
-
-    <ArticleFormModal
-      :open="modalOpen"
-      @close="modalOpen = false"
-      @submit="createArticle"
-    />
   </div>
+
+  <ArticleDetail
+    v-else
+    :article="store.selectedArticle"
+    @back="showList"
+    @save="saveArticle"
+    @delete="deleteArticle"
+  />
+
+  <ArticleFormModal
+    :open="modalOpen"
+    @close="modalOpen = false"
+    @submit="createArticle"
+  />
 </template>
