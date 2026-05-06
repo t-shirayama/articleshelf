@@ -514,6 +514,43 @@ a {
   gap: 16px;
 }
 
+.detail-section {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(222, 217, 206, 0.9);
+  border-radius: 10px;
+}
+
+.detail-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.detail-section h3 {
+  margin: 0;
+  font-size: 0.94rem;
+}
+
+.detail-body-copy {
+  margin: 0;
+  font-size: 0.97rem;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.detail-body-copy.is-empty {
+  color: var(--muted);
+}
+
+.detail-notes-copy {
+  min-height: 140px;
+}
+
 .detail-meta {
   background: var(--surface-strong);
 }
@@ -521,6 +558,25 @@ a {
 .detail-meta-content {
   display: grid;
   gap: 16px;
+}
+
+.detail-meta-block {
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(222, 217, 206, 0.86);
+  border-radius: 10px;
+}
+
+.detail-meta-block strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.detail-meta-label {
+  color: var(--muted);
+  font-size: 0.8rem;
 }
 
 .field-row {
@@ -566,6 +622,10 @@ a {
 
 .detail-rating-field {
   padding: 0;
+}
+
+.readonly-rating-field {
+  gap: 2px;
 }
 
 .modal-status-row .read-date-field,
