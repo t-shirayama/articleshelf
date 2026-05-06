@@ -430,15 +430,12 @@ a {
 .article-card:hover,
 .article-card.selected {
   border-color: rgba(24, 108, 116, 0.42);
-  box-shadow: 0 10px 28px rgba(40, 48, 43, 0.1);
-  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 2px rgba(24, 108, 116, 0.1);
 }
 
 .article-card:focus-visible {
   border-color: var(--accent);
-  box-shadow:
-    inset 0 0 0 3px rgba(24, 108, 116, 0.26),
-    0 10px 28px rgba(40, 48, 43, 0.1);
+  box-shadow: inset 0 0 0 3px rgba(24, 108, 116, 0.26);
 }
 
 .article-thumb {
