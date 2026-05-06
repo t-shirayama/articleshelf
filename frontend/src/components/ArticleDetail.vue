@@ -145,7 +145,7 @@ function confirmDelete(): void {
         </VBtn>
         <div class="detail-topbar-actions">
           <VBtn
-            class="favorite-button"
+            class="favorite-button detail-favorite-button"
             :class="{ 'is-active': isEditing ? form.favorite : article.favorite }"
             icon
             title="お気に入り"

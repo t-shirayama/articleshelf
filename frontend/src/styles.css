@@ -576,6 +576,27 @@ a {
   background: #fff0f3;
 }
 
+.detail-favorite-button {
+  background: #ffffff !important;
+  border: 1px solid rgba(105, 112, 109, 0.26);
+  box-shadow: 0 4px 10px rgba(55, 48, 37, 0.08);
+}
+
+.detail-favorite-button:hover {
+  background: #f7fbfa !important;
+  border-color: rgba(24, 108, 116, 0.36);
+  box-shadow: 0 6px 14px rgba(24, 108, 116, 0.12);
+}
+
+.detail-favorite-button.is-active {
+  border-color: rgba(217, 52, 74, 0.42);
+}
+
+.detail-favorite-button.is-active:hover {
+  background: #fff0f3 !important;
+  border-color: rgba(217, 52, 74, 0.58);
+}
+
 .card-delete-button {
   color: var(--muted);
 }
