@@ -67,7 +67,8 @@ function openDatabase(): Promise<IDBDatabase> {
         db.createObjectStore(STORE_NAME, { keyPath: 'url' })
       }
 
-      normalizeLegacyRecords(db)
+      const transaction = request.transaction
+      if (transaction) normalizeLegacyRecords(transaction)
     }
 
     request.onsuccess = () => resolve(request.result)
@@ -75,8 +76,7 @@ function openDatabase(): Promise<IDBDatabase> {
   })
 }
 
-function normalizeLegacyRecords(db: IDBDatabase): void {
-  const transaction = db.transaction(STORE_NAME, 'readwrite')
+function normalizeLegacyRecords(transaction: IDBTransaction): void {
   const store = transaction.objectStore(STORE_NAME)
   const request = store.openCursor()
 
