@@ -210,7 +210,7 @@ function confirmDelete(): void {
               <div class="detail-section-header">
                 <h3>タグ</h3>
               </div>
-              <div v-if="article.tags.length > 0" class="tag-list">
+              <div v-if="article.tags.length > 0" class="tag-list detail-tag-list">
                 <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" color="secondary" variant="flat">
                   {{ tag.name }}
                 </VChip>

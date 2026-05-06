@@ -20,8 +20,8 @@
   --danger: #b33b2f;
   --shadow: 0 18px 60px rgba(55, 48, 37, 0.12);
   --header-control-height: 48px;
-  --article-thumb-width: 192px;
-  --article-thumb-height: 120px;
+  --article-thumb-width: 224px;
+  --article-thumb-height: 140px;
   --shell-panel-padding: 24px;
 }
 
@@ -433,7 +433,7 @@ a {
 
 .article-card {
   width: 100%;
-  height: 160px;
+  height: 168px;
   color: inherit;
   outline: none;
   overflow: hidden;
@@ -450,7 +450,7 @@ a {
   grid-template-columns: var(--article-thumb-width) minmax(0, 1fr);
   gap: 16px;
   height: 100%;
-  padding: 14px 14px 4px;
+  padding: 14px;
 }
 
 .article-card:hover,
@@ -487,8 +487,9 @@ a {
 
 .article-card-body {
   display: grid;
-  grid-template-rows: 24px 28px 44px 34px;
-  row-gap: 4px;
+  grid-template-rows: 24px 28px minmax(0, 1fr) 28px;
+  row-gap: 5px;
+  height: var(--article-thumb-height);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -529,7 +530,6 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-self: start;
-  padding-top: 8px;
   overflow: hidden;
 }
 
@@ -612,7 +612,7 @@ a {
 .article-card-tag-list {
   flex: 1 1 auto;
   min-width: 0;
-  max-height: 22px;
+  max-height: 26px;
   flex-wrap: nowrap;
 }
 
@@ -620,9 +620,14 @@ a {
   flex: 0 0 auto;
 }
 
+.detail-tag-list {
+  max-height: none;
+  overflow: visible;
+}
+
 .article-meta-group {
   display: grid;
-  grid-template-rows: 22px;
+  grid-template-rows: 28px;
   gap: 0;
   align-items: start;
   min-width: 0;
@@ -634,7 +639,7 @@ a {
   align-items: center;
   gap: 10px;
   min-width: 0;
-  height: 22px;
+  height: 28px;
   overflow: hidden;
 }
 
@@ -1437,7 +1442,7 @@ a {
 
   .article-thumb {
     width: 100%;
-    height: 140px;
+    height: 168px;
   }
 
   .article-card-body {

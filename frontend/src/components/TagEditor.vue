@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { Plus, Tag, X } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
@@ -27,7 +27,9 @@ function addExistingTag(tag: string): void {
   if (!normalized || selectedTags.value.includes(normalized)) return
 
   emit('update:modelValue', [...selectedTags.value, normalized])
-  selectedExistingTag.value = ''
+  nextTick(() => {
+    selectedExistingTag.value = ''
+  })
 }
 
 function addNewTag(): void {
