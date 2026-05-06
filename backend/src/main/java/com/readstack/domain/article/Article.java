@@ -14,6 +14,7 @@ public class Article {
     private ArticleStatus status;
     private LocalDate readDate;
     private boolean favorite;
+    private int rating;
     private String notes;
     private Set<Tag> tags;
     private Instant createdAt;
@@ -27,6 +28,7 @@ public class Article {
             ArticleStatus status,
             LocalDate readDate,
             boolean favorite,
+            int rating,
             String notes,
             Set<Tag> tags,
             Instant createdAt,
@@ -39,6 +41,7 @@ public class Article {
         this.status = status == null ? ArticleStatus.UNREAD : status;
         this.readDate = readDate;
         this.favorite = favorite;
+        this.rating = Math.max(0, Math.min(5, rating));
         this.notes = notes == null ? "" : notes;
         this.tags = tags == null ? new LinkedHashSet<>() : new LinkedHashSet<>(tags);
         this.createdAt = createdAt;
@@ -71,6 +74,10 @@ public class Article {
 
     public boolean isFavorite() {
         return favorite;
+    }
+
+    public int getRating() {
+        return rating;
     }
 
     public String getNotes() {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart } from 'lucide-vue-next'
+import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star } from 'lucide-vue-next'
 import type { Article } from '../types'
 
 withDefaults(defineProps<{
@@ -65,8 +65,13 @@ function domainFrom(url: string): string {
         <h3>{{ article.title }}</h3>
         <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
         <div class="article-card-footer">
-          <div class="tag-list">
-            <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
+          <div class="article-meta-group">
+            <div v-if="article.rating > 0" class="rating-inline" :aria-label="`おすすめ度 ${article.rating} / 5`">
+              <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
+            </div>
+            <div class="tag-list">
+              <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
+            </div>
           </div>
           <span v-if="article.readDate" class="date-meta">
             <CalendarDays :size="14" />

@@ -254,6 +254,10 @@ a {
   min-width: 0;
 }
 
+.sort-select {
+  min-width: 146px;
+}
+
 .status-tabs {
   display: flex;
 }
@@ -359,6 +363,17 @@ a {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.article-meta-group {
+  display: grid;
+  gap: 8px;
+}
+
+.rating-inline {
+  display: inline-flex;
+  gap: 2px;
+  color: #d18b14;
 }
 
 .date-meta {
@@ -482,6 +497,21 @@ a {
 .modal-status-row {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
+}
+
+.rating-field {
+  display: grid;
+  gap: 8px;
+  padding: 8px 2px 4px;
+}
+
+.rating-field span {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.detail-rating-field {
+  padding: 0;
 }
 
 .modal-status-row .read-date-field,

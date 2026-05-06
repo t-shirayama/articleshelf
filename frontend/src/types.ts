@@ -1,4 +1,5 @@
 export type ArticleStatus = 'ALL' | 'UNREAD' | 'READ'
+export type ArticleSort = 'CREATED_DESC' | 'CREATED_ASC' | 'UPDATED_DESC' | 'READ_DATE_DESC' | 'TITLE_ASC' | 'RATING_DESC'
 
 export interface Tag {
   id?: string
@@ -15,6 +16,7 @@ export interface Article {
   status: Exclude<ArticleStatus, 'ALL'>
   readDate?: string | null
   favorite: boolean
+  rating: number
   notes?: string | null
   tags: Tag[]
   createdAt?: string
@@ -26,6 +28,7 @@ export interface ArticleFilters {
   tag: string
   search: string
   favorite: boolean
+  sort: ArticleSort
 }
 
 export interface ArticleInput {
@@ -36,6 +39,7 @@ export interface ArticleInput {
   status: Exclude<ArticleStatus, 'ALL'>
   readDate?: string | null
   favorite: boolean
+  rating: number
   notes?: string | null
   tags: string[]
 }

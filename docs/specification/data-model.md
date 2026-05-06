@@ -9,6 +9,7 @@
 - status: enum(`UNREAD`, `READ`)
 - readDate: date (任意)
 - favorite: boolean
+- rating: integer (`0` - `5`)
 - notes: text
 - createdAt: timestamp
 - updatedAt: timestamp

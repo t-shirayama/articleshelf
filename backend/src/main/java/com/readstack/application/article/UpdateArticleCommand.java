@@ -12,6 +12,7 @@ public record UpdateArticleCommand(
         ArticleStatus status,
         LocalDate readDate,
         Boolean favorite,
+        Integer rating,
         String notes,
         List<String> tags
 ) {

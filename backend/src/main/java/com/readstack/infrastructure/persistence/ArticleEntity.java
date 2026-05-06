@@ -44,6 +44,9 @@ public class ArticleEntity {
     @Column(nullable = false)
     private boolean favorite;
 
+    @Column(nullable = false)
+    private int rating;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 
@@ -130,6 +133,14 @@ public class ArticleEntity {
 
     public void setFavorite(boolean favorite) {
         this.favorite = favorite;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
     }
 
     public String getNotes() {

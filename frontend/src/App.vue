@@ -8,7 +8,7 @@ import MotivationCard from './components/MotivationCard.vue'
 import SearchFilterBar from './components/SearchFilterBar.vue'
 import { motivationCards } from './data/motivationCards'
 import { useArticlesStore } from './stores/articles'
-import type { Article, ArticleInput, ArticleStatus, Tag as ArticleTag } from './types'
+import type { Article, ArticleInput, ArticleSort, ArticleStatus, Tag as ArticleTag } from './types'
 
 const store = useArticlesStore()
 const modalOpen = ref(false)
@@ -79,6 +79,10 @@ function setTag(tag: string): Promise<void> {
 function setFavoriteOnly(): Promise<void> {
   showList()
   return store.setFavoriteOnly()
+}
+
+function setSort(sort: ArticleSort): void {
+  store.setSort(sort)
 }
 </script>
 
@@ -179,8 +183,10 @@ function setFavoriteOnly(): Promise<void> {
           <SearchFilterBar
             :search="searchDraft"
             :status="store.filters.status"
+            :sort="store.filters.sort"
             @update:search="searchDraft = $event"
             @update:status="setStatus($event)"
+            @update:sort="setSort($event)"
             @add="modalOpen = true"
           />
         </header>
@@ -200,7 +206,7 @@ function setFavoriteOnly(): Promise<void> {
           </div>
           <template v-else>
             <ArticleCard
-              v-for="article in store.articles"
+              v-for="article in store.sortedArticles"
               :key="article.id"
               :article="article"
               :selected="store.selectedArticle?.id === article.id"
@@ -215,6 +221,7 @@ function setFavoriteOnly(): Promise<void> {
     <ArticleDetail
       v-else
       :article="store.selectedArticle"
+      :tags="store.tags"
       @back="showList"
       @save="saveArticle"
       @delete="deleteArticle"

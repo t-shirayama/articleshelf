@@ -54,6 +54,7 @@ public class JpaArticleRepository implements ArticleRepository {
         entity.setStatus(article.getStatus());
         entity.setReadDate(article.getReadDate());
         entity.setFavorite(article.isFavorite());
+        entity.setRating(article.getRating());
         entity.setNotes(article.getNotes());
         entity.setTags(resolveTagEntities(article.getTags()));
         return toDomain(articleJpaRepository.save(entity));
@@ -104,6 +105,7 @@ public class JpaArticleRepository implements ArticleRepository {
                 entity.getStatus(),
                 entity.getReadDate(),
                 entity.isFavorite(),
+                entity.getRating(),
                 entity.getNotes(),
                 entity.getTags().stream().map(this::toDomain).collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll),
                 entity.getCreatedAt(),

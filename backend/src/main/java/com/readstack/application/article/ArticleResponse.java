@@ -17,6 +17,7 @@ public record ArticleResponse(
         ArticleStatus status,
         LocalDate readDate,
         boolean favorite,
+        int rating,
         String notes,
         List<TagResponse> tags,
         Instant createdAt,
@@ -31,6 +32,7 @@ public record ArticleResponse(
                 article.getStatus(),
                 article.getReadDate(),
                 article.isFavorite(),
+                article.getRating(),
                 article.getNotes(),
                 article.getTags().stream()
                         .map(TagResponse::from)

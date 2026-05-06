@@ -1,20 +1,32 @@
 <script setup lang="ts">
-import { Plus, Search, SlidersHorizontal } from 'lucide-vue-next'
-import type { ArticleStatus } from '../types'
+import { Plus, Search } from 'lucide-vue-next'
+import type { ArticleSort, ArticleStatus } from '../types'
 
 withDefaults(defineProps<{
   search?: string
   status?: ArticleStatus
+  sort?: ArticleSort
 }>(), {
   search: '',
-  status: 'ALL'
+  status: 'ALL',
+  sort: 'CREATED_DESC'
 })
 
 const emit = defineEmits<{
   'update:search': [value: string]
   'update:status': [value: ArticleStatus]
+  'update:sort': [value: ArticleSort]
   add: []
 }>()
+
+const sortOptions = [
+  { title: '新しい順', value: 'CREATED_DESC' },
+  { title: '古い順', value: 'CREATED_ASC' },
+  { title: '更新順', value: 'UPDATED_DESC' },
+  { title: '読了日順', value: 'READ_DATE_DESC' },
+  { title: 'タイトル順', value: 'TITLE_ASC' },
+  { title: 'おすすめ順', value: 'RATING_DESC' }
+] satisfies Array<{ title: string, value: ArticleSort }>
 </script>
 
 <template>
@@ -46,9 +58,18 @@ const emit = defineEmits<{
       <VBtn value="READ">読了</VBtn>
     </VBtnToggle>
 
-    <VBtn icon variant="text" title="フィルター">
-      <SlidersHorizontal :size="18" />
-    </VBtn>
+    <VSelect
+      class="sort-select"
+      :model-value="sort"
+      :items="sortOptions"
+      item-title="title"
+      item-value="value"
+      hide-details
+      density="comfortable"
+      variant="outlined"
+      label="並び順"
+      @update:model-value="emit('update:sort', $event as ArticleSort)"
+    />
 
     <VBtn color="primary" @click="emit('add')">
       <template #prepend>

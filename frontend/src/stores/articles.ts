@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '../services/api'
-import type { Article, ArticleFilters, ArticleInput, ArticleStatus, Tag } from '../types'
+import type { Article, ArticleFilters, ArticleInput, ArticleSort, ArticleStatus, Tag } from '../types'
 
 interface ArticlesState {
   articles: Article[]
@@ -20,12 +20,14 @@ export const useArticlesStore = defineStore('articles', {
       status: 'ALL',
       tag: '',
       search: '',
-      favorite: false
+      favorite: false,
+      sort: 'CREATED_DESC'
     },
     loading: false,
     error: ''
   }),
   getters: {
+    sortedArticles: (state): Article[] => [...state.articles].sort((left, right) => compareArticles(left, right, state.filters.sort)),
     counts: (state) => ({
       all: state.articles.length,
       unread: state.articles.filter((article) => article.status === 'UNREAD').length,
@@ -100,6 +102,33 @@ export const useArticlesStore = defineStore('articles', {
       this.filters.tag = ''
       this.filters.favorite = true
       return this.fetchArticles()
+    },
+    setSort(sort: ArticleSort): void {
+      this.filters.sort = sort
     }
   }
 })
+
+function compareArticles(left: Article, right: Article, sort: ArticleSort): number {
+  switch (sort) {
+    case 'CREATED_ASC':
+      return compareDate(left.createdAt, right.createdAt)
+    case 'UPDATED_DESC':
+      return compareDate(right.updatedAt, left.updatedAt)
+    case 'READ_DATE_DESC':
+      return compareDate(right.readDate, left.readDate) || compareDate(right.updatedAt, left.updatedAt)
+    case 'TITLE_ASC':
+      return left.title.localeCompare(right.title, 'ja')
+    case 'RATING_DESC':
+      return right.rating - left.rating || compareDate(right.updatedAt, left.updatedAt)
+    case 'CREATED_DESC':
+    default:
+      return compareDate(right.createdAt, left.createdAt)
+  }
+}
+
+function compareDate(left?: string | null, right?: string | null): number {
+  const leftTime = left ? Date.parse(left) : Number.NEGATIVE_INFINITY
+  const rightTime = right ? Date.parse(right) : Number.NEGATIVE_INFINITY
+  return leftTime - rightTime
+}

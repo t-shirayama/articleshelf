@@ -72,15 +72,16 @@ public class ArticleController {
             ArticleStatus status,
             LocalDate readDate,
             Boolean favorite,
+            Integer rating,
             String notes,
             List<String> tags
     ) {
         AddArticleCommand toAddCommand() {
-            return new AddArticleCommand(url, title, summary, status, readDate, favorite, notes, tags);
+            return new AddArticleCommand(url, title, summary, status, readDate, favorite, rating, notes, tags);
         }
 
         UpdateArticleCommand toUpdateCommand() {
-            return new UpdateArticleCommand(url, title, summary, status, readDate, favorite, notes, tags);
+            return new UpdateArticleCommand(url, title, summary, status, readDate, favorite, rating, notes, tags);
         }
     }
 }

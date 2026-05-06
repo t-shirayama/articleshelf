@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
-import type { Article, ArticleInput, ArticleStatus } from '../types'
+import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
 
 interface ArticleDetailForm {
   id: string
@@ -11,14 +11,17 @@ interface ArticleDetailForm {
   status: Exclude<ArticleStatus, 'ALL'>
   readDate: string | null
   favorite: boolean
+  rating: number
   notes: string
   tags: string[]
 }
 
 const props = withDefaults(defineProps<{
   article?: Article | null
+  tags?: Tag[]
 }>(), {
-  article: null
+  article: null,
+  tags: () => []
 })
 
 const emit = defineEmits<{
@@ -29,17 +32,11 @@ const emit = defineEmits<{
 
 const form = reactive(emptyForm())
 const deleteDialogOpen = ref(false)
+const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
 const statusOptions = [
   { label: '未読', value: 'UNREAD' },
   { label: '読了', value: 'READ' }
 ] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
-
-const tagText = computed({
-  get: () => form.tags.join(', '),
-  set: (value: string) => {
-    form.tags = value.split(',').map((tag) => tag.trim()).filter(Boolean)
-  }
-})
 
 watch(
   () => props.article,
@@ -58,6 +55,7 @@ function emptyForm(): ArticleDetailForm {
     status: 'UNREAD',
     readDate: null,
     favorite: false,
+    rating: 0,
     notes: '',
     tags: []
   }
@@ -72,13 +70,18 @@ function toForm(article: Article): ArticleDetailForm {
     status: article.status || 'UNREAD',
     readDate: article.readDate || null,
     favorite: article.favorite,
+    rating: article.rating || 0,
     notes: article.notes || '',
     tags: article.tags?.map((tag) => tag.name) || []
   }
 }
 
 function submit(): void {
-  emit('save', { ...form, readDate: form.readDate || null })
+  emit('save', {
+    ...form,
+    tags: [...new Set(form.tags.map((tag) => tag.trim()).filter(Boolean))],
+    readDate: form.readDate || null
+  })
 }
 
 function confirmDelete(): void {
@@ -134,7 +137,16 @@ function confirmDelete(): void {
 
           <VTextarea v-model="form.summary" label="概要" rows="5" auto-grow />
 
-          <VTextField v-model="tagText" label="タグ" placeholder="React, Spring Boot" />
+          <VCombobox
+            v-model="form.tags"
+            label="タグ"
+            :items="tagOptions"
+            multiple
+            chips
+            closable-chips
+            clearable
+            placeholder="選択または入力"
+          />
 
           <VTextarea v-model="form.notes" label="メモ" rows="8" auto-grow />
         </section>
@@ -144,6 +156,11 @@ function confirmDelete(): void {
             <div class="field-row stacked">
               <VSelect v-model="form.status" label="ステータス" :items="statusOptions" item-title="label" item-value="value" />
               <VTextField v-model="form.readDate" label="読了日" type="date" clearable />
+            </div>
+
+            <div class="rating-field detail-rating-field">
+              <span>おすすめ度</span>
+              <VRating v-model="form.rating" length="5" hover clearable density="comfortable" color="warning" />
             </div>
 
             <div class="detail-actions">

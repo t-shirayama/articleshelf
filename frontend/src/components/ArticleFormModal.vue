@@ -9,6 +9,7 @@ interface ArticleFormState {
   readLater: boolean
   readDate: string | null
   favorite: boolean
+  rating: number
   notes: string
   tags: string[]
 }
@@ -56,6 +57,7 @@ function defaultForm(): ArticleFormState {
     readLater: true,
     readDate: null,
     favorite: false,
+    rating: 0,
     notes: '',
     tags: []
   }
@@ -74,6 +76,7 @@ function submit(): void {
     status: readLater ? 'UNREAD' : 'READ',
     readDate: readLater ? null : form.readDate || null,
     favorite: form.favorite,
+    rating: form.rating,
     notes: form.notes,
     tags
   })
@@ -114,6 +117,11 @@ function submit(): void {
             clearable
             placeholder="選択または入力"
           />
+
+          <div class="rating-field">
+            <span>おすすめ度</span>
+            <VRating v-model="form.rating" length="5" hover clearable density="comfortable" color="warning" />
+          </div>
 
           <div class="field-row modal-status-row">
             <label class="read-later-check">
