@@ -14,6 +14,7 @@ const emit = defineEmits<{
 }>()
 
 const selectedExistingTag = ref('')
+const existingTagSearch = ref('')
 const newTag = ref('')
 
 const selectedTags = computed(() => normalizeTags(props.modelValue))
@@ -22,14 +23,14 @@ const availableOptions = computed(() => optionTags.value.filter((tag) => !select
 const normalizedNewTag = computed(() => normalizeTag(newTag.value))
 const canAddNewTag = computed(() => Boolean(normalizedNewTag.value) && !selectedTags.value.includes(normalizedNewTag.value))
 
-function addExistingTag(tag: string): void {
+async function addExistingTag(tag: string): Promise<void> {
   const normalized = normalizeTag(tag)
   if (!normalized || selectedTags.value.includes(normalized)) return
 
   emit('update:modelValue', [...selectedTags.value, normalized])
-  nextTick(() => {
-    selectedExistingTag.value = ''
-  })
+  await nextTick()
+  selectedExistingTag.value = ''
+  existingTagSearch.value = ''
 }
 
 function addNewTag(): void {
@@ -82,6 +83,7 @@ function normalizeTags(tags: string[]): string[] {
     <div class="tag-editor-controls">
       <VAutocomplete
         v-model="selectedExistingTag"
+        v-model:search="existingTagSearch"
         class="readstack-select tag-editor-existing"
         :disabled="availableOptions.length === 0"
         :items="availableOptions"
