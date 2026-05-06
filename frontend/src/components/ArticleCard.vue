@@ -113,25 +113,18 @@ function domainFrom(url: string): string {
         <div class="article-card-topline">
           <span class="domain">{{ domainFrom(article.url) }}</span>
           <div class="article-card-actions">
-            <div class="status-toggle-group">
-              <VChip class="status-chip" :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
-                <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
-                <Circle v-else :size="14" />
-                {{ article.status === 'READ' ? '既読' : '未読' }}
-              </VChip>
-              <VBtn
-                class="status-toggle-button"
-                size="small"
-                type="button"
-                variant="outlined"
-                :title="article.status === 'READ' ? '未読に戻す' : '既読にする'"
-                @click.stop="emit('toggle-status')"
-                @keydown.enter.stop="emit('toggle-status')"
-                @keydown.space.stop.prevent="emit('toggle-status')"
-              >
-                {{ article.status === 'READ' ? '未読に戻す' : '既読にする' }}
-              </VBtn>
-            </div>
+            <VBtn
+              class="status-toggle-button"
+              size="small"
+              type="button"
+              variant="outlined"
+              :title="article.status === 'READ' ? '未読に戻す' : '既読にする'"
+              @click.stop="emit('toggle-status')"
+              @keydown.enter.stop="emit('toggle-status')"
+              @keydown.space.stop.prevent="emit('toggle-status')"
+            >
+              {{ article.status === 'READ' ? '未読に戻す' : '既読にする' }}
+            </VBtn>
             <VBtn
               class="favorite-button card-favorite-button"
               :class="{ 'is-active': article.favorite }"
@@ -171,11 +164,20 @@ function domainFrom(url: string): string {
               <div class="tag-list article-card-tag-list">
                 <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
               </div>
-              <div class="card-date-list" aria-label="記事の日付">
-                <CalendarDays :size="14" />
-                <div class="card-date-values">
-                  <span v-if="article.createdAt" class="date-meta">登録日 {{ formatDate(article.createdAt) }}</span>
-                  <span class="date-meta">既読日 {{ formatDate(article.readDate) }}</span>
+              <div class="article-card-status-date">
+                <div class="status-toggle-group">
+                  <VChip class="status-chip" :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
+                    <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
+                    <Circle v-else :size="14" />
+                    {{ article.status === 'READ' ? '既読' : '未読' }}
+                  </VChip>
+                </div>
+                <div class="card-date-list" aria-label="記事の日付">
+                  <CalendarDays :size="14" />
+                  <div class="card-date-values">
+                    <span v-if="article.createdAt" class="date-meta">登録日 {{ formatDate(article.createdAt) }}</span>
+                    <span class="date-meta">既読日 {{ formatDate(article.readDate) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
