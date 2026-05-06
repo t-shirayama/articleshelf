@@ -20,11 +20,13 @@
 
 - 説明: 記事を追加
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
+- `url` がアクセス不可、タイムアウト、または 4xx/5xx 応答の場合は保存しない
 
 ### `PUT /api/articles/{id}`
 
 - 説明: 記事を更新
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
+- `url` を変更する場合、変更先がアクセス不可、タイムアウト、または 4xx/5xx 応答なら保存しない
 
 ### `DELETE /api/articles/{id}`
 
@@ -41,6 +43,7 @@
 ## エラーレスポンス
 
 - バリデーションエラーや不正なパラメータは `400 Bad Request`
+- アクセスできない URL は `400 Bad Request`
 - 存在しない記事 ID は `404 Not Found`
 - 重複 URL は `409 Conflict`
 - エラー時のレスポンス形式は `timestamp` と `messages` を持つ JSON
