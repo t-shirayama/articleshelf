@@ -144,7 +144,7 @@ function confirmDelete(): void {
 
     <VForm v-else class="detail-form" @submit.prevent="submit">
       <div class="detail-topbar">
-        <VBtn class="compact-button" variant="outlined" @click="emit('back')">
+        <VBtn class="action-button action-button-secondary compact-button" variant="outlined" @click="emit('back')">
           <template #prepend>
             <ArrowLeft :size="17" />
           </template>
@@ -155,20 +155,20 @@ function confirmDelete(): void {
             <Heart :size="19" :fill="(isEditing ? form.favorite : article.favorite) ? 'currentColor' : 'none'" />
           </VBtn>
           <template v-if="isEditing">
-            <VBtn class="compact-button" variant="outlined" @click="cancelEditing">
+            <VBtn class="action-button action-button-secondary compact-button" variant="outlined" @click="cancelEditing">
               <template #prepend>
                 <X :size="17" />
               </template>
               キャンセル
             </VBtn>
-            <VBtn color="primary" type="submit" class="compact-button">
+            <VBtn color="primary" variant="flat" type="submit" class="action-button action-button-primary compact-button">
               <template #prepend>
                 <Save :size="17" />
               </template>
               保存
             </VBtn>
           </template>
-          <VBtn v-else color="primary" class="compact-button" @click="startEditing">
+          <VBtn v-else color="primary" variant="flat" class="action-button action-button-primary compact-button" @click="startEditing">
             <template #prepend>
               <Pencil :size="17" />
             </template>
@@ -274,7 +274,7 @@ function confirmDelete(): void {
             </template>
 
             <div class="detail-actions">
-              <VBtn color="error" variant="outlined" @click="deleteDialogOpen = true">
+              <VBtn class="action-button action-button-danger-outline" color="error" variant="outlined" @click="deleteDialogOpen = true">
                 <template #prepend>
                   <Trash2 :size="17" />
                 </template>
@@ -294,8 +294,8 @@ function confirmDelete(): void {
           </VCardText>
           <VCardActions>
             <VSpacer />
-            <VBtn variant="text" @click="deleteDialogOpen = false">キャンセル</VBtn>
-            <VBtn color="error" variant="flat" @click="confirmDelete">削除する</VBtn>
+            <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteDialogOpen = false">キャンセル</VBtn>
+            <VBtn class="action-button action-button-danger" color="error" variant="flat" @click="confirmDelete">削除する</VBtn>
           </VCardActions>
         </VCard>
       </VDialog>

@@ -97,10 +97,10 @@ function submit(): void {
             <span>{{ props.error }}</span>
             <VBtn
               v-if="props.duplicateArticleId"
-              class="duplicate-article-link"
+              class="action-button action-button-primary duplicate-article-link"
               color="primary"
               size="small"
-              variant="text"
+              variant="flat"
               @click="emit('open-duplicate', props.duplicateArticleId)"
             >
               登録済みの記事を開く
@@ -172,8 +172,8 @@ function submit(): void {
 
         <VCardActions>
           <VSpacer />
-          <VBtn @click="emit('close')">キャンセル</VBtn>
-          <VBtn color="primary" type="submit">保存する</VBtn>
+          <VBtn class="action-button action-button-secondary" variant="outlined" @click="emit('close')">キャンセル</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="submit">保存する</VBtn>
         </VCardActions>
       </VForm>
     </VCard>

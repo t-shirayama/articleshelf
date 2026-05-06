@@ -67,6 +67,61 @@ a {
   color: inherit;
 }
 
+.action-button {
+  min-height: 40px;
+  padding-inline: 16px;
+  border-radius: 8px;
+  box-shadow: none;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.action-button-primary {
+  color: #ffffff !important;
+  background: var(--accent-strong) !important;
+  border: 1px solid rgba(15, 78, 86, 0.32);
+  box-shadow: 0 5px 12px rgba(24, 108, 116, 0.18);
+}
+
+.action-button-primary:hover {
+  background: #0b4249 !important;
+  box-shadow: 0 7px 16px rgba(24, 108, 116, 0.24);
+}
+
+.action-button-secondary {
+  color: var(--accent-strong) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(24, 108, 116, 0.34);
+}
+
+.action-button-secondary:hover {
+  background: #eef7f5 !important;
+}
+
+.action-button-danger,
+.action-button-danger-outline {
+  border: 1px solid rgba(179, 59, 47, 0.36);
+}
+
+.action-button-danger {
+  color: #ffffff !important;
+  background: var(--danger) !important;
+  box-shadow: 0 5px 12px rgba(179, 59, 47, 0.16);
+}
+
+.action-button-danger:hover {
+  background: #962f26 !important;
+}
+
+.action-button-danger-outline {
+  color: var(--danger) !important;
+  background: #ffffff !important;
+}
+
+.action-button-danger-outline:hover {
+  background: #fff8f6 !important;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 248px minmax(0, 1fr);
@@ -845,10 +900,17 @@ a {
 
 .duplicate-article-link {
   flex: 0 0 auto;
+  min-width: 158px;
 }
 
 .article-modal {
   width: min(560px, 100%);
+}
+
+.article-modal .v-card-actions,
+.delete-confirm-dialog .v-card-actions {
+  gap: 10px;
+  padding: 14px 16px 18px;
 }
 
 .delete-confirm-dialog p {

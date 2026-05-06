@@ -239,7 +239,7 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
           <div v-else-if="store.articles.length === 0" class="empty-state">
             <h2>まだ記事がありません</h2>
             <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
-            <VBtn color="primary" @click="openArticleModal">最初の記事を追加</VBtn>
+            <VBtn class="action-button action-button-primary" color="primary" variant="flat" @click="openArticleModal">最初の記事を追加</VBtn>
           </div>
           <template v-else>
             <ArticleCard

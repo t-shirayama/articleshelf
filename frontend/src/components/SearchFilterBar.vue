@@ -55,7 +55,7 @@ const sortOptions = [
       @update:model-value="emit('update:sort', $event as ArticleSort)"
     />
 
-    <VBtn class="article-add-button" color="primary" @click="emit('add')">
+    <VBtn class="action-button action-button-primary article-add-button" color="primary" variant="flat" @click="emit('add')">
       <template #prepend>
         <Plus :size="18" />
       </template>
