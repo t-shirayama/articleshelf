@@ -885,12 +885,20 @@ a {
 }
 
 .card-delete-button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
   color: var(--muted);
+  background: #ffffff !important;
+  border: 1px solid rgba(105, 112, 109, 0.26);
+  box-shadow: 0 3px 8px rgba(55, 48, 37, 0.07);
 }
 
 .card-delete-button:hover {
   color: var(--danger);
-  background: #fff8f6;
+  background: #fff8f6 !important;
+  border-color: rgba(194, 73, 54, 0.42);
+  box-shadow: 0 5px 12px rgba(194, 73, 54, 0.12);
 }
 
 .article-card h3 {
