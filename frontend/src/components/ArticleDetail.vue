@@ -220,6 +220,7 @@ function confirmDelete(): void {
 
             <TagEditor
               v-model="form.tags"
+              class="detail-edit-tag-editor"
               :options="tagOptions"
             />
 

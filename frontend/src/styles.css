@@ -43,11 +43,9 @@ body,
 html:has(.detail-page.is-editing),
 body:has(.detail-page.is-editing),
 #app:has(.detail-page.is-editing) {
-  height: auto;
-  min-height: 100%;
-  overflow-y: auto;
-  scrollbar-color: var(--scrollbar-thumb) transparent;
-  scrollbar-width: thin;
+  height: 100%;
+  overflow: hidden;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -1122,9 +1120,9 @@ a {
 }
 
 .detail-page.is-editing {
-  height: auto;
-  min-height: calc(100vh - 36px);
-  overflow: visible;
+  height: calc(100vh - 36px);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .empty-detail,
@@ -1308,6 +1306,12 @@ a {
 .detail-meta {
   display: grid;
   gap: 16px;
+  min-width: 0;
+}
+
+.detail-main > .v-input,
+.detail-main > .tag-editor {
+  min-width: 0;
 }
 
 .detail-section {
