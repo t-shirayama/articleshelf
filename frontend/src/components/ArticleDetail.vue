@@ -248,32 +248,30 @@ function confirmDelete(): void {
             <div class="detail-meta-block">
               <span class="detail-meta-label">ステータス</span>
               <VSelect
-                v-if="isEditing"
                 v-model="form.status"
                 class="detail-meta-control"
                 :items="statusOptions"
                 item-title="label"
                 item-value="value"
                 density="comfortable"
+                :disabled="!isEditing"
                 hide-details
                 variant="outlined"
               />
-              <strong v-else>{{ statusLabelMap[article.status] }}</strong>
             </div>
 
             <div class="detail-meta-block">
               <span class="detail-meta-label">読了日</span>
               <VTextField
-                v-if="isEditing"
                 v-model="form.readDate"
                 class="readstack-date-field detail-meta-control"
                 type="date"
                 density="comfortable"
+                :disabled="!isEditing"
                 hide-details
                 variant="outlined"
-                clearable
+                :clearable="isEditing"
               />
-              <strong v-else>{{ formattedReadDate }}</strong>
             </div>
 
             <div class="detail-meta-block">

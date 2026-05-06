@@ -774,7 +774,8 @@ a {
 }
 
 .detail-meta {
-  background: var(--surface-strong);
+  background: transparent;
+  box-shadow: none;
 }
 
 .detail-meta-content {
@@ -789,7 +790,7 @@ a {
   gap: 6px;
   align-items: center;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--surface-strong);
   border: 1px solid rgba(222, 217, 206, 0.86);
   border-radius: 10px;
 }
@@ -808,6 +809,26 @@ a {
 .detail-meta-control .v-input__control,
 .detail-meta-control .v-field {
   min-height: 40px;
+}
+
+.detail-meta-control .v-field--disabled {
+  color: var(--text);
+  opacity: 1;
+}
+
+.detail-meta-control .v-field--disabled .v-field__outline,
+.detail-meta-control .v-field--disabled .v-field__overlay {
+  opacity: 1;
+}
+
+.detail-meta-control .v-field--disabled .v-field__input,
+.detail-meta-control .v-field--disabled .v-select__selection-text {
+  color: var(--text);
+  opacity: 1;
+}
+
+.detail-meta-control .v-input__details {
+  display: none;
 }
 
 .detail-meta .readstack-date-field,
