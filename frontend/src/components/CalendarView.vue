@@ -132,7 +132,7 @@ function startOfMonth(date: Date): Date {
     </header>
 
     <div class="calendar-toolbar">
-      <VBtnToggle v-model="mode" class="calendar-mode-toggle" mandatory>
+      <VBtnToggle v-model="mode" class="mode-toggle calendar-mode-toggle" mandatory>
         <VBtn value="created">
           <template #prepend>
             <PlusCircle :size="16" />

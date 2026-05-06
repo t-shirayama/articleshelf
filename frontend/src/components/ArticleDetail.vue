@@ -153,7 +153,7 @@ function confirmDelete(): void {
           戻る
         </VBtn>
 
-        <VBtnToggle v-model="detailMode" class="detail-mode-toggle" mandatory>
+        <VBtnToggle v-model="detailMode" class="mode-toggle detail-mode-toggle" mandatory>
           <VBtn value="view">閲覧</VBtn>
           <VBtn value="edit">編集</VBtn>
         </VBtnToggle>
