@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star } from 'lucide-vue-next'
+import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 import type { Article } from '../types'
 
@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   click: []
+  delete: []
   'toggle-favorite': []
 }>()
 
@@ -73,6 +74,19 @@ function domainFrom(url: string): string {
               @keydown.space.stop.prevent="emit('toggle-favorite')"
             >
               <Heart :size="17" :fill="article.favorite ? 'currentColor' : 'none'" />
+            </VBtn>
+            <VBtn
+              class="card-delete-button"
+              color="error"
+              icon
+              size="small"
+              variant="text"
+              title="記事を削除"
+              @click.stop="emit('delete')"
+              @keydown.enter.stop="emit('delete')"
+              @keydown.space.stop.prevent="emit('delete')"
+            >
+              <Trash2 :size="16" />
             </VBtn>
           </div>
         </div>

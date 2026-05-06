@@ -483,6 +483,15 @@ a {
   color: var(--muted);
 }
 
+.card-delete-button {
+  color: var(--muted);
+}
+
+.card-delete-button:hover {
+  color: var(--danger);
+  background: #fff8f6;
+}
+
 .article-card h3 {
   margin: 8px 0 6px;
   overflow: hidden;

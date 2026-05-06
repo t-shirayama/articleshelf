@@ -17,6 +17,7 @@ const articleFormError = ref('')
 const duplicateArticleId = ref('')
 const searchDraft = ref('')
 const viewMode = ref<'list' | 'detail'>('list')
+const deleteCandidate = ref<Article | null>(null)
 const motivationIndex = ref(new Date().getDate() % motivationCards.length)
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined
 
@@ -62,6 +63,17 @@ async function saveArticle(article: ArticleInput): Promise<void> {
 async function deleteArticle(articleId: string): Promise<void> {
   await store.deleteArticle(articleId)
   showList()
+}
+
+function requestDeleteArticle(article: Article): void {
+  deleteCandidate.value = article
+}
+
+async function confirmListDelete(): Promise<void> {
+  if (!deleteCandidate.value) return
+  const articleId = deleteCandidate.value.id
+  deleteCandidate.value = null
+  await store.deleteArticle(articleId)
 }
 
 async function openArticle(article: Article): Promise<void> {
@@ -248,6 +260,7 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
               :article="article"
               :selected="store.selectedArticle?.id === article.id"
               @click="openArticle(article)"
+              @delete="requestDeleteArticle(article)"
               @toggle-favorite="toggleFavorite(article)"
             />
           </template>
@@ -273,5 +286,20 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
       @open-duplicate="openDuplicateArticle"
       @submit="createArticle"
     />
+
+    <VDialog :model-value="Boolean(deleteCandidate)" max-width="420" @update:model-value="value => { if (!value) deleteCandidate = null }">
+      <VCard class="delete-confirm-dialog" title="記事を削除しますか？">
+        <VCardText>
+          <p>
+            「{{ deleteCandidate?.title }}」を削除します。この操作は取り消せません。
+          </p>
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteCandidate = null">キャンセル</VBtn>
+          <VBtn class="action-button action-button-danger" color="error" variant="flat" @click="confirmListDelete">削除する</VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
   </VApp>
 </template>
