@@ -117,6 +117,7 @@ function domainFrom(url: string): string {
           <div class="article-card-actions">
             <VBtn
               class="status-toggle-button"
+              :class="{ 'is-active': article.status === 'READ' }"
               icon
               size="small"
               type="button"

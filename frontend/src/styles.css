@@ -837,6 +837,17 @@ a {
   box-shadow: 0 5px 12px rgba(24, 108, 116, 0.1);
 }
 
+.status-toggle-button.is-active {
+  color: #d9344a !important;
+  border-color: rgba(217, 52, 74, 0.42);
+}
+
+.status-toggle-button.is-active:hover {
+  background: #fff0f3 !important;
+  border-color: rgba(217, 52, 74, 0.58);
+  box-shadow: 0 5px 12px rgba(217, 52, 74, 0.12);
+}
+
 .favorite-button {
   color: var(--muted);
 }
