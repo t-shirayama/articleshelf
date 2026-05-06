@@ -12,6 +12,8 @@ defineProps({
   }
 })
 
+const emit = defineEmits(['click'])
+
 function domainFrom(url) {
   try {
     return new URL(url).hostname.replace(/^www\./, '')
@@ -22,30 +24,41 @@ function domainFrom(url) {
 </script>
 
 <template>
-  <button class="article-card" :class="{ selected }">
-    <div class="article-thumb">
-      <Bookmark :size="24" />
-    </div>
-    <div class="article-card-body">
-      <div class="article-card-topline">
-        <span class="domain">{{ domainFrom(article.url) }}</span>
-        <span class="status-pill" :class="article.status.toLowerCase()">
-          <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
-          <Circle v-else :size="14" />
-          {{ article.status === 'READ' ? '読了' : '未読' }}
-        </span>
+  <VCard
+    class="article-card"
+    :class="{ selected }"
+    hover
+    role="button"
+    tabindex="0"
+    @click="emit('click')"
+    @keydown.enter="emit('click')"
+    @keydown.space.prevent="emit('click')"
+  >
+    <div class="article-card-content">
+      <div class="article-thumb">
+        <Bookmark :size="24" />
       </div>
-      <h3>{{ article.title }}</h3>
-      <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
-      <div class="article-card-footer">
-        <div class="tag-list">
-          <span v-for="tag in article.tags" :key="tag.id || tag.name" class="tag-chip">{{ tag.name }}</span>
+      <div class="article-card-body">
+        <div class="article-card-topline">
+          <span class="domain">{{ domainFrom(article.url) }}</span>
+          <VChip :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
+            <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
+            <Circle v-else :size="14" />
+            {{ article.status === 'READ' ? '読了' : '未読' }}
+          </VChip>
         </div>
-        <span v-if="article.readDate" class="date-meta">
-          <CalendarDays :size="14" />
-          {{ article.readDate }}
-        </span>
+        <h3>{{ article.title }}</h3>
+        <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
+        <div class="article-card-footer">
+          <div class="tag-list">
+            <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
+          </div>
+          <span v-if="article.readDate" class="date-meta">
+            <CalendarDays :size="14" />
+            {{ article.readDate }}
+          </span>
+        </div>
       </div>
     </div>
-  </button>
+  </VCard>
 </template>

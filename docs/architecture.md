@@ -2,7 +2,7 @@
 
 ## 1. システム構成
 
-- フロントエンド: Vue.js アプリ（Vue 3 + Vue Router + Pinia）
+- フロントエンド: Vue.js アプリ（Vue 3 + Pinia + Vuetify）
 - バックエンド: Spring Boot アプリ（Spring Web, Spring Data JPA）
 - データベース: PostgreSQL
 - 実行基盤: Docker / Docker Compose
@@ -16,6 +16,7 @@
 - `components`: 共有コンポーネント
 - `store`: アプリ状態管理
 - `services`: API呼び出しラッパー
+- `Vuetify`: ボタン、入力、カード、ダイアログ、チップなどのUIコンポーネント
 
 ### 2.2 バックエンド
 

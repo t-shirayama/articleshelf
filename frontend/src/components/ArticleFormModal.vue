@@ -1,6 +1,5 @@
 <script setup>
 import { computed, reactive, watch } from 'vue'
-import { X } from 'lucide-vue-next'
 
 const props = defineProps({
   open: {
@@ -12,11 +11,22 @@ const props = defineProps({
 const emit = defineEmits(['close', 'submit'])
 
 const form = reactive(defaultForm())
+const statusOptions = [
+  { label: '未読', value: 'UNREAD' },
+  { label: '読了', value: 'READ' }
+]
 
 const tagText = computed({
   get: () => form.tags.join(', '),
   set: (value) => {
     form.tags = value.split(',').map((tag) => tag.trim()).filter(Boolean)
+  }
+})
+
+const dialogOpen = computed({
+  get: () => props.open,
+  set: (value) => {
+    if (!value) emit('close')
   }
 })
 
@@ -33,7 +43,7 @@ function defaultForm() {
     title: '',
     summary: '',
     status: 'UNREAD',
-    readDate: '',
+    readDate: null,
     favorite: false,
     notes: '',
     tags: []
@@ -46,53 +56,36 @@ function submit() {
 </script>
 
 <template>
-  <div v-if="open" class="modal-backdrop" @click.self="emit('close')">
-    <form class="article-modal" @submit.prevent="submit">
-      <div class="modal-header">
-        <h2>記事を追加</h2>
-        <button type="button" class="icon-button" title="閉じる" @click="emit('close')">
-          <X :size="20" />
-        </button>
-      </div>
+  <VDialog v-model="dialogOpen" max-width="560">
+    <VCard class="article-modal" title="記事を追加">
+      <VForm @submit.prevent="submit">
+        <VCardText>
+          <VTextField v-model="form.url" label="URL" type="url" placeholder="https://example.com/article" required />
 
-      <label>
-        URL
-        <input v-model="form.url" type="url" placeholder="https://example.com/article" required />
-      </label>
+          <VTextField v-model="form.title" label="タイトル" placeholder="空欄ならOGPから補完します" />
 
-      <label>
-        タイトル
-        <input v-model="form.title" placeholder="空欄ならOGPから補完します" />
-      </label>
+          <VTextField v-model="tagText" label="タグ" placeholder="React, Next.js, 学習" />
 
-      <label>
-        タグ
-        <input v-model="tagText" placeholder="React, Next.js, 学習" />
-      </label>
+          <div class="field-row">
+            <VSelect v-model="form.status" label="ステータス" :items="statusOptions" item-title="label" item-value="value" />
+            <VTextField v-model="form.readDate" label="読了日" type="date" clearable />
+          </div>
 
-      <div class="field-row">
-        <label>
-          ステータス
-          <select v-model="form.status">
-            <option value="UNREAD">未読</option>
-            <option value="READ">読了</option>
-          </select>
-        </label>
-        <label>
-          読了日
-          <input v-model="form.readDate" type="date" />
-        </label>
-      </div>
+          <VTextarea
+            v-model="form.notes"
+            label="メモ"
+            rows="5"
+            auto-grow
+            placeholder="読んだポイントや次に試したいこと"
+          />
+        </VCardText>
 
-      <label>
-        メモ
-        <textarea v-model="form.notes" rows="5" placeholder="読んだポイントや次に試したいこと" />
-      </label>
-
-      <div class="modal-actions">
-        <button type="button" class="ghost-button" @click="emit('close')">キャンセル</button>
-        <button type="submit" class="primary-button">保存する</button>
-      </div>
-    </form>
-  </div>
+        <VCardActions>
+          <VSpacer />
+          <VBtn @click="emit('close')">キャンセル</VBtn>
+          <VBtn color="primary" type="submit">保存する</VBtn>
+        </VCardActions>
+      </VForm>
+    </VCard>
+  </VDialog>
 </template>

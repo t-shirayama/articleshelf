@@ -12,6 +12,10 @@ const props = defineProps({
 const emit = defineEmits(['back', 'save', 'delete'])
 
 const form = reactive(emptyForm())
+const statusOptions = [
+  { label: '未読', value: 'UNREAD' },
+  { label: '読了', value: 'READ' }
+]
 
 const tagText = computed({
   get: () => form.tags.join(', '),
@@ -35,7 +39,7 @@ function emptyForm() {
     title: '',
     summary: '',
     status: 'UNREAD',
-    readDate: '',
+    readDate: null,
     favorite: false,
     notes: '',
     tags: []
@@ -49,7 +53,7 @@ function toForm(article) {
     title: article.title,
     summary: article.summary || '',
     status: article.status || 'UNREAD',
-    readDate: article.readDate || '',
+    readDate: article.readDate || null,
     favorite: article.favorite,
     notes: article.notes || '',
     tags: article.tags?.map((tag) => tag.name) || []
@@ -67,20 +71,24 @@ function submit() {
       <span>記事を選択すると詳細を編集できます。</span>
     </div>
 
-    <form v-else class="detail-form" @submit.prevent="submit">
+    <VForm v-else class="detail-form" @submit.prevent="submit">
       <div class="detail-topbar">
-        <button type="button" class="ghost-button compact-button" @click="emit('back')">
-          <ArrowLeft :size="17" />
+        <VBtn class="compact-button" variant="outlined" @click="emit('back')">
+          <template #prepend>
+            <ArrowLeft :size="17" />
+          </template>
           戻る
-        </button>
+        </VBtn>
         <div class="detail-topbar-actions">
-          <button type="button" class="icon-button" title="お気に入り" @click="form.favorite = !form.favorite">
+          <VBtn icon :color="form.favorite ? 'primary' : undefined" title="お気に入り" @click="form.favorite = !form.favorite">
             <Heart :size="19" :fill="form.favorite ? 'currentColor' : 'none'" />
-          </button>
-          <button type="submit" class="primary-button compact-button">
-            <Save :size="17" />
+          </VBtn>
+          <VBtn color="primary" type="submit" class="compact-button">
+            <template #prepend>
+              <Save :size="17" />
+            </template>
             保存
-          </button>
+          </VBtn>
         </div>
       </div>
 
@@ -97,55 +105,35 @@ function submit() {
 
       <div class="detail-layout">
         <section class="detail-main">
-          <label>
-            タイトル
-            <input v-model="form.title" required />
-          </label>
+          <VTextField v-model="form.title" label="タイトル" required />
 
-          <label>
-            URL
-            <input v-model="form.url" type="url" required />
-          </label>
+          <VTextField v-model="form.url" label="URL" type="url" required />
 
-          <label>
-            概要
-            <textarea v-model="form.summary" rows="5" />
-          </label>
+          <VTextarea v-model="form.summary" label="概要" rows="5" auto-grow />
 
-          <label>
-            タグ
-            <input v-model="tagText" placeholder="React, Spring Boot" />
-          </label>
+          <VTextField v-model="tagText" label="タグ" placeholder="React, Spring Boot" />
 
-          <label>
-            メモ
-            <textarea v-model="form.notes" rows="8" />
-          </label>
+          <VTextarea v-model="form.notes" label="メモ" rows="8" auto-grow />
         </section>
 
-        <aside class="detail-meta">
-          <div class="field-row stacked">
-            <label>
-              ステータス
-              <select v-model="form.status">
-                <option value="UNREAD">未読</option>
-                <option value="READ">読了</option>
-              </select>
-            </label>
-            <label>
-              読了日
-              <input v-model="form.readDate" type="date" />
-            </label>
-          </div>
+        <VCard class="detail-meta" variant="tonal">
+          <VCardText class="detail-meta-content">
+            <div class="field-row stacked">
+              <VSelect v-model="form.status" label="ステータス" :items="statusOptions" item-title="label" item-value="value" />
+              <VTextField v-model="form.readDate" label="読了日" type="date" clearable />
+            </div>
 
-          <div class="detail-actions">
-            <button type="button" class="danger-button" @click="emit('delete', article.id)">
-              <Trash2 :size="17" />
-              削除
-            </button>
-          </div>
-        </aside>
+            <div class="detail-actions">
+              <VBtn color="error" variant="outlined" @click="emit('delete', article.id)">
+                <template #prepend>
+                  <Trash2 :size="17" />
+                </template>
+                削除
+              </VBtn>
+            </div>
+          </VCardText>
+        </VCard>
       </div>
-    </form>
+    </VForm>
   </main>
 </template>

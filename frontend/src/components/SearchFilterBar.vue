@@ -17,29 +17,42 @@ const emit = defineEmits(['update:search', 'update:status', 'add'])
 
 <template>
   <div class="search-filter-bar">
-    <label class="search-box">
-      <Search :size="18" />
-      <input
-        :value="search"
-        type="search"
-        placeholder="タイトル・URL・メモで検索"
-        @input="emit('update:search', $event.target.value)"
-      />
-    </label>
+    <VTextField
+      class="search-input"
+      :model-value="search"
+      type="text"
+      clearable
+      hide-details
+      placeholder="タイトル・URL・メモで検索"
+      @update:model-value="emit('update:search', $event)"
+    >
+      <template #prepend-inner>
+        <Search :size="18" />
+      </template>
+    </VTextField>
 
-    <div class="status-tabs" aria-label="ステータスフィルター">
-      <button :class="{ active: status === 'ALL' }" @click="emit('update:status', 'ALL')">すべて</button>
-      <button :class="{ active: status === 'UNREAD' }" @click="emit('update:status', 'UNREAD')">未読</button>
-      <button :class="{ active: status === 'READ' }" @click="emit('update:status', 'READ')">読了</button>
-    </div>
+    <VBtnToggle
+      class="status-tabs"
+      :model-value="status"
+      mandatory
+      density="comfortable"
+      aria-label="ステータスフィルター"
+      @update:model-value="emit('update:status', $event)"
+    >
+      <VBtn value="ALL">すべて</VBtn>
+      <VBtn value="UNREAD">未読</VBtn>
+      <VBtn value="READ">読了</VBtn>
+    </VBtnToggle>
 
-    <button class="icon-button muted" title="フィルター">
+    <VBtn icon variant="text" title="フィルター">
       <SlidersHorizontal :size="18" />
-    </button>
+    </VBtn>
 
-    <button class="primary-button" @click="emit('add')">
-      <Plus :size="18" />
+    <VBtn color="primary" @click="emit('add')">
+      <template #prepend>
+        <Plus :size="18" />
+      </template>
       記事を追加
-    </button>
+    </VBtn>
   </div>
 </template>

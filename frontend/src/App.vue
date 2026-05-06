@@ -67,104 +67,141 @@ function setFavoriteOnly() {
 </script>
 
 <template>
-  <div v-if="viewMode === 'list'" class="app-shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark">
-          <BookOpen :size="22" />
+  <VApp>
+    <div v-if="viewMode === 'list'" class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">
+            <BookOpen :size="22" />
+          </div>
+          <div>
+            <strong>ReadStack</strong>
+            <span>学びを蓄える記事棚</span>
+          </div>
         </div>
-        <div>
-          <strong>ReadStack</strong>
-          <span>学びを蓄える記事棚</span>
-        </div>
-      </div>
 
-      <nav class="side-nav">
-        <button :class="{ active: store.filters.status === 'ALL' && !store.filters.tag && !store.filters.favorite }" @click="setStatus('ALL'); setTag('')">
-          <Library :size="18" />
-          すべての記事
-          <span>{{ store.counts.all }}</span>
-        </button>
-        <button :class="{ active: store.filters.status === 'UNREAD' }" @click="setStatus('UNREAD')">
-          <Circle :size="18" />
-          未読
-          <span>{{ store.counts.unread }}</span>
-        </button>
-        <button :class="{ active: store.filters.status === 'READ' }" @click="setStatus('READ')">
-          <CheckCircle2 :size="18" />
-          読了
-          <span>{{ store.counts.read }}</span>
-        </button>
-        <button :class="{ active: store.filters.favorite }" @click="setFavoriteOnly">
-          <Heart :size="18" />
-          お気に入り
-          <span>{{ store.counts.favorite }}</span>
-        </button>
-      </nav>
+        <nav class="side-nav">
+          <VBtn
+            block
+            variant="text"
+            :color="store.filters.status === 'ALL' && !store.filters.tag && !store.filters.favorite ? 'primary' : undefined"
+            @click="setStatus('ALL'); setTag('')"
+          >
+            <template #prepend>
+              <Library :size="18" />
+            </template>
+            <span>すべての記事</span>
+            <strong>{{ store.counts.all }}</strong>
+          </VBtn>
+          <VBtn
+            block
+            variant="text"
+            :color="store.filters.status === 'UNREAD' ? 'primary' : undefined"
+            @click="setStatus('UNREAD')"
+          >
+            <template #prepend>
+              <Circle :size="18" />
+            </template>
+            <span>未読</span>
+            <strong>{{ store.counts.unread }}</strong>
+          </VBtn>
+          <VBtn
+            block
+            variant="text"
+            :color="store.filters.status === 'READ' ? 'primary' : undefined"
+            @click="setStatus('READ')"
+          >
+            <template #prepend>
+              <CheckCircle2 :size="18" />
+            </template>
+            <span>読了</span>
+            <strong>{{ store.counts.read }}</strong>
+          </VBtn>
+          <VBtn
+            block
+            variant="text"
+            :color="store.filters.favorite ? 'primary' : undefined"
+            @click="setFavoriteOnly"
+          >
+            <template #prepend>
+              <Heart :size="18" />
+            </template>
+            <span>お気に入り</span>
+            <strong>{{ store.counts.favorite }}</strong>
+          </VBtn>
+        </nav>
 
-      <section class="tag-section">
-        <h2>タグ</h2>
-        <button
-          v-for="tag in visibleTags"
-          :key="tag.id"
-          :class="{ active: store.filters.tag === tag.name }"
-          @click="setTag(store.filters.tag === tag.name ? '' : tag.name)"
-        >
-          <Tag :size="15" />
-          {{ tag.name }}
-        </button>
-      </section>
-    </aside>
+        <section class="tag-section">
+          <h2>タグ</h2>
+          <VBtn
+            v-for="tag in visibleTags"
+            :key="tag.id"
+            block
+            variant="text"
+            :color="store.filters.tag === tag.name ? 'primary' : undefined"
+            @click="setTag(store.filters.tag === tag.name ? '' : tag.name)"
+          >
+            <template #prepend>
+              <Tag :size="16" />
+            </template>
+            {{ tag.name }}
+          </VBtn>
+        </section>
+      </aside>
 
-    <main class="content">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">ReadStack</p>
-          <h1>すべての記事</h1>
-        </div>
-        <SearchFilterBar
-          :search="searchDraft"
-          :status="store.filters.status"
-          @update:search="searchDraft = $event"
-          @update:status="setStatus($event)"
-          @add="modalOpen = true"
-        />
-      </header>
-
-      <p v-if="store.error" class="error-banner">{{ store.error }}</p>
-
-      <section class="article-list" aria-live="polite">
-        <div v-if="store.loading" class="loading-state">読み込み中...</div>
-        <div v-else-if="store.articles.length === 0" class="empty-state">
-          <h2>まだ記事がありません</h2>
-          <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
-          <button class="primary-button" @click="modalOpen = true">最初の記事を追加</button>
-        </div>
-        <template v-else>
-          <ArticleCard
-            v-for="article in store.articles"
-            :key="article.id"
-            :article="article"
-            :selected="store.selectedArticle?.id === article.id"
-            @click="openArticle(article)"
+      <main class="content">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow">ReadStack</p>
+            <h1>すべての記事</h1>
+          </div>
+          <SearchFilterBar
+            :search="searchDraft"
+            :status="store.filters.status"
+            @update:search="searchDraft = $event"
+            @update:status="setStatus($event)"
+            @add="modalOpen = true"
           />
-        </template>
-      </section>
-    </main>
+        </header>
 
-  </div>
+        <VAlert v-if="store.error" type="error" class="error-banner" variant="tonal">
+          {{ store.error }}
+        </VAlert>
 
-  <ArticleDetail
-    v-else
-    :article="store.selectedArticle"
-    @back="showList"
-    @save="saveArticle"
-    @delete="deleteArticle"
-  />
+        <section class="article-list" aria-live="polite">
+          <div v-if="store.loading" class="loading-state">
+            <VProgressCircular indeterminate color="primary" size="42" />
+          </div>
+          <div v-else-if="store.articles.length === 0" class="empty-state">
+            <h2>まだ記事がありません</h2>
+            <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
+            <VBtn color="primary" @click="modalOpen = true">最初の記事を追加</VBtn>
+          </div>
+          <template v-else>
+            <ArticleCard
+              v-for="article in store.articles"
+              :key="article.id"
+              :article="article"
+              :selected="store.selectedArticle?.id === article.id"
+              @click="openArticle(article)"
+            />
+          </template>
+        </section>
+      </main>
+    </div>
 
-  <ArticleFormModal
-    :open="modalOpen"
-    @close="modalOpen = false"
-    @submit="createArticle"
-  />
+    <ArticleDetail
+      v-else
+      :article="store.selectedArticle"
+      @back="showList"
+      @save="saveArticle"
+      @delete="deleteArticle"
+    />
+
+    <ArticleFormModal
+      :open="modalOpen"
+      @close="modalOpen = false"
+      @submit="createArticle"
+    />
+  </VApp>
 </template>
