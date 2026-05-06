@@ -23,6 +23,9 @@
   --article-thumb-width: 224px;
   --article-thumb-height: 140px;
   --shell-panel-padding: 24px;
+  --scrollbar-thumb: rgba(105, 112, 109, 0.28);
+  --scrollbar-thumb-hover: rgba(24, 108, 116, 0.38);
+  --scrollbar-track: rgba(255, 253, 250, 0.32);
 }
 
 * {
@@ -43,6 +46,8 @@ body:has(.detail-page.is-editing),
   height: auto;
   min-height: 100%;
   overflow-y: auto;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
 }
 
 body {
@@ -77,6 +82,46 @@ button:disabled {
 
 a {
   color: inherit;
+}
+
+.article-list,
+.calendar-grid,
+.calendar-day-articles,
+.detail-page {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+.article-list::-webkit-scrollbar,
+.calendar-grid::-webkit-scrollbar,
+.calendar-day-articles::-webkit-scrollbar,
+.detail-page::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.article-list::-webkit-scrollbar-track,
+.calendar-grid::-webkit-scrollbar-track,
+.calendar-day-articles::-webkit-scrollbar-track,
+.detail-page::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 999px;
+}
+
+.article-list::-webkit-scrollbar-thumb,
+.calendar-grid::-webkit-scrollbar-thumb,
+.calendar-day-articles::-webkit-scrollbar-thumb,
+.detail-page::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border: 3px solid rgba(255, 253, 250, 0.72);
+  border-radius: 999px;
+}
+
+.article-list::-webkit-scrollbar-thumb:hover,
+.calendar-grid::-webkit-scrollbar-thumb:hover,
+.calendar-day-articles::-webkit-scrollbar-thumb:hover,
+.detail-page::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 .action-button {
