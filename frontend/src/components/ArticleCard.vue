@@ -117,19 +117,19 @@ function domainFrom(url: string): string {
               <VChip class="status-chip" :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
                 <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
                 <Circle v-else :size="14" />
-                {{ article.status === 'READ' ? '読了' : '未読' }}
+                {{ article.status === 'READ' ? '既読' : '未読' }}
               </VChip>
               <VBtn
                 class="status-toggle-button"
                 size="small"
                 type="button"
                 variant="outlined"
-                :title="article.status === 'READ' ? '未読に戻す' : '読了にする'"
+                :title="article.status === 'READ' ? '未読に戻す' : '既読にする'"
                 @click.stop="emit('toggle-status')"
                 @keydown.enter.stop="emit('toggle-status')"
                 @keydown.space.stop.prevent="emit('toggle-status')"
               >
-                {{ article.status === 'READ' ? '未読に戻す' : '読了にする' }}
+                {{ article.status === 'READ' ? '未読に戻す' : '既読にする' }}
               </VBtn>
             </div>
             <VBtn
@@ -175,7 +175,7 @@ function domainFrom(url: string): string {
                 <CalendarDays :size="14" />
                 <div class="card-date-values">
                   <span v-if="article.createdAt" class="date-meta">登録日 {{ formatDate(article.createdAt) }}</span>
-                  <span class="date-meta">読了日 {{ formatDate(article.readDate) }}</span>
+                  <span class="date-meta">既読日 {{ formatDate(article.readDate) }}</span>
                 </div>
               </div>
             </div>

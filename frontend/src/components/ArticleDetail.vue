@@ -52,7 +52,7 @@ const detailMode = computed<'view' | 'edit'>({
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
 const statusOptions = [
   { label: '未読', value: 'UNREAD' },
-  { label: '読了', value: 'READ' }
+  { label: '既読', value: 'READ' }
 ] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
 const summaryText = computed(() => props.article?.summary?.trim() || '概要はまだありません')
 const notesText = computed(() => props.article?.notes?.trim() || 'メモはまだありません')
@@ -271,7 +271,7 @@ function confirmDelete(): void {
             </div>
 
             <div class="detail-meta-block">
-              <span class="detail-meta-label">読了日</span>
+              <span class="detail-meta-label">既読日</span>
               <VTextField
                 v-model="form.readDate"
                 class="readstack-date-field detail-meta-control"

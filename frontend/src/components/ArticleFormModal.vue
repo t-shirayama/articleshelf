@@ -165,7 +165,7 @@ function submit(): void {
             <VTextField
               v-model="form.readDate"
               class="readstack-date-field"
-              label="読了日"
+              label="既読日"
               type="date"
               :disabled="form.readLater"
               clearable

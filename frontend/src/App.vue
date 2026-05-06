@@ -56,7 +56,7 @@ const currentMotivation = computed(
 const pageTitle = computed(() => {
   if (store.filters.favorite) return "お気に入り";
   if (store.filters.status === "UNREAD") return "未読";
-  if (store.filters.status === "READ") return "読了";
+  if (store.filters.status === "READ") return "既読";
   if (
     store.filters.tags.length === 1 &&
     store.filters.ratings.length === 0 &&
@@ -98,7 +98,7 @@ const activeFilterSummary = computed<string[]>(() => {
 
   if (store.filters.readRange.from || store.filters.readRange.to) {
     summary.push(
-      `読了日: ${formatRange(store.filters.readRange.from, store.filters.readRange.to)}`,
+      `既読日: ${formatRange(store.filters.readRange.from, store.filters.readRange.to)}`,
     );
   }
 
@@ -200,7 +200,7 @@ async function toggleArticleStatus(article: Article): Promise<void> {
     readDate: previousReadDate,
   };
   statusSnackbarMessage.value =
-    nextStatus === "READ" ? "読了にしました" : "未読に戻しました";
+    nextStatus === "READ" ? "既読にしました" : "未読に戻しました";
   statusSnackbarOpen.value = true;
 }
 
@@ -369,7 +369,7 @@ function todayString(): string {
             <template #prepend>
               <CheckCircle2 :size="18" />
             </template>
-            <span>読了</span>
+            <span>既読</span>
             <strong>{{ store.counts.read }}</strong>
           </VBtn>
           <div class="side-nav-divider" aria-hidden="true" />

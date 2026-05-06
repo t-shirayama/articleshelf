@@ -143,7 +143,7 @@ function startOfMonth(date: Date): Date {
           <template #prepend>
             <CheckCircle2 :size="16" />
           </template>
-          読了日
+          既読日
         </VBtn>
       </VBtnToggle>
 
@@ -169,7 +169,7 @@ function startOfMonth(date: Date): Date {
           <strong>{{ createdInMonth.length }}</strong>
         </span>
         <span>
-          <span class="calendar-summary-label">読了</span>
+          <span class="calendar-summary-label">既読</span>
           <strong>{{ readInMonth.length }}</strong>
         </span>
         <span :class="{ 'is-positive': backlogDelta > 0, 'is-negative': backlogDelta < 0 }">

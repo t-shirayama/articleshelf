@@ -169,14 +169,14 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
             <div>
-              <strong>読了日</strong>
-              <span>読了済み記事だけを期間で見たいときに使えます</span>
+              <strong>既読日</strong>
+              <span>既読の記事だけを期間で見たいときに使えます</span>
             </div>
             <VBtn class="filter-section-clear" variant="outlined" :disabled="!draft.readRange.from && !draft.readRange.to" @click="clearReadRange">
               <template #prepend>
                 <X :size="15" />
               </template>
-              読了日をクリア
+              既読日をクリア
             </VBtn>
           </div>
           <div class="filter-date-grid">

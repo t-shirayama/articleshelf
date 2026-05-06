@@ -25,7 +25,7 @@ const sortOptions = [
   { title: '新しい順', value: 'CREATED_DESC' },
   { title: '古い順', value: 'CREATED_ASC' },
   { title: '更新順', value: 'UPDATED_DESC' },
-  { title: '読了日順', value: 'READ_DATE_DESC' },
+  { title: '既読日順', value: 'READ_DATE_DESC' },
   { title: 'タイトル順', value: 'TITLE_ASC' },
   { title: 'おすすめ順', value: 'RATING_DESC' }
 ] satisfies Array<{ title: string, value: ArticleSort }>
