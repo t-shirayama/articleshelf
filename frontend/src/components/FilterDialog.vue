@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
+import { X } from 'lucide-vue-next'
 import type { ArticleDateRange } from '../types'
 
 interface FilterDraft {
@@ -138,7 +139,12 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
               <strong>登録日</strong>
               <span>期間を指定して追加タイミングで絞り込みます</span>
             </div>
-            <VBtn class="filter-section-clear" variant="text" :disabled="!draft.createdRange.from && !draft.createdRange.to" @click="clearCreatedRange">登録日のみクリア</VBtn>
+            <VBtn class="filter-section-clear" variant="outlined" :disabled="!draft.createdRange.from && !draft.createdRange.to" @click="clearCreatedRange">
+              <template #prepend>
+                <X :size="15" />
+              </template>
+              登録日をクリア
+            </VBtn>
           </div>
           <div class="filter-date-grid">
             <VTextField
@@ -166,7 +172,12 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
               <strong>読了日</strong>
               <span>読了済み記事だけを期間で見たいときに使えます</span>
             </div>
-            <VBtn class="filter-section-clear" variant="text" :disabled="!draft.readRange.from && !draft.readRange.to" @click="clearReadRange">読了日のみクリア</VBtn>
+            <VBtn class="filter-section-clear" variant="outlined" :disabled="!draft.readRange.from && !draft.readRange.to" @click="clearReadRange">
+              <template #prepend>
+                <X :size="15" />
+              </template>
+              読了日をクリア
+            </VBtn>
           </div>
           <div class="filter-date-grid">
             <VTextField

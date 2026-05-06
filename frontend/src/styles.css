@@ -1212,7 +1212,7 @@ a {
 .filter-dialog-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 4px;
+  gap: 12px;
   align-items: start;
 }
 
@@ -1233,11 +1233,33 @@ a {
 
 .filter-section-clear {
   align-self: start;
-  min-height: 32px;
-  padding-inline: 4px;
+  min-width: 132px;
+  min-height: 36px;
+  padding-inline: 12px;
   color: var(--accent-strong) !important;
-  font-size: 0.82rem;
-  font-weight: 700;
+  background: #ffffff !important;
+  border: 1px solid rgba(24, 108, 116, 0.38);
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(24, 108, 116, 0.08);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.filter-section-clear:hover {
+  background: #eef7f5 !important;
+  border-color: rgba(24, 108, 116, 0.58);
+  box-shadow: 0 6px 14px rgba(24, 108, 116, 0.12);
+}
+
+.filter-section-clear:disabled {
+  color: var(--muted) !important;
+  background: rgba(245, 243, 237, 0.72) !important;
+  border-color: rgba(105, 112, 109, 0.18);
+  box-shadow: none;
+}
+
+.filter-section-clear .v-btn__prepend {
+  margin-inline-end: 6px;
 }
 
 .filter-rating-grid {
