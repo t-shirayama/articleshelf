@@ -105,6 +105,24 @@ const activeFilterSummary = computed<string[]>(() => {
   return summary;
 });
 const activeFilterCount = computed(() => activeFilterSummary.value.length);
+const isListMode = computed(() => viewMode.value === "list");
+const isAllArticlesActive = computed(
+  () =>
+    isListMode.value &&
+    store.filters.status === "ALL" &&
+    activeFilterCount.value === 0 &&
+    !store.filters.favorite,
+);
+const isUnreadActive = computed(
+  () => isListMode.value && store.filters.status === "UNREAD",
+);
+const isReadActive = computed(
+  () => isListMode.value && store.filters.status === "READ",
+);
+const isFavoriteActive = computed(
+  () => isListMode.value && store.filters.favorite,
+);
+const isCalendarActive = computed(() => viewMode.value === "calendar");
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer);
@@ -321,13 +339,7 @@ function todayString(): string {
           <VBtn
             block
             variant="text"
-            :color="
-              store.filters.status === 'ALL' &&
-              activeFilterCount === 0 &&
-              !store.filters.favorite
-                ? 'primary'
-                : undefined
-            "
+            :color="isAllArticlesActive ? 'primary' : undefined"
             @click="setAllArticles"
           >
             <template #prepend>
@@ -339,7 +351,7 @@ function todayString(): string {
           <VBtn
             block
             variant="text"
-            :color="store.filters.status === 'UNREAD' ? 'primary' : undefined"
+            :color="isUnreadActive ? 'primary' : undefined"
             @click="setStatus('UNREAD')"
           >
             <template #prepend>
@@ -351,7 +363,7 @@ function todayString(): string {
           <VBtn
             block
             variant="text"
-            :color="store.filters.status === 'READ' ? 'primary' : undefined"
+            :color="isReadActive ? 'primary' : undefined"
             @click="setStatus('READ')"
           >
             <template #prepend>
@@ -364,7 +376,7 @@ function todayString(): string {
           <VBtn
             block
             variant="text"
-            :color="store.filters.favorite ? 'primary' : undefined"
+            :color="isFavoriteActive ? 'primary' : undefined"
             @click="setFavoriteOnly"
           >
             <template #prepend>
@@ -376,7 +388,7 @@ function todayString(): string {
           <VBtn
             block
             variant="text"
-            :color="viewMode === 'calendar' ? 'primary' : undefined"
+            :color="isCalendarActive ? 'primary' : undefined"
             @click="showCalendar"
           >
             <template #prepend>
