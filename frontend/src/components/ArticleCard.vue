@@ -94,7 +94,7 @@ function domainFrom(url: string): string {
         <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
         <div class="article-card-footer">
           <div class="article-meta-group">
-            <div v-if="article.rating > 0" class="rating-inline" :aria-label="`おすすめ度 ${article.rating} / 5`">
+            <div class="rating-inline" :class="{ 'is-empty': article.rating <= 0 }" :aria-label="`おすすめ度 ${article.rating} / 5`">
               <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
             </div>
             <div class="tag-list">
