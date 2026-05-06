@@ -158,7 +158,7 @@ function domainFrom(url: string): string {
           </div>
         </div>
         <h3>{{ article.title }}</h3>
-        <p>{{ article.summary || article.notes || '概要やメモはまだありません。' }}</p>
+        <p>{{ article.summary || article.notes || '' }}</p>
         <div class="article-card-footer">
           <div class="article-meta-group">
             <div class="article-meta-line">
