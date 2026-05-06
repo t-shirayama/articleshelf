@@ -9,6 +9,7 @@ interface CalendarCell {
   key: string
   label: number | null
   date: string
+  weekday: number | null
   articles: Article[]
   outside: boolean
 }
@@ -23,7 +24,15 @@ const emit = defineEmits<{
 
 const mode = ref<CalendarMode>('created')
 const visibleMonth = ref(startOfMonth(new Date()))
-const weekdays = ['日', '月', '火', '水', '木', '金', '土']
+const weekdays = [
+  { label: '日', type: 'sunday' },
+  { label: '月', type: 'weekday' },
+  { label: '火', type: 'weekday' },
+  { label: '水', type: 'weekday' },
+  { label: '木', type: 'weekday' },
+  { label: '金', type: 'weekday' },
+  { label: '土', type: 'saturday' }
+]
 
 const monthLabel = computed(() => {
   const year = visibleMonth.value.getFullYear()
@@ -50,6 +59,7 @@ const calendarCells = computed<CalendarCell[]>(() => {
       key: `blank-start-${index}`,
       label: null,
       date: '',
+      weekday: null,
       articles: [],
       outside: true
     })
@@ -62,6 +72,7 @@ const calendarCells = computed<CalendarCell[]>(() => {
       key,
       label: day,
       date: key,
+      weekday: date.getDay(),
       articles: articlesForDate(key),
       outside: false
     })
@@ -72,6 +83,7 @@ const calendarCells = computed<CalendarCell[]>(() => {
       key: `blank-end-${cells.length}`,
       label: null,
       date: '',
+      weekday: null,
       articles: [],
       outside: true
     })
@@ -168,20 +180,33 @@ function startOfMonth(date: Date): Date {
     </div>
 
     <div class="calendar-grid" role="grid">
-      <div v-for="weekday in weekdays" :key="weekday" class="calendar-weekday" role="columnheader">
-        {{ weekday }}
+      <div
+        v-for="weekday in weekdays"
+        :key="weekday.label"
+        class="calendar-weekday"
+        :class="`is-${weekday.type}`"
+        role="columnheader"
+      >
+        {{ weekday.label }}
       </div>
 
       <div
         v-for="cell in calendarCells"
         :key="cell.key"
         class="calendar-day"
-        :class="{ 'is-empty': cell.outside, 'has-articles': cell.articles.length > 0 }"
+        :class="{
+          'is-empty': cell.outside,
+          'has-articles': cell.articles.length > 0,
+          'is-sunday': cell.weekday === 0,
+          'is-saturday': cell.weekday === 6
+        }"
         role="gridcell"
       >
         <template v-if="!cell.outside">
           <div class="calendar-day-header">
-            <span>{{ cell.label }}</span>
+            <div class="calendar-day-title">
+              <span class="calendar-day-number">{{ cell.label }}</span>
+            </div>
             <small v-if="cell.articles.length > 0">{{ cell.articles.length }}件</small>
           </div>
 
