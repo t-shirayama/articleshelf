@@ -203,6 +203,10 @@
   min-width: 0;
 }
 
+.detail-edit-tag-editor {
+  margin-bottom: 22px;
+}
+
 .detail-section {
   display: grid;
   gap: 12px;
