@@ -523,8 +523,8 @@ a {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: 24px;
-  grid-auto-rows: minmax(112px, 1fr);
+  grid-template-rows: 24px repeat(6, 112px);
+  grid-auto-rows: 112px;
   min-height: 0;
   overflow: auto;
   border: 1px solid rgba(222, 217, 206, 0.86);
@@ -560,7 +560,7 @@ a {
   grid-template-rows: auto minmax(0, 1fr);
   gap: 8px;
   min-width: 0;
-  min-height: 112px;
+  height: 112px;
   padding: 10px;
   background: rgba(255, 255, 255, 0.62);
   border-right: 1px solid rgba(222, 217, 206, 0.72);
@@ -1752,12 +1752,13 @@ a {
   }
 
   .calendar-grid {
-    grid-auto-rows: minmax(124px, auto);
+    grid-template-rows: 24px repeat(6, 124px);
+    grid-auto-rows: 124px;
     overflow: visible;
   }
 
   .calendar-day {
-    min-height: 124px;
+    height: 124px;
     padding: 8px;
   }
 

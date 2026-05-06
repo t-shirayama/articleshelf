@@ -78,7 +78,7 @@ const calendarCells = computed<CalendarCell[]>(() => {
     })
   }
 
-  while (cells.length % 7 !== 0) {
+  while (cells.length < 42) {
     cells.push({
       key: `blank-end-${cells.length}`,
       label: null,
