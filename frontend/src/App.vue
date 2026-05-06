@@ -191,9 +191,10 @@ function setSort(sort: ArticleSort): void {
           />
         </header>
 
-        <VAlert v-if="store.error" type="error" class="error-banner" variant="tonal">
-          {{ store.error }}
-        </VAlert>
+        <div v-if="store.error" class="error-banner" role="alert" aria-live="assertive">
+          <strong>データを読み込めませんでした</strong>
+          <span>{{ store.error }}</span>
+        </div>
 
         <section class="article-list" aria-live="polite">
           <div v-if="store.loading" class="loading-state">

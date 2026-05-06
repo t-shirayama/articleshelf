@@ -11,13 +11,21 @@ type RequestOptions = Omit<RequestInit, 'headers'> & {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers
-    },
-    ...options
-  })
+  let response: Response
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
+    })
+  } catch (error: unknown) {
+    if (error instanceof TypeError) {
+      throw new Error('サーバーに接続できませんでした。バックエンドが起動しているか確認してください。')
+    }
+    throw error
+  }
 
   if (response.status === 204) {
     return null as T
@@ -25,6 +33,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   const payload = await response.json().catch(() => null) as T | ApiErrorPayload | null
   if (!response.ok) {
+    if (response.status >= 500) {
+      throw new Error('サーバー側でエラーが発生しました。少し待ってから再読み込みしてください。')
+    }
     const message = (payload as ApiErrorPayload | null)?.messages?.join(', ') || 'API request failed'
     throw new Error(message)
   }

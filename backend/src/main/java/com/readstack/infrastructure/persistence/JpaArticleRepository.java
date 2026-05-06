@@ -105,7 +105,7 @@ public class JpaArticleRepository implements ArticleRepository {
                 entity.getStatus(),
                 entity.getReadDate(),
                 entity.isFavorite(),
-                entity.getRating(),
+                entity.getRating() == null ? 0 : entity.getRating(),
                 entity.getNotes(),
                 entity.getTags().stream().map(this::toDomain).collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll),
                 entity.getCreatedAt(),
