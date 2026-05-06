@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import StarRating from './StarRating.vue'
 import type { ArticleInput, Tag } from '../types'
 
 interface ArticleFormState {
@@ -139,7 +140,7 @@ function submit(): void {
 
           <div class="rating-field">
             <span>おすすめ度</span>
-            <VRating v-model="form.rating" length="5" hover clearable density="comfortable" color="warning" />
+            <StarRating v-model="form.rating" />
           </div>
 
           <div class="field-row modal-status-row">

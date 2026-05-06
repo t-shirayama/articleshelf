@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Pencil, Save, Trash2, X } from 'lucide-vue-next'
+import StarRating from './StarRating.vue'
 import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
 
 interface ArticleDetailForm {
@@ -253,7 +254,7 @@ function confirmDelete(): void {
 
               <div class="rating-field detail-rating-field">
                 <span>おすすめ度</span>
-                <VRating v-model="form.rating" length="5" hover clearable density="comfortable" color="warning" />
+                <StarRating v-model="form.rating" />
               </div>
             </template>
             <template v-else>
@@ -268,7 +269,7 @@ function confirmDelete(): void {
               <div class="detail-meta-block">
                 <span class="detail-meta-label">おすすめ度</span>
                 <div class="rating-field detail-rating-field readonly-rating-field">
-                  <VRating :model-value="article.rating" length="5" readonly density="comfortable" color="warning" />
+                  <StarRating :model-value="article.rating" readonly :size="20" />
                 </div>
               </div>
             </template>

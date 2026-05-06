@@ -766,6 +766,54 @@ a {
   font-size: 0.84rem;
 }
 
+.star-rating {
+  display: inline-flex;
+  width: max-content;
+  gap: 4px;
+  color: #a0a7a3;
+}
+
+.star-rating-button {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition:
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.star-rating-button.is-active {
+  color: #d69b16;
+}
+
+.star-rating:not(.is-readonly) .star-rating-button:hover {
+  color: #d69b16;
+  background: #fff7df;
+  border-color: rgba(214, 155, 22, 0.28);
+  transform: translateY(-1px);
+}
+
+.star-rating-button:focus-visible {
+  outline: none;
+  border-color: rgba(214, 155, 22, 0.54);
+  box-shadow: 0 0 0 3px rgba(214, 155, 22, 0.18);
+}
+
+.star-rating.is-readonly .star-rating-button {
+  width: 24px;
+  height: 24px;
+  cursor: default;
+  opacity: 1;
+}
+
 .detail-rating-field {
   padding: 0;
 }
