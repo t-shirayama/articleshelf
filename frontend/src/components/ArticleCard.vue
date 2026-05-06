@@ -156,8 +156,8 @@ function domainFrom(url: string): string {
               <div class="card-date-list" aria-label="記事の日付">
                 <CalendarDays :size="14" />
                 <div class="card-date-values">
-                  <span v-if="article.createdAt" class="date-meta">登録 {{ formatDate(article.createdAt) }}</span>
-                  <span class="date-meta">読了 {{ formatDate(article.readDate) }}</span>
+                  <span v-if="article.createdAt" class="date-meta">登録日 {{ formatDate(article.createdAt) }}</span>
+                  <span class="date-meta">読了日 {{ formatDate(article.readDate) }}</span>
                 </div>
               </div>
             </div>
