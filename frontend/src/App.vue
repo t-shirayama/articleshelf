@@ -197,6 +197,7 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
             <span>読了</span>
             <strong>{{ store.counts.read }}</strong>
           </VBtn>
+          <div class="side-nav-divider" aria-hidden="true" />
           <VBtn
             block
             variant="text"

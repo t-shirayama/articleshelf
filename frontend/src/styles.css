@@ -191,6 +191,12 @@ a {
   flex: 0 0 auto;
 }
 
+.side-nav-divider {
+  height: 1px;
+  margin: 2px 4px;
+  background: rgba(105, 112, 109, 0.18);
+}
+
 .tag-section {
   display: flex;
   flex: 1 1 auto;
