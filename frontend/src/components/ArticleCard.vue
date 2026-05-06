@@ -117,6 +117,7 @@ function domainFrom(url: string): string {
           <div class="article-card-actions">
             <VBtn
               class="status-toggle-button"
+              icon
               size="small"
               type="button"
               variant="outlined"
@@ -125,7 +126,7 @@ function domainFrom(url: string): string {
               @keydown.enter.stop="emit('toggle-status')"
               @keydown.space.stop.prevent="emit('toggle-status')"
             >
-              {{ article.status === 'READ' ? '未読に戻す' : '既読にする' }}
+              <CheckCircle2 :size="17" />
             </VBtn>
             <VBtn
               class="favorite-button card-favorite-button"
