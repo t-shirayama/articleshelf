@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -12,6 +12,7 @@ const props = defineProps({
 const emit = defineEmits(['back', 'save', 'delete'])
 
 const form = reactive(emptyForm())
+const deleteDialogOpen = ref(false)
 const statusOptions = [
   { label: '未読', value: 'UNREAD' },
   { label: '読了', value: 'READ' }
@@ -62,6 +63,11 @@ function toForm(article) {
 
 function submit() {
   emit('save', { ...form, readDate: form.readDate || null })
+}
+
+function confirmDelete() {
+  deleteDialogOpen.value = false
+  emit('delete', props.article.id)
 }
 </script>
 
@@ -124,7 +130,7 @@ function submit() {
             </div>
 
             <div class="detail-actions">
-              <VBtn color="error" variant="outlined" @click="emit('delete', article.id)">
+              <VBtn color="error" variant="outlined" @click="deleteDialogOpen = true">
                 <template #prepend>
                   <Trash2 :size="17" />
                 </template>
@@ -134,6 +140,21 @@ function submit() {
           </VCardText>
         </VCard>
       </div>
+
+      <VDialog v-model="deleteDialogOpen" max-width="420">
+        <VCard class="delete-confirm-dialog" title="記事を削除しますか？">
+          <VCardText>
+            <p>
+              「{{ article.title }}」を削除します。この操作は取り消せません。
+            </p>
+          </VCardText>
+          <VCardActions>
+            <VSpacer />
+            <VBtn variant="text" @click="deleteDialogOpen = false">キャンセル</VBtn>
+            <VBtn color="error" variant="flat" @click="confirmDelete">削除する</VBtn>
+          </VCardActions>
+        </VCard>
+      </VDialog>
     </VForm>
   </main>
 </template>
