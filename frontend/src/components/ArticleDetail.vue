@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Pencil, Save, Trash2, X } from 'lucide-vue-next'
 import StarRating from './StarRating.vue'
+import TagEditor from './TagEditor.vue'
 import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
 import { formatDateTime } from '../utils/dateFormat'
 
@@ -188,15 +189,9 @@ function confirmDelete(): void {
 
             <VTextarea v-model="form.summary" label="概要" rows="5" auto-grow />
 
-            <VCombobox
+            <TagEditor
               v-model="form.tags"
-              label="タグ"
-              :items="tagOptions"
-              multiple
-              chips
-              closable-chips
-              clearable
-              placeholder="選択または入力"
+              :options="tagOptions"
             />
 
             <VTextarea v-model="form.notes" label="メモ" rows="8" auto-grow />

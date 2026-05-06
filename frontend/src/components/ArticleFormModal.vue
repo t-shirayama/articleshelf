@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue'
 import StarRating from './StarRating.vue'
+import TagEditor from './TagEditor.vue'
 import type { ArticleInput, Tag } from '../types'
 
 interface ArticleFormState {
@@ -141,15 +142,9 @@ function submit(): void {
           </div>
 
           <div class="modal-field">
-            <VCombobox
+            <TagEditor
               v-model="form.tags"
-              label="タグ"
-              :items="tagOptions"
-              multiple
-              chips
-              closable-chips
-              clearable
-              placeholder="選択または入力"
+              :options="tagOptions"
             />
           </div>
 

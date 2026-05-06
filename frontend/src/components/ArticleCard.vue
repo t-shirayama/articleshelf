@@ -153,6 +153,9 @@ function domainFrom(url: string): string {
               <div class="rating-inline" :class="{ 'is-empty': article.rating <= 0 }" :aria-label="`おすすめ度 ${article.rating} / 5`">
                 <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
               </div>
+              <div class="tag-list article-card-tag-list">
+                <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
+              </div>
               <div class="card-date-list" aria-label="記事の日付">
                 <CalendarDays :size="14" />
                 <div class="card-date-values">
@@ -160,9 +163,6 @@ function domainFrom(url: string): string {
                   <span class="date-meta">読了日 {{ formatDate(article.readDate) }}</span>
                 </div>
               </div>
-            </div>
-            <div class="tag-list">
-              <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
             </div>
           </div>
         </div>
