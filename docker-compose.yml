@@ -18,13 +18,19 @@ services:
   backend:
     build:
       context: ./backend
+      target: dev
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/readstack
       SPRING_DATASOURCE_USERNAME: readstack
       SPRING_DATASOURCE_PASSWORD: readstack
       FRONTEND_ORIGIN: http://localhost:5173
+      HOT_RELOAD_POLL_INTERVAL: 2
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
     ports:
       - "8080:8080"
+    volumes:
+      - ./backend:/workspace
+      - backend-maven-cache:/root/.m2
     depends_on:
       db:
         condition: service_healthy
@@ -34,10 +40,17 @@ services:
       context: ./frontend
     environment:
       VITE_API_BASE_URL: http://localhost:8080
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
     ports:
       - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
     depends_on:
       - backend
 
 volumes:
   postgres-data:
+  backend-maven-cache:
+  frontend-node-modules:
