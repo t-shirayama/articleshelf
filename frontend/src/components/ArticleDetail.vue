@@ -197,6 +197,10 @@ function confirmDelete(): void {
             <ExternalLink :size="15" />
             <span class="detail-link-text">{{ article.url }}</span>
           </a>
+          <div class="detail-timestamps">
+            <span>登録日時 {{ formatDateTime(article.createdAt) }}</span>
+            <span>更新日時 {{ formatDateTime(article.updatedAt) }}</span>
+          </div>
         </div>
       </div>
 
@@ -277,30 +281,6 @@ function confirmDelete(): void {
                 hide-details
                 variant="outlined"
                 :clearable="isEditing"
-              />
-            </div>
-
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">登録日時</span>
-              <VTextField
-                class="readstack-date-field detail-meta-control"
-                :model-value="formatDateTime(article.createdAt)"
-                density="comfortable"
-                disabled
-                hide-details
-                variant="outlined"
-              />
-            </div>
-
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">更新日時</span>
-              <VTextField
-                class="readstack-date-field detail-meta-control"
-                :model-value="formatDateTime(article.updatedAt)"
-                density="comfortable"
-                disabled
-                hide-details
-                variant="outlined"
               />
             </div>
 

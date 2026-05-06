@@ -1160,6 +1160,18 @@ a {
   white-space: nowrap;
 }
 
+.detail-timestamps {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;
@@ -1891,6 +1903,11 @@ a {
 
   .detail-mode-toggle {
     width: auto;
+  }
+
+  .detail-timestamps {
+    gap: 10px;
+    font-size: 0.72rem;
   }
 
   .search-filter-bar .v-btn {
