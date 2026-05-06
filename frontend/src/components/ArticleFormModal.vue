@@ -17,9 +17,11 @@ interface ArticleFormState {
 const props = withDefaults(defineProps<{
   open?: boolean
   tags?: Tag[]
+  error?: string
 }>(), {
   open: false,
-  tags: () => []
+  tags: () => [],
+  error: ''
 })
 
 const emit = defineEmits<{
@@ -88,6 +90,10 @@ function submit(): void {
     <VCard class="article-modal" title="記事を追加">
       <VForm @submit.prevent="submit">
         <VCardText>
+          <div v-if="props.error" class="form-error-banner" role="alert" aria-live="assertive">
+            {{ props.error }}
+          </div>
+
           <VTextField
             v-model="form.url"
             label="URL"

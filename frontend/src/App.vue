@@ -12,6 +12,7 @@ import type { Article, ArticleInput, ArticleSort, ArticleStatus, Tag as ArticleT
 
 const store = useArticlesStore()
 const modalOpen = ref(false)
+const articleFormError = ref('')
 const searchDraft = ref('')
 const viewMode = ref<'list' | 'detail'>('list')
 const motivationIndex = ref(new Date().getDate() % motivationCards.length)
@@ -32,10 +33,15 @@ onMounted(async () => {
 })
 
 async function createArticle(article: ArticleInput): Promise<void> {
-  await store.createArticle(article)
-  rotateMotivation()
-  modalOpen.value = false
-  viewMode.value = 'list'
+  articleFormError.value = ''
+  try {
+    await store.createArticle(article)
+    rotateMotivation()
+    modalOpen.value = false
+    viewMode.value = 'list'
+  } catch (error: unknown) {
+    articleFormError.value = error instanceof Error ? error.message : '記事を保存できませんでした'
+  }
 }
 
 async function saveArticle(article: ArticleInput): Promise<void> {
@@ -83,6 +89,16 @@ function setFavoriteOnly(): Promise<void> {
 
 function setSort(sort: ArticleSort): void {
   store.setSort(sort)
+}
+
+function openArticleModal(): void {
+  articleFormError.value = ''
+  modalOpen.value = true
+}
+
+function closeArticleModal(): void {
+  articleFormError.value = ''
+  modalOpen.value = false
 }
 </script>
 
@@ -187,7 +203,7 @@ function setSort(sort: ArticleSort): void {
             @update:search="searchDraft = $event"
             @update:status="setStatus($event)"
             @update:sort="setSort($event)"
-            @add="modalOpen = true"
+            @add="openArticleModal"
           />
         </header>
 
@@ -203,7 +219,7 @@ function setSort(sort: ArticleSort): void {
           <div v-else-if="store.articles.length === 0" class="empty-state">
             <h2>まだ記事がありません</h2>
             <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
-            <VBtn color="primary" @click="modalOpen = true">最初の記事を追加</VBtn>
+            <VBtn color="primary" @click="openArticleModal">最初の記事を追加</VBtn>
           </div>
           <template v-else>
             <ArticleCard
@@ -231,7 +247,8 @@ function setSort(sort: ArticleSort): void {
     <ArticleFormModal
       :open="modalOpen"
       :tags="store.tags"
-      @close="modalOpen = false"
+      :error="articleFormError"
+      @close="closeArticleModal"
       @submit="createArticle"
     />
   </VApp>
