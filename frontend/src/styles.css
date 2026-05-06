@@ -872,28 +872,32 @@ a {
   min-width: 32px;
   height: 32px;
   padding: 0;
-  color: var(--accent-strong) !important;
+  color: var(--muted) !important;
   background: #ffffff !important;
-  border: 1px solid rgba(24, 108, 116, 0.34);
+  border: 1px solid rgba(105, 112, 109, 0.3);
   border-radius: 8px;
   box-shadow: 0 3px 8px rgba(55, 48, 37, 0.07);
 }
 
 .status-toggle-button:hover {
-  background: #eef7f5 !important;
-  border-color: rgba(24, 108, 116, 0.54);
-  box-shadow: 0 5px 12px rgba(24, 108, 116, 0.1);
+  color: #4c5652 !important;
+  background: #f7fbfa !important;
+  border-color: rgba(105, 112, 109, 0.46);
+  box-shadow: 0 5px 12px rgba(55, 48, 37, 0.09);
 }
 
 .status-toggle-button.is-active {
-  color: #d9344a !important;
-  border-color: rgba(217, 52, 74, 0.42);
+  color: #ffffff !important;
+  background: #2f80ed !important;
+  border-color: rgba(47, 128, 237, 0.42);
+  box-shadow: 0 5px 12px rgba(47, 128, 237, 0.2);
 }
 
 .status-toggle-button.is-active:hover {
-  background: #fff0f3 !important;
-  border-color: rgba(217, 52, 74, 0.58);
-  box-shadow: 0 5px 12px rgba(217, 52, 74, 0.12);
+  color: #ffffff !important;
+  background: #1f6fd1 !important;
+  border-color: rgba(47, 128, 237, 0.58);
+  box-shadow: 0 7px 16px rgba(47, 128, 237, 0.26);
 }
 
 .favorite-button {
