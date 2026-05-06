@@ -58,7 +58,6 @@ export const api = {
   findArticles(filters: ArticleFilters): Promise<Article[]> {
     const params = new URLSearchParams()
     if (filters.status && filters.status !== 'ALL') params.set('status', filters.status)
-    if (filters.tag) params.set('tag', filters.tag)
     if (filters.search) params.set('search', filters.search)
     if (filters.favorite) params.set('favorite', 'true')
     const query = params.toString()

@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { BookOpen, CheckCircle2, Circle, Heart, Library, Tag } from 'lucide-vue-next'
+import { BookOpen, CheckCircle2, Circle, Heart, Library } from 'lucide-vue-next'
 import ArticleCard from './components/ArticleCard.vue'
 import ArticleDetail from './components/ArticleDetail.vue'
+import FilterDialog from './components/FilterDialog.vue'
 import ArticleFormModal from './components/ArticleFormModal.vue'
 import MotivationCard from './components/MotivationCard.vue'
 import SearchFilterBar from './components/SearchFilterBar.vue'
 import { motivationCards } from './data/motivationCards'
 import { ApiRequestError } from './services/api'
 import { useArticlesStore } from './stores/articles'
-import type { Article, ArticleInput, ArticleSort, ArticleStatus, Tag as ArticleTag } from './types'
+import type { Article, ArticleInput, ArticleSort, ArticleStatus } from './types'
 
 const store = useArticlesStore()
 const modalOpen = ref(false)
+const filterDialogOpen = ref(false)
 const articleFormError = ref('')
 const duplicateArticleId = ref('')
 const searchDraft = ref('')
@@ -21,15 +23,48 @@ const deleteCandidate = ref<Article | null>(null)
 const motivationIndex = ref(randomMotivationIndex())
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined
 
-const visibleTags = computed<ArticleTag[]>(() => store.tags)
+const availableTagNames = computed<string[]>(() => store.tags.map((tag) => tag.name))
 const currentMotivation = computed(() => motivationCards[motivationIndex.value])
 const pageTitle = computed(() => {
   if (store.filters.favorite) return 'お気に入り'
-  if (store.filters.tag) return store.filters.tag
   if (store.filters.status === 'UNREAD') return '未読'
   if (store.filters.status === 'READ') return '読了'
+  if (
+    store.filters.tags.length === 1 &&
+    store.filters.ratings.length === 0 &&
+    !store.filters.createdRange.from &&
+    !store.filters.createdRange.to &&
+    !store.filters.readRange.from &&
+    !store.filters.readRange.to
+  ) {
+    return store.filters.tags[0]
+  }
+  if (activeFilterSummary.value.length > 0) return '絞り込み結果'
   return 'すべての記事'
 })
+const activeFilterSummary = computed<string[]>(() => {
+  const summary: string[] = []
+
+  if (store.filters.tags.length > 0) {
+    summary.push(store.filters.tags.length === 1 ? `タグ: ${store.filters.tags[0]}` : `タグ: ${store.filters.tags.length}件`)
+  }
+
+  if (store.filters.ratings.length > 0) {
+    const ratingText = store.filters.ratings.slice().sort((left, right) => right - left).join(', ')
+    summary.push(`おすすめ度: ${ratingText}`)
+  }
+
+  if (store.filters.createdRange.from || store.filters.createdRange.to) {
+    summary.push(`登録日: ${formatRange(store.filters.createdRange.from, store.filters.createdRange.to)}`)
+  }
+
+  if (store.filters.readRange.from || store.filters.readRange.to) {
+    summary.push(`読了日: ${formatRange(store.filters.readRange.from, store.filters.readRange.to)}`)
+  }
+
+  return summary
+})
+const activeFilterCount = computed(() => activeFilterSummary.value.length)
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer)
@@ -111,12 +146,6 @@ function setStatus(status: ArticleStatus): Promise<void> {
   return store.setStatus(status)
 }
 
-function setTag(tag: string): Promise<void> {
-  showList()
-  rotateMotivation()
-  return store.setTag(tag)
-}
-
 function setFavoriteOnly(): Promise<void> {
   showList()
   rotateMotivation()
@@ -145,6 +174,29 @@ function closeArticleModal(): void {
   modalOpen.value = false
 }
 
+function openFilterDialog(): void {
+  filterDialogOpen.value = true
+}
+
+function closeFilterDialog(): void {
+  filterDialogOpen.value = false
+}
+
+function applyAdvancedFilters(filters: {
+  tags: string[]
+  ratings: number[]
+  createdRange: { from: string, to: string }
+  readRange: { from: string, to: string }
+}): void {
+  showList()
+  rotateMotivation()
+  store.setTags(filters.tags)
+  store.setRatings(filters.ratings)
+  store.setCreatedRange(filters.createdRange)
+  store.setReadRange(filters.readRange)
+  filterDialogOpen.value = false
+}
+
 async function openDuplicateArticle(articleId: string): Promise<void> {
   articleFormError.value = ''
   duplicateArticleId.value = ''
@@ -152,6 +204,13 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
   await store.selectArticleById(articleId)
   rotateMotivation()
   viewMode.value = 'detail'
+}
+
+function formatRange(from: string, to: string): string {
+  if (from && to) return `${from} - ${to}`
+  if (from) return `${from} 以降`
+  if (to) return `${to} 以前`
+  return ''
 }
 </script>
 
@@ -173,7 +232,7 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
           <VBtn
             block
             variant="text"
-            :color="store.filters.status === 'ALL' && !store.filters.tag && !store.filters.favorite ? 'primary' : undefined"
+            :color="store.filters.status === 'ALL' && activeFilterCount === 0 && !store.filters.favorite ? 'primary' : undefined"
             @click="setAllArticles"
           >
             <template #prepend>
@@ -221,26 +280,6 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
           </VBtn>
         </nav>
 
-        <section class="tag-section">
-          <h2>タグ</h2>
-          <div class="sidebar-tag-list">
-            <VBtn
-              v-for="tag in visibleTags"
-              :key="tag.id"
-              block
-              variant="text"
-              :color="store.filters.tag === tag.name ? 'primary' : undefined"
-              @click="setTag(store.filters.tag === tag.name ? '' : tag.name)"
-            >
-              <template #prepend>
-                <Tag :size="16" />
-              </template>
-              {{ tag.name }}
-            </VBtn>
-            <p v-if="visibleTags.length === 0" class="muted-note">タグはまだありません</p>
-          </div>
-        </section>
-
         <MotivationCard :card="currentMotivation" />
       </aside>
 
@@ -252,8 +291,11 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
           <SearchFilterBar
             :search="searchDraft"
             :sort="store.filters.sort"
+            :filter-summary="activeFilterSummary"
+            :active-filter-count="activeFilterCount"
             @update:search="searchDraft = $event"
             @update:sort="setSort($event)"
+            @open-filters="openFilterDialog"
             @add="openArticleModal"
           />
         </header>
@@ -304,6 +346,19 @@ async function openDuplicateArticle(articleId: string): Promise<void> {
       @close="closeArticleModal"
       @open-duplicate="openDuplicateArticle"
       @submit="createArticle"
+    />
+
+    <FilterDialog
+      :open="filterDialogOpen"
+      :available-tags="availableTagNames"
+      :filters="{
+        tags: store.filters.tags,
+        ratings: store.filters.ratings,
+        createdRange: store.filters.createdRange,
+        readRange: store.filters.readRange
+      }"
+      @close="closeFilterDialog"
+      @apply="applyAdvancedFilters"
     />
 
     <VDialog :model-value="Boolean(deleteCandidate)" max-width="420" @update:model-value="value => { if (!value) deleteCandidate = null }">

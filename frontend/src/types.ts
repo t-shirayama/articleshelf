@@ -1,6 +1,11 @@
 export type ArticleStatus = 'ALL' | 'UNREAD' | 'READ'
 export type ArticleSort = 'CREATED_DESC' | 'CREATED_ASC' | 'UPDATED_DESC' | 'READ_DATE_DESC' | 'TITLE_ASC' | 'RATING_DESC'
 
+export interface ArticleDateRange {
+  from: string
+  to: string
+}
+
 export interface Tag {
   id?: string
   name: string
@@ -26,7 +31,10 @@ export interface Article {
 
 export interface ArticleFilters {
   status: ArticleStatus
-  tag: string
+  tags: string[]
+  ratings: number[]
+  createdRange: ArticleDateRange
+  readRange: ArticleDateRange
   search: string
   favorite: boolean
   sort: ArticleSort

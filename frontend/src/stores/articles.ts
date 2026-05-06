@@ -20,7 +20,16 @@ export const useArticlesStore = defineStore('articles', {
     selectedArticle: null,
     filters: {
       status: 'ALL',
-      tag: '',
+      tags: [],
+      ratings: [],
+      createdRange: {
+        from: '',
+        to: ''
+      },
+      readRange: {
+        from: '',
+        to: ''
+      },
       search: '',
       favorite: false,
       sort: 'CREATED_DESC'
@@ -29,12 +38,15 @@ export const useArticlesStore = defineStore('articles', {
     error: ''
   }),
   getters: {
-    sortedArticles: (state): Article[] => [...state.articles].sort((left, right) => compareArticles(left, right, state.filters.sort)),
+    filteredArticles: (state): Article[] => state.articles.filter((article) => matchesFilters(article, state.filters)),
+    sortedArticles(): Article[] {
+      return [...this.filteredArticles].sort((left, right) => compareArticles(left, right, this.filters.sort))
+    },
     counts: (state) => ({
-      all: state.allArticles.length,
-      unread: state.allArticles.filter((article) => article.status === 'UNREAD').length,
-      read: state.allArticles.filter((article) => article.status === 'READ').length,
-      favorite: state.allArticles.filter((article) => article.favorite).length
+      all: state.articles.length,
+      unread: state.articles.filter((article) => article.status === 'UNREAD').length,
+      read: state.articles.filter((article) => article.status === 'READ').length,
+      favorite: state.articles.filter((article) => article.favorite).length
     })
   },
   actions: {
@@ -42,12 +54,9 @@ export const useArticlesStore = defineStore('articles', {
       this.loading = true
       this.error = ''
       try {
-        const [articles, allArticles] = await Promise.all([
-          api.findArticles(this.filters),
-          api.findArticles(allArticleFilters())
-        ])
+        const articles = await api.findArticles(allArticleFilters())
         this.articles = articles
-        this.allArticles = allArticles
+        this.allArticles = articles
         if (this.selectedArticle) {
           const selectedId = this.selectedArticle.id
           this.selectedArticle = this.articles.find((article) => article.id === selectedId) || null
@@ -100,9 +109,7 @@ export const useArticlesStore = defineStore('articles', {
     },
     applyFavoriteUpdate(article: Article): void {
       this.allArticles = replaceArticle(this.allArticles, article)
-      this.articles = this.filters.favorite && !article.favorite
-        ? this.articles.filter((item) => item.id !== article.id)
-        : replaceArticle(this.articles, article)
+      this.articles = replaceArticle(this.articles, article)
 
       if (this.selectedArticle?.id === article.id) {
         this.selectedArticle = article
@@ -117,27 +124,40 @@ export const useArticlesStore = defineStore('articles', {
     setStatus(status: ArticleStatus): Promise<void> {
       this.filters.status = status
       this.filters.favorite = false
-      return this.fetchArticles()
+      return Promise.resolve()
     },
-    setTag(tag: string): Promise<void> {
-      this.filters.tag = tag
-      return this.fetchArticles()
+    setTags(tags: string[]): void {
+      this.filters.tags = [...tags]
+    },
+    setRatings(ratings: number[]): void {
+      this.filters.ratings = [...ratings].sort((left, right) => left - right)
+    },
+    setCreatedRange(range: { from: string, to: string }): void {
+      this.filters.createdRange = { ...range }
+    },
+    setReadRange(range: { from: string, to: string }): void {
+      this.filters.readRange = { ...range }
+    },
+    clearAdvancedFilters(): void {
+      this.filters.tags = []
+      this.filters.ratings = []
+      this.filters.createdRange = { from: '', to: '' }
+      this.filters.readRange = { from: '', to: '' }
     },
     setAllArticles(): Promise<void> {
       this.filters.status = 'ALL'
-      this.filters.tag = ''
+      this.clearAdvancedFilters()
       this.filters.favorite = false
-      return this.fetchArticles()
+      return Promise.resolve()
     },
-    setSearch(search: string): Promise<void> {
+    setSearch(search: string): void {
       this.filters.search = search
-      return this.fetchArticles()
     },
     setFavoriteOnly(): Promise<void> {
       this.filters.status = 'ALL'
-      this.filters.tag = ''
+      this.clearAdvancedFilters()
       this.filters.favorite = true
-      return this.fetchArticles()
+      return Promise.resolve()
     },
     setSort(sort: ArticleSort): void {
       this.filters.sort = sort
@@ -191,9 +211,78 @@ function toArticleInput(article: Article): ArticleInput {
 function allArticleFilters(): ArticleFilters {
   return {
     status: 'ALL',
-    tag: '',
+    tags: [],
+    ratings: [],
+    createdRange: {
+      from: '',
+      to: ''
+    },
+    readRange: {
+      from: '',
+      to: ''
+    },
     search: '',
     favorite: false,
     sort: 'CREATED_DESC'
   }
+}
+
+function matchesFilters(article: Article, filters: ArticleFilters): boolean {
+  if (filters.status !== 'ALL' && article.status !== filters.status) {
+    return false
+  }
+
+  if (filters.favorite && !article.favorite) {
+    return false
+  }
+
+  if (filters.tags.length > 0) {
+    const articleTagNames = article.tags.map((tag) => tag.name)
+    const matchesTag = filters.tags.some((tag) => articleTagNames.includes(tag))
+    if (!matchesTag) {
+      return false
+    }
+  }
+
+  if (filters.ratings.length > 0 && !filters.ratings.includes(article.rating)) {
+    return false
+  }
+
+  if (!matchesDateRange(article.createdAt, filters.createdRange.from, filters.createdRange.to)) {
+    return false
+  }
+
+  if (!matchesDateRange(article.readDate, filters.readRange.from, filters.readRange.to)) {
+    return false
+  }
+
+  if (!matchesSearch(article, filters.search)) {
+    return false
+  }
+
+  return true
+}
+
+function matchesSearch(article: Article, search: string): boolean {
+  const keyword = search.trim().toLocaleLowerCase('ja')
+  if (!keyword) return true
+
+  const haystacks = [
+    article.title,
+    article.url,
+    article.notes || '',
+    article.tags.map((tag) => tag.name).join(' ')
+  ]
+
+  return haystacks.some((value) => value.toLocaleLowerCase('ja').includes(keyword))
+}
+
+function matchesDateRange(value: string | null | undefined, from: string, to: string): boolean {
+  if (!from && !to) return true
+  if (!value) return false
+
+  const target = value.slice(0, 10)
+  if (from && target < from) return false
+  if (to && target > to) return false
+  return true
 }
