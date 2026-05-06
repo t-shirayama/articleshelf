@@ -89,6 +89,7 @@ a {
 .calendar-day-articles,
 .detail-page {
   scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
 }
 
