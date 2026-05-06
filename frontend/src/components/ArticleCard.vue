@@ -133,7 +133,7 @@ function domainFrom(url: string): string {
               </VBtn>
             </div>
             <VBtn
-              class="favorite-button"
+              class="favorite-button card-favorite-button"
               :class="{ 'is-active': article.favorite }"
               icon
               size="small"

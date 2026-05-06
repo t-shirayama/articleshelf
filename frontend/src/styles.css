@@ -603,6 +603,30 @@ a {
   background: #fff0f3;
 }
 
+.card-favorite-button {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  background: #ffffff !important;
+  border: 1px solid rgba(105, 112, 109, 0.26);
+  box-shadow: 0 3px 8px rgba(55, 48, 37, 0.07);
+}
+
+.card-favorite-button:hover {
+  background: #f7fbfa !important;
+  border-color: rgba(24, 108, 116, 0.36);
+  box-shadow: 0 5px 12px rgba(24, 108, 116, 0.1);
+}
+
+.card-favorite-button.is-active {
+  border-color: rgba(217, 52, 74, 0.42);
+}
+
+.card-favorite-button.is-active:hover {
+  background: #fff0f3 !important;
+  border-color: rgba(217, 52, 74, 0.58);
+}
+
 .detail-favorite-button {
   background: #ffffff !important;
   border: 1px solid rgba(105, 112, 109, 0.26);

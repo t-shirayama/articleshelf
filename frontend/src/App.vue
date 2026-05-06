@@ -497,7 +497,7 @@ function todayString(): string {
       </VCard>
     </VDialog>
 
-    <VSnackbar v-model="statusSnackbarOpen" timeout="3000">
+    <VSnackbar v-model="statusSnackbarOpen" timeout="2000">
       {{ statusSnackbarMessage }}
       <template #actions>
         <VBtn variant="text" @click="undoArticleStatus">元に戻す</VBtn>
