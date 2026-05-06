@@ -456,12 +456,38 @@ a {
   grid-template-columns: 1fr;
 }
 
+.title-input-group {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.title-input-group p {
+  margin: 0;
+  padding: 0 12px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.modal-status-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.modal-status-row .read-date-field,
+.modal-status-row .read-date-field .v-input__control,
+.modal-status-row .read-date-field .v-field {
+  min-height: 64px;
+}
+
 .read-later-check {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
-  min-height: 48px;
+  min-height: 64px;
+  width: 100%;
   padding: 10px 12px;
   color: var(--text);
   background: rgba(216, 239, 238, 0.32);

@@ -82,7 +82,15 @@ function submit() {
             :error-messages="submitted && urlError ? [urlError] : []"
           />
 
-          <VTextField v-model="form.title" label="タイトル" placeholder="空欄ならOGPから補完します" />
+          <div class="title-input-group">
+            <VTextField
+              v-model="form.title"
+              label="タイトル（任意）"
+              hide-details
+              placeholder="例: Vue 3 の状態管理を学ぶ"
+            />
+            <p>未入力の場合はURLから取得した記事タイトルを自動設定します</p>
+          </div>
 
           <VCombobox
             v-model="form.tags"
@@ -95,7 +103,7 @@ function submit() {
             placeholder="選択または入力"
           />
 
-          <div class="field-row">
+          <div class="field-row modal-status-row">
             <label class="read-later-check">
               <input v-model="form.readLater" type="checkbox">
               <span class="read-later-box" aria-hidden="true" />
@@ -104,7 +112,14 @@ function submit() {
                 <small>チェック中は未読として保存します</small>
               </span>
             </label>
-            <VTextField v-model="form.readDate" label="読了日" type="date" :disabled="form.readLater" clearable />
+            <VTextField
+              v-model="form.readDate"
+              class="read-date-field"
+              label="読了日"
+              type="date"
+              :disabled="form.readLater"
+              clearable
+            />
           </div>
 
           <VTextarea
