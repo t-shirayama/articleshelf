@@ -115,7 +115,6 @@ function startOfMonth(date: Date): Date {
   <section class="calendar-view">
     <header class="calendar-header">
       <div>
-        <p class="eyebrow">Calendar</p>
         <h1>カレンダー</h1>
       </div>
 

@@ -371,7 +371,6 @@ function todayString(): string {
               <Heart :size="18" />
             </template>
             <span>お気に入り</span>
-            <strong>{{ store.counts.favorite }}</strong>
           </VBtn>
           <div class="side-nav-divider" aria-hidden="true" />
           <VBtn
@@ -384,7 +383,6 @@ function todayString(): string {
               <CalendarDays :size="18" />
             </template>
             <span>カレンダー</span>
-            <strong>{{ store.counts.all }}</strong>
           </VBtn>
         </nav>
 

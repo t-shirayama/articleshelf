@@ -535,12 +535,12 @@ a {
   top: 0;
   z-index: 1;
   display: grid;
-  min-height: 34px;
+  min-height: 24px;
   place-items: center;
   color: var(--muted);
   background: rgba(245, 243, 237, 0.96);
   border-bottom: 1px solid rgba(222, 217, 206, 0.86);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 800;
 }
 
