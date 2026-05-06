@@ -171,21 +171,26 @@ function confirmDelete(): void {
           </VBtn>
           <VBtn
             color="primary"
+            icon
             variant="flat"
             type="submit"
-            class="action-button action-button-primary compact-button"
+            class="detail-action-icon-button detail-save-button"
             :disabled="!isEditing"
+            title="保存"
+            aria-label="保存"
           >
-            <template #prepend>
-              <Save :size="17" />
-            </template>
-            保存
+            <Save :size="18" />
           </VBtn>
-          <VBtn class="action-button action-button-danger-outline compact-button" color="error" variant="outlined" @click="deleteDialogOpen = true">
-            <template #prepend>
-              <Trash2 :size="17" />
-            </template>
-            削除
+          <VBtn
+            class="detail-action-icon-button detail-delete-button"
+            color="error"
+            icon
+            title="削除"
+            aria-label="削除"
+            variant="outlined"
+            @click="deleteDialogOpen = true"
+          >
+            <Trash2 :size="18" />
           </VBtn>
         </div>
       </div>
