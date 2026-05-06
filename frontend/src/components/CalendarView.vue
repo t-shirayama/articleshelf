@@ -129,22 +129,6 @@ function startOfMonth(date: Date): Date {
       <div>
         <h1>カレンダー</h1>
       </div>
-
-      <div class="calendar-header-actions">
-        <VBtn class="action-button action-button-secondary calendar-month-button" variant="outlined" @click="moveMonth(-1)">
-          <template #prepend>
-            <ChevronLeft :size="17" />
-          </template>
-          前月
-        </VBtn>
-        <strong class="calendar-month-label">{{ monthLabel }}</strong>
-        <VBtn class="action-button action-button-secondary calendar-month-button" variant="outlined" @click="moveMonth(1)">
-          次月
-          <template #append>
-            <ChevronRight :size="17" />
-          </template>
-        </VBtn>
-      </div>
     </header>
 
     <div class="calendar-toolbar">
@@ -162,6 +146,22 @@ function startOfMonth(date: Date): Date {
           読了日
         </VBtn>
       </VBtnToggle>
+
+      <div class="calendar-month-controls">
+        <VBtn class="action-button action-button-secondary calendar-month-button" variant="outlined" @click="moveMonth(-1)">
+          <template #prepend>
+            <ChevronLeft :size="17" />
+          </template>
+          前月
+        </VBtn>
+        <strong class="calendar-month-label">{{ monthLabel }}</strong>
+        <VBtn class="action-button action-button-secondary calendar-month-button" variant="outlined" @click="moveMonth(1)">
+          次月
+          <template #append>
+            <ChevronRight :size="17" />
+          </template>
+        </VBtn>
+      </div>
 
       <div class="calendar-summary">
         <span>

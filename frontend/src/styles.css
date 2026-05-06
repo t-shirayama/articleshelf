@@ -435,7 +435,7 @@ a {
   flex: 1 1 auto;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
   min-height: 0;
 }
 
@@ -450,42 +450,55 @@ a {
   margin: 0;
 }
 
-.calendar-header-actions {
-  display: grid;
-  grid-template-columns: 96px minmax(120px, auto) 96px;
-  gap: 10px;
-  align-items: center;
-}
-
 .calendar-month-button {
+  height: 42px;
   width: 96px;
   min-width: 96px;
 }
 
 .calendar-month-label {
+  display: grid;
+  min-height: 42px;
+  min-width: 128px;
+  place-items: center;
   color: var(--text);
   font-size: 1rem;
   text-align: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(222, 217, 206, 0.86);
+  border-radius: 8px;
 }
 
 .calendar-toolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
   align-items: center;
-  justify-content: space-between;
+  min-height: 42px;
   gap: 14px;
 }
 
 .calendar-mode-toggle {
-  padding: 4px;
+  justify-self: start;
+  height: 42px;
+  padding: 3px;
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(222, 217, 206, 0.86);
   border-radius: 8px;
 }
 
 .calendar-mode-toggle .v-btn {
+  height: 34px;
   min-width: 108px;
   border-radius: 7px;
   font-weight: 800;
+}
+
+.calendar-month-controls {
+  display: grid;
+  grid-template-columns: 96px minmax(128px, auto) 96px;
+  gap: 10px;
+  align-items: center;
+  justify-self: center;
 }
 
 .calendar-summary {
@@ -493,13 +506,14 @@ a {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+  justify-self: end;
 }
 
 .calendar-summary span {
   display: inline-flex;
   gap: 5px;
   align-items: center;
-  min-height: 34px;
+  min-height: 42px;
   padding: 6px 10px;
   color: var(--muted);
   background: rgba(255, 255, 255, 0.78);
@@ -1735,16 +1749,31 @@ a {
     align-items: stretch;
   }
 
-  .calendar-header-actions {
+  .calendar-month-controls {
     grid-template-columns: 1fr;
+    justify-self: stretch;
   }
 
   .calendar-month-button {
     width: 100%;
+    min-width: 0;
+  }
+
+  .calendar-month-label {
+    min-width: 0;
+  }
+
+  .calendar-mode-toggle {
+    justify-self: stretch;
+  }
+
+  .calendar-mode-toggle .v-btn {
+    flex: 1 1 0;
   }
 
   .calendar-summary {
     justify-content: stretch;
+    justify-self: stretch;
   }
 
   .calendar-summary span {
