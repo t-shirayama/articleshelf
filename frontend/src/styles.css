@@ -456,6 +456,82 @@ a {
   grid-template-columns: 1fr;
 }
 
+.read-later-check {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  min-height: 48px;
+  padding: 10px 12px;
+  color: var(--text);
+  background: rgba(216, 239, 238, 0.32);
+  border: 1px solid rgba(24, 108, 116, 0.24);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.read-later-check input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.read-later-box {
+  position: relative;
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  background: var(--surface-strong);
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+}
+
+.read-later-box::after {
+  width: 6px;
+  height: 11px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  content: "";
+  opacity: 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.read-later-check input:checked + .read-later-box {
+  background: var(--accent);
+}
+
+.read-later-check input:checked + .read-later-box::after {
+  opacity: 1;
+}
+
+.read-later-check input:focus-visible + .read-later-box {
+  outline: 3px solid rgba(24, 108, 116, 0.24);
+  outline-offset: 2px;
+}
+
+.read-later-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.read-later-copy strong,
+.read-later-copy small {
+  display: block;
+}
+
+.read-later-copy strong {
+  font-size: 0.92rem;
+}
+
+.read-later-copy small {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
 .error-banner {
   margin: 0 0 16px;
   padding: 12px 14px;

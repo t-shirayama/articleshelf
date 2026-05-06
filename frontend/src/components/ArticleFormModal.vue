@@ -1,5 +1,5 @@
 <script setup>
-import { computed, reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 const props = defineProps({
   open: {
@@ -15,7 +15,9 @@ const props = defineProps({
 const emit = defineEmits(['close', 'submit'])
 
 const form = reactive(defaultForm())
+const submitted = ref(false)
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
+const urlError = computed(() => (form.url.trim() ? '' : 'URLは必須です'))
 
 const dialogOpen = computed({
   get: () => props.open,
@@ -27,7 +29,10 @@ const dialogOpen = computed({
 watch(
   () => props.open,
   (open) => {
-    if (open) Object.assign(form, defaultForm())
+    if (open) {
+      Object.assign(form, defaultForm())
+      submitted.value = false
+    }
   }
 )
 
@@ -45,10 +50,13 @@ function defaultForm() {
 }
 
 function submit() {
+  submitted.value = true
+  if (urlError.value) return
+
   const readLater = form.readLater
   const tags = [...new Set(form.tags.map((tag) => tag.trim()).filter(Boolean))]
   emit('submit', {
-    url: form.url,
+    url: form.url.trim(),
     title: form.title,
     summary: form.summary,
     status: readLater ? 'UNREAD' : 'READ',
@@ -65,7 +73,14 @@ function submit() {
     <VCard class="article-modal" title="記事を追加">
       <VForm @submit.prevent="submit">
         <VCardText>
-          <VTextField v-model="form.url" label="URL" type="url" placeholder="https://example.com/article" required />
+          <VTextField
+            v-model="form.url"
+            label="URL"
+            type="url"
+            placeholder="https://example.com/article"
+            required
+            :error-messages="submitted && urlError ? [urlError] : []"
+          />
 
           <VTextField v-model="form.title" label="タイトル" placeholder="空欄ならOGPから補完します" />
 
@@ -81,12 +96,14 @@ function submit() {
           />
 
           <div class="field-row">
-            <VCheckbox
-              v-model="form.readLater"
-              label="あとで読む"
-              color="primary"
-              hide-details
-            />
+            <label class="read-later-check">
+              <input v-model="form.readLater" type="checkbox">
+              <span class="read-later-box" aria-hidden="true" />
+              <span class="read-later-copy">
+                <strong>あとで読む</strong>
+                <small>チェック中は未読として保存します</small>
+              </span>
+            </label>
             <VTextField v-model="form.readDate" label="読了日" type="date" :disabled="form.readLater" clearable />
           </div>
 
