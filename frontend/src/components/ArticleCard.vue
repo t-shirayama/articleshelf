@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Bookmark, CalendarDays, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { loadThumbnailFromCache } from '../services/thumbnailCache'
 import type { Article } from '../types'
 import { formatDate } from '../utils/dateFormat'
@@ -23,6 +23,8 @@ const thumbnailFailed = ref(false)
 const thumbnailRoot = ref<HTMLElement | null>(null)
 const thumbnailSrc = ref('')
 const shouldLoadThumbnail = ref(false)
+const visibleTags = computed(() => props.article.tags.slice(0, 3))
+const hiddenTagCount = computed(() => Math.max(props.article.tags.length - visibleTags.value.length, 0))
 let objectUrl = ''
 let loadVersion = 0
 let thumbnailObserver: IntersectionObserver | null = null
@@ -162,7 +164,10 @@ function domainFrom(url: string): string {
                 <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
               </div>
               <div class="tag-list article-card-tag-list">
-                <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
+                <VChip v-for="tag in visibleTags" :key="tag.id || tag.name" size="small" variant="tonal">{{ tag.name }}</VChip>
+                <VChip v-if="hiddenTagCount > 0" class="article-card-more-tags" size="small" variant="tonal">
+                  +{{ hiddenTagCount }}
+                </VChip>
               </div>
               <div class="article-card-status-date">
                 <div class="status-toggle-group">

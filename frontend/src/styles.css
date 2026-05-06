@@ -954,6 +954,11 @@ a {
   flex: 0 0 auto;
 }
 
+.article-card-more-tags {
+  color: var(--accent-strong) !important;
+  font-weight: 800;
+}
+
 .detail-tag-list {
   max-height: none;
   overflow: visible;
