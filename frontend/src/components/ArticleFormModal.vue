@@ -93,7 +93,7 @@ function submit(): void {
   <VDialog v-model="dialogOpen" max-width="560">
     <VCard class="article-modal" title="記事を追加">
       <VForm @submit.prevent="submit">
-        <VCardText>
+        <VCardText class="article-modal-body">
           <div v-if="props.error" class="form-error-banner" role="alert" aria-live="assertive">
             <span>{{ props.error }}</span>
             <VBtn
@@ -108,16 +108,18 @@ function submit(): void {
             </VBtn>
           </div>
 
-          <VTextField
-            v-model="form.url"
-            label="URL"
-            type="url"
-            placeholder="https://example.com/article"
-            required
-            :error-messages="submitted && urlError ? [urlError] : []"
-          />
+          <div class="modal-field">
+            <VTextField
+              v-model="form.url"
+              label="URL"
+              type="url"
+              placeholder="https://example.com/article"
+              required
+              :error-messages="submitted && urlError ? [urlError] : []"
+            />
+          </div>
 
-          <div class="title-input-group">
+          <div class="modal-field title-input-group">
             <VTextField
               v-model="form.title"
               label="タイトル（任意）"
@@ -127,23 +129,25 @@ function submit(): void {
             <p>未入力の場合はURLから取得した記事タイトルを自動設定します</p>
           </div>
 
-          <VCombobox
-            v-model="form.tags"
-            label="タグ"
-            :items="tagOptions"
-            multiple
-            chips
-            closable-chips
-            clearable
-            placeholder="選択または入力"
-          />
+          <div class="modal-field">
+            <VCombobox
+              v-model="form.tags"
+              label="タグ"
+              :items="tagOptions"
+              multiple
+              chips
+              closable-chips
+              clearable
+              placeholder="選択または入力"
+            />
+          </div>
 
-          <div class="rating-field">
+          <div class="modal-field rating-field">
             <span>おすすめ度</span>
             <StarRating v-model="form.rating" />
           </div>
 
-          <div class="field-row modal-status-row">
+          <div class="modal-field field-row modal-status-row">
             <label class="read-later-check">
               <input v-model="form.readLater" type="checkbox">
               <span class="read-later-box" aria-hidden="true" />
@@ -154,7 +158,7 @@ function submit(): void {
             </label>
             <VTextField
               v-model="form.readDate"
-              class="read-date-field"
+              class="readstack-date-field"
               label="読了日"
               type="date"
               :disabled="form.readLater"
@@ -162,13 +166,15 @@ function submit(): void {
             />
           </div>
 
-          <VTextarea
-            v-model="form.notes"
-            label="メモ"
-            rows="5"
-            auto-grow
-            placeholder="読んだポイントや次に試したいこと"
-          />
+          <div class="modal-field">
+            <VTextarea
+              v-model="form.notes"
+              label="メモ"
+              rows="5"
+              auto-grow
+              placeholder="読んだポイントや次に試したいこと"
+            />
+          </div>
         </VCardText>
 
         <VCardActions>

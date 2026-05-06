@@ -245,41 +245,59 @@ function confirmDelete(): void {
 
         <VCard class="detail-meta" variant="tonal">
           <VCardText class="detail-meta-content">
-            <template v-if="isEditing">
-              <div class="field-row stacked">
-                <VSelect v-model="form.status" label="ステータス" :items="statusOptions" item-title="label" item-value="value" />
-                <VTextField v-model="form.readDate" label="読了日" type="date" clearable />
-              </div>
+            <div class="detail-meta-block">
+              <span class="detail-meta-label">ステータス</span>
+              <VSelect
+                v-if="isEditing"
+                v-model="form.status"
+                class="detail-meta-control"
+                :items="statusOptions"
+                item-title="label"
+                item-value="value"
+                density="comfortable"
+                hide-details
+                variant="outlined"
+              />
+              <strong v-else>{{ statusLabelMap[article.status] }}</strong>
+            </div>
 
+            <div class="detail-meta-block">
+              <span class="detail-meta-label">読了日</span>
+              <VTextField
+                v-if="isEditing"
+                v-model="form.readDate"
+                class="readstack-date-field detail-meta-control"
+                type="date"
+                density="comfortable"
+                hide-details
+                variant="outlined"
+                clearable
+              />
+              <strong v-else>{{ formattedReadDate }}</strong>
+            </div>
+
+            <div class="detail-meta-block">
+              <span class="detail-meta-label">おすすめ度</span>
               <div class="rating-field detail-rating-field">
-                <span>おすすめ度</span>
-                <StarRating v-model="form.rating" />
-              </div>
-            </template>
-            <template v-else>
-              <div class="detail-meta-block">
-                <span class="detail-meta-label">ステータス</span>
-                <strong>{{ statusLabelMap[article.status] }}</strong>
-              </div>
-              <div class="detail-meta-block">
-                <span class="detail-meta-label">読了日</span>
-                <strong>{{ formattedReadDate }}</strong>
-              </div>
-              <div class="detail-meta-block">
-                <span class="detail-meta-label">おすすめ度</span>
-                <div class="rating-field detail-rating-field readonly-rating-field">
-                  <StarRating :model-value="article.rating" readonly :size="20" />
-                </div>
-              </div>
-            </template>
-
-            <div class="detail-actions">
-              <VBtn class="action-button action-button-danger-outline" color="error" variant="outlined" @click="deleteDialogOpen = true">
-                <template #prepend>
-                  <Trash2 :size="17" />
+                <template v-if="isEditing">
+                  <StarRating v-model="form.rating" :size="20" />
                 </template>
-                削除
-              </VBtn>
+                <template v-else>
+                  <StarRating :model-value="article.rating" readonly :size="20" />
+                </template>
+              </div>
+            </div>
+
+            <div class="detail-meta-block detail-delete-block">
+              <span class="detail-meta-label">操作</span>
+              <div class="detail-actions">
+                <VBtn class="action-button action-button-danger-outline" color="error" variant="outlined" @click="deleteDialogOpen = true">
+                  <template #prepend>
+                    <Trash2 :size="17" />
+                  </template>
+                  削除
+                </VBtn>
+              </div>
             </div>
           </VCardText>
         </VCard>
