@@ -20,6 +20,13 @@ let searchTimer: ReturnType<typeof window.setTimeout> | undefined
 
 const visibleTags = computed<ArticleTag[]>(() => store.tags)
 const currentMotivation = computed(() => motivationCards[motivationIndex.value])
+const pageTitle = computed(() => {
+  if (store.filters.favorite) return 'お気に入り'
+  if (store.filters.tag) return store.filters.tag
+  if (store.filters.status === 'UNREAD') return '未読'
+  if (store.filters.status === 'READ') return '読了'
+  return 'すべての記事'
+})
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer)
@@ -194,14 +201,12 @@ function closeArticleModal(): void {
         <header class="page-header">
           <div>
             <p class="eyebrow">ReadStack</p>
-            <h1>すべての記事</h1>
+            <h1>{{ pageTitle }}</h1>
           </div>
           <SearchFilterBar
             :search="searchDraft"
-            :status="store.filters.status"
             :sort="store.filters.sort"
             @update:search="searchDraft = $event"
-            @update:status="setStatus($event)"
             @update:sort="setSort($event)"
             @add="openArticleModal"
           />

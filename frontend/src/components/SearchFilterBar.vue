@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { Plus, Search } from 'lucide-vue-next'
-import type { ArticleSort, ArticleStatus } from '../types'
+import type { ArticleSort } from '../types'
 
 withDefaults(defineProps<{
   search?: string
-  status?: ArticleStatus
   sort?: ArticleSort
 }>(), {
   search: '',
-  status: 'ALL',
   sort: 'CREATED_DESC'
 })
 
 const emit = defineEmits<{
   'update:search': [value: string]
-  'update:status': [value: ArticleStatus]
   'update:sort': [value: ArticleSort]
   add: []
 }>()
@@ -44,43 +41,6 @@ const sortOptions = [
         <Search :size="18" />
       </template>
     </VTextField>
-
-    <div
-      class="status-tabs"
-      role="radiogroup"
-      aria-label="ステータスフィルター"
-    >
-      <button
-        type="button"
-        class="status-tab"
-        :class="{ 'is-selected': status === 'ALL' }"
-        :aria-checked="status === 'ALL'"
-        role="radio"
-        @click="emit('update:status', 'ALL')"
-      >
-        すべて
-      </button>
-      <button
-        type="button"
-        class="status-tab"
-        :class="{ 'is-selected': status === 'UNREAD' }"
-        :aria-checked="status === 'UNREAD'"
-        role="radio"
-        @click="emit('update:status', 'UNREAD')"
-      >
-        未読
-      </button>
-      <button
-        type="button"
-        class="status-tab"
-        :class="{ 'is-selected': status === 'READ' }"
-        :aria-checked="status === 'READ'"
-        role="radio"
-        @click="emit('update:status', 'READ')"
-      >
-        読了
-      </button>
-    </div>
 
     <VSelect
       class="sort-select"
