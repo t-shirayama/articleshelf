@@ -7,8 +7,6 @@ import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.Tag;
-import com.readstack.infrastructure.ogp.OgpMetadata;
-import com.readstack.infrastructure.ogp.OgpService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +20,11 @@ import java.util.UUID;
 @Service
 public class ArticleService {
     private final ArticleRepository articleRepository;
-    private final OgpService ogpService;
+    private final ArticleMetadataProvider metadataProvider;
 
-    public ArticleService(ArticleRepository articleRepository, OgpService ogpService) {
+    public ArticleService(ArticleRepository articleRepository, ArticleMetadataProvider metadataProvider) {
         this.articleRepository = articleRepository;
-        this.ogpService = ogpService;
+        this.metadataProvider = metadataProvider;
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +57,7 @@ public class ArticleService {
                     throw new DuplicateArticleUrlException(command.url(), article.getId());
                 });
 
-        OgpMetadata metadata = ogpService.fetch(command.url());
+        ArticleMetadata metadata = metadataProvider.fetch(command.url());
         if (!metadata.accessible()) {
             throw new ArticleUrlUnavailableException(command.url());
         }
@@ -91,7 +89,7 @@ public class ArticleService {
                     throw new DuplicateArticleUrlException(command.url(), article.getId());
                 });
         boolean shouldRefreshMetadata = !command.url().equals(current.getUrl()) || current.getThumbnailUrl().isBlank();
-        OgpMetadata metadata = shouldRefreshMetadata ? ogpService.fetch(command.url()) : OgpMetadata.empty();
+        ArticleMetadata metadata = shouldRefreshMetadata ? metadataProvider.fetch(command.url()) : ArticleMetadata.empty();
         if (!metadata.accessible() && !command.url().equals(current.getUrl())) {
             throw new ArticleUrlUnavailableException(command.url());
         }

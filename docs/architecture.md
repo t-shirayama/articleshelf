@@ -24,7 +24,7 @@
 依存関係は内側から外側へ流れるように設計し、ドメインモデルが中心になります。
 
 - `domain`: ドメインモデル、集約、値オブジェクト、ドメインサービス、リポジトリインターフェース
-- `application`: ユースケース、アプリケーションサービス、DTO、ポート（インターフェース）
+- `application`: ユースケース、アプリケーションサービス、DTO、外部機能を抽象化するポート（インターフェース）
 - `infrastructure`: 永続化実装、外部APIクライアント、OGP取得、リポジトリ実装
 - `adapter`: Web/API レイヤー、コントローラー、HTTP 入力/出力のマッピング
 - `config`: Spring の設定、CORS、Bean 定義
@@ -47,12 +47,13 @@
   - `ArticleService` / `ArticleUseCase`
   - `AddArticleCommand`
   - `ArticleResponse`
+  - `ArticleMetadataProvider` (OGP 取得など外部メタデータ取得のポート)
 - `com.readstack.infrastructure.persistence`
   - `ArticleEntity`
   - `JpaArticleRepository`
 - `com.readstack.infrastructure.ogp`
   - `OgpClient`
-  - `OgpService`
+  - `OgpService` (ArticleMetadataProvider の実装)
 - `com.readstack.adapter.web`
   - `ArticleController`
   - `TagController`
@@ -60,7 +61,7 @@
 #### ドメイン中心の実装方針
 
 - `Article` と `Tag` をドメインオブジェクトとして扱う
-- URL/OGP取得ロジックはインフラ層で実装し、アプリケーション層のユースケースから呼び出す
+- URL/OGP取得ロジックはインフラ層で実装し、アプリケーション層は `ArticleMetadataProvider` ポート経由で呼び出す
 - 永続化はリポジトリインターフェース経由で行い、Spring Data JPA 実装はインフラ層に閉じる
 - API層は DTO を受け取り、アプリケーションサービスに変換して処理する
 
