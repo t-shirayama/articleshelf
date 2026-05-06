@@ -430,6 +430,17 @@ a {
   justify-content: flex-end;
 }
 
+.detail-topbar .v-btn {
+  min-height: 44px;
+  height: 44px;
+}
+
+.detail-topbar .v-btn--icon {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
 .detail-header {
   align-items: flex-start;
   min-width: 0;
