@@ -9,6 +9,8 @@ public interface ArticleRepository {
 
     Optional<Article> findById(UUID id);
 
+    Optional<Article> findByUrl(String url);
+
     boolean existsByUrl(String url);
 
     boolean existsByUrlAndIdNot(String url, UUID id);

@@ -825,6 +825,10 @@ a {
 }
 
 .form-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   margin: 0 0 16px;
   padding: 10px 12px;
   color: var(--danger);
@@ -833,6 +837,14 @@ a {
   border-radius: 8px;
   font-size: 0.9rem;
   line-height: 1.45;
+}
+
+.form-error-banner span {
+  min-width: 0;
+}
+
+.duplicate-article-link {
+  flex: 0 0 auto;
 }
 
 .article-modal {

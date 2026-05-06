@@ -18,14 +18,17 @@ const props = withDefaults(defineProps<{
   open?: boolean
   tags?: Tag[]
   error?: string
+  duplicateArticleId?: string
 }>(), {
   open: false,
   tags: () => [],
-  error: ''
+  error: '',
+  duplicateArticleId: ''
 })
 
 const emit = defineEmits<{
   close: []
+  'open-duplicate': [articleId: string]
   submit: [article: ArticleInput]
 }>()
 
@@ -91,7 +94,17 @@ function submit(): void {
       <VForm @submit.prevent="submit">
         <VCardText>
           <div v-if="props.error" class="form-error-banner" role="alert" aria-live="assertive">
-            {{ props.error }}
+            <span>{{ props.error }}</span>
+            <VBtn
+              v-if="props.duplicateArticleId"
+              class="duplicate-article-link"
+              color="primary"
+              size="small"
+              variant="text"
+              @click="emit('open-duplicate', props.duplicateArticleId)"
+            >
+              登録済みの記事を開く
+            </VBtn>
           </div>
 
           <VTextField

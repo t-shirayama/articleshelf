@@ -53,9 +53,10 @@ public class ArticleService {
 
     @Transactional
     public ArticleResponse addArticle(AddArticleCommand command) {
-        if (articleRepository.existsByUrl(command.url())) {
-            throw new DuplicateArticleUrlException(command.url());
-        }
+        articleRepository.findByUrl(command.url())
+                .ifPresent(article -> {
+                    throw new DuplicateArticleUrlException(command.url(), article.getId());
+                });
 
         OgpMetadata metadata = ogpService.fetch(command.url());
         Article article = new Article(
@@ -80,9 +81,11 @@ public class ArticleService {
     @Transactional
     public ArticleResponse updateArticle(UUID id, UpdateArticleCommand command) {
         Article current = articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id));
-        if (articleRepository.existsByUrlAndIdNot(command.url(), id)) {
-            throw new DuplicateArticleUrlException(command.url());
-        }
+        articleRepository.findByUrl(command.url())
+                .filter(article -> !article.getId().equals(id))
+                .ifPresent(article -> {
+                    throw new DuplicateArticleUrlException(command.url(), article.getId());
+                });
         boolean shouldRefreshMetadata = !command.url().equals(current.getUrl()) || current.getThumbnailUrl().isBlank();
         OgpMetadata metadata = shouldRefreshMetadata ? ogpService.fetch(command.url()) : OgpMetadata.empty();
 

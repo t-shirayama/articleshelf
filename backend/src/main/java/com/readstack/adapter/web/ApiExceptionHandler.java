@@ -28,8 +28,8 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(DuplicateArticleUrlException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleConflict(RuntimeException exception) {
-        return ErrorResponse.of(exception.getMessage());
+    public ErrorResponse handleConflict(DuplicateArticleUrlException exception) {
+        return ErrorResponse.ofDuplicateArticle(exception.getMessage(), exception.getExistingArticleId());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -38,7 +38,7 @@ public class ApiExceptionHandler {
         List<String> messages = exception.getBindingResult().getFieldErrors().stream()
                 .map(this::formatFieldError)
                 .toList();
-        return new ErrorResponse(Instant.now(), messages);
+        return new ErrorResponse(Instant.now(), messages, null);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -85,9 +85,13 @@ public class ApiExceptionHandler {
         return field + " is invalid";
     }
 
-    public record ErrorResponse(Instant timestamp, List<String> messages) {
+    public record ErrorResponse(Instant timestamp, List<String> messages, UUID existingArticleId) {
         static ErrorResponse of(String message) {
-            return new ErrorResponse(Instant.now(), List.of(message));
+            return new ErrorResponse(Instant.now(), List.of(message), null);
+        }
+
+        static ErrorResponse ofDuplicateArticle(String message, UUID existingArticleId) {
+            return new ErrorResponse(Instant.now(), List.of(message), existingArticleId);
         }
     }
 }

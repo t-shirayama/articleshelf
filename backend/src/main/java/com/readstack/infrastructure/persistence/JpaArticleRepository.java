@@ -35,6 +35,11 @@ public class JpaArticleRepository implements ArticleRepository {
     }
 
     @Override
+    public Optional<Article> findByUrl(String url) {
+        return articleJpaRepository.findByUrl(url).map(this::toDomain);
+    }
+
+    @Override
     public boolean existsByUrl(String url) {
         return articleJpaRepository.existsByUrl(url);
     }

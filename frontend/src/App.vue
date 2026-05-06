@@ -7,12 +7,14 @@ import ArticleFormModal from './components/ArticleFormModal.vue'
 import MotivationCard from './components/MotivationCard.vue'
 import SearchFilterBar from './components/SearchFilterBar.vue'
 import { motivationCards } from './data/motivationCards'
+import { ApiRequestError } from './services/api'
 import { useArticlesStore } from './stores/articles'
 import type { Article, ArticleInput, ArticleSort, ArticleStatus, Tag as ArticleTag } from './types'
 
 const store = useArticlesStore()
 const modalOpen = ref(false)
 const articleFormError = ref('')
+const duplicateArticleId = ref('')
 const searchDraft = ref('')
 const viewMode = ref<'list' | 'detail'>('list')
 const motivationIndex = ref(new Date().getDate() % motivationCards.length)
@@ -41,6 +43,7 @@ onMounted(async () => {
 
 async function createArticle(article: ArticleInput): Promise<void> {
   articleFormError.value = ''
+  duplicateArticleId.value = ''
   try {
     await store.createArticle(article)
     rotateMotivation()
@@ -48,6 +51,7 @@ async function createArticle(article: ArticleInput): Promise<void> {
     viewMode.value = 'list'
   } catch (error: unknown) {
     articleFormError.value = error instanceof Error ? error.message : '記事を保存できませんでした'
+    duplicateArticleId.value = error instanceof ApiRequestError ? error.existingArticleId || '' : ''
   }
 }
 
@@ -100,12 +104,23 @@ function setSort(sort: ArticleSort): void {
 
 function openArticleModal(): void {
   articleFormError.value = ''
+  duplicateArticleId.value = ''
   modalOpen.value = true
 }
 
 function closeArticleModal(): void {
   articleFormError.value = ''
+  duplicateArticleId.value = ''
   modalOpen.value = false
+}
+
+async function openDuplicateArticle(articleId: string): Promise<void> {
+  articleFormError.value = ''
+  duplicateArticleId.value = ''
+  modalOpen.value = false
+  await store.selectArticleById(articleId)
+  rotateMotivation()
+  viewMode.value = 'detail'
 }
 </script>
 
@@ -253,7 +268,9 @@ function closeArticleModal(): void {
       :open="modalOpen"
       :tags="store.tags"
       :error="articleFormError"
+      :duplicate-article-id="duplicateArticleId"
       @close="closeArticleModal"
+      @open-duplicate="openDuplicateArticle"
       @submit="createArticle"
     />
   </VApp>

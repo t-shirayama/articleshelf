@@ -57,6 +57,9 @@ export const useArticlesStore = defineStore('articles', {
     async selectArticle(article: Article): Promise<void> {
       this.selectedArticle = await api.findArticle(article.id)
     },
+    async selectArticleById(articleId: string): Promise<void> {
+      this.selectedArticle = await api.findArticle(articleId)
+    },
     async createArticle(article: ArticleInput): Promise<void> {
       const created = await api.createArticle(article)
       await this.fetchTags()

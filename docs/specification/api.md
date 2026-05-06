@@ -44,4 +44,5 @@
 - 存在しない記事 ID は `404 Not Found`
 - 重複 URL は `409 Conflict`
 - エラー時のレスポンス形式は `timestamp` と `messages` を持つ JSON
+- 重複 URL の場合は、登録済み記事の詳細へ遷移できるよう `existingArticleId` を返す
 - `status` の不正値、`id` の不正な UUID、`readDate` の不正な日付形式も `messages` 配列に説明文を入れて返す
