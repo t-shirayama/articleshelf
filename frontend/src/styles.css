@@ -567,6 +567,14 @@ a {
   color: var(--muted);
 }
 
+.favorite-button.is-active {
+  color: #d9344a;
+}
+
+.favorite-button.is-active:hover {
+  background: #fff0f3;
+}
+
 .card-delete-button {
   color: var(--muted);
 }

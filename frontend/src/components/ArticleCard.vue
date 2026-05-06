@@ -119,7 +119,7 @@ function domainFrom(url: string): string {
             </VChip>
             <VBtn
               class="favorite-button"
-              :color="article.favorite ? 'primary' : undefined"
+              :class="{ 'is-active': article.favorite }"
               icon
               size="small"
               variant="text"

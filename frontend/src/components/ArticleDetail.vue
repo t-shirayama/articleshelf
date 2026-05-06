@@ -144,7 +144,14 @@ function confirmDelete(): void {
           戻る
         </VBtn>
         <div class="detail-topbar-actions">
-          <VBtn icon :color="(isEditing ? form.favorite : article.favorite) ? 'primary' : undefined" title="お気に入り" @click="toggleFavorite">
+          <VBtn
+            class="favorite-button"
+            :class="{ 'is-active': isEditing ? form.favorite : article.favorite }"
+            icon
+            title="お気に入り"
+            variant="text"
+            @click="toggleFavorite"
+          >
             <Heart :size="19" :fill="(isEditing ? form.favorite : article.favorite) ? 'currentColor' : 'none'" />
           </VBtn>
           <template v-if="isEditing">
