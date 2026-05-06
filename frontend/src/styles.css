@@ -782,6 +782,8 @@ a {
   display: grid;
   grid-auto-rows: minmax(78px, auto);
   gap: 12px;
+  background: transparent;
+  padding: 0;
 }
 
 .detail-meta-block {
@@ -790,7 +792,7 @@ a {
   gap: 6px;
   align-items: center;
   padding: 12px 16px;
-  background: var(--surface-strong);
+  background: transparent;
   border: 1px solid rgba(222, 217, 206, 0.86);
   border-radius: 10px;
 }

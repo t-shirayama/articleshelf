@@ -243,7 +243,7 @@ function confirmDelete(): void {
           </template>
         </section>
 
-        <VCard class="detail-meta" variant="tonal">
+        <VCard class="detail-meta" variant="flat">
           <VCardText class="detail-meta-content">
             <div class="detail-meta-block">
               <span class="detail-meta-label">ステータス</span>
