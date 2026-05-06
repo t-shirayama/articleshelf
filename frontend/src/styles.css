@@ -20,6 +20,8 @@
   --danger: #b33b2f;
   --shadow: 0 18px 60px rgba(55, 48, 37, 0.12);
   --header-control-height: 48px;
+  --article-thumb-width: 192px;
+  --article-thumb-height: 120px;
   --shell-panel-padding: 24px;
 }
 
@@ -431,7 +433,7 @@ a {
 
 .article-card-content {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-columns: var(--article-thumb-width) minmax(0, 1fr);
   gap: 16px;
   height: 100%;
   padding: 14px 14px 16px;
@@ -450,8 +452,8 @@ a {
 
 .article-thumb {
   display: grid;
-  width: 120px;
-  height: 120px;
+  width: var(--article-thumb-width);
+  height: var(--article-thumb-height);
   min-height: 0;
   place-items: center;
   color: var(--accent);
