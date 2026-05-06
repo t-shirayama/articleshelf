@@ -35,7 +35,7 @@ async function createArticle(article: ArticleInput): Promise<void> {
   await store.createArticle(article)
   rotateMotivation()
   modalOpen.value = false
-  viewMode.value = 'detail'
+  viewMode.value = 'list'
 }
 
 async function saveArticle(article: ArticleInput): Promise<void> {

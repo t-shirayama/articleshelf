@@ -122,9 +122,9 @@ function confirmDelete(): void {
         <div>
           <p class="eyebrow">Article Detail</p>
           <h2>{{ article.title }}</h2>
-          <a :href="article.url" target="_blank" rel="noreferrer">
+          <a :href="article.url" :title="article.url" target="_blank" rel="noreferrer">
             <ExternalLink :size="15" />
-            {{ article.url }}
+            <span class="detail-link-text">{{ article.url }}</span>
           </a>
         </div>
       </div>

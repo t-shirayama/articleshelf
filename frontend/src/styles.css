@@ -432,17 +432,25 @@ a {
 
 .detail-header {
   align-items: flex-start;
+  min-width: 0;
   padding-bottom: 4px;
 }
 
 .detail-header a {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 310px;
-  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   color: var(--accent-strong);
   font-size: 0.88rem;
+}
+
+.detail-link-text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
