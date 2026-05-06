@@ -4,17 +4,20 @@ import { BookOpen, CheckCircle2, Circle, Heart, Library, Tag } from 'lucide-vue-
 import ArticleCard from './components/ArticleCard.vue'
 import ArticleDetail from './components/ArticleDetail.vue'
 import ArticleFormModal from './components/ArticleFormModal.vue'
+import MotivationCard from './components/MotivationCard.vue'
 import SearchFilterBar from './components/SearchFilterBar.vue'
-import learningPlant from './assets/learning-plant.svg'
+import { motivationCards } from './data/motivationCards'
 import { useArticlesStore } from './stores/articles'
 
 const store = useArticlesStore()
 const modalOpen = ref(false)
 const searchDraft = ref('')
 const viewMode = ref('list')
+const motivationIndex = ref(new Date().getDate() % motivationCards.length)
 let searchTimer = 0
 
 const visibleTags = computed(() => store.tags)
+const currentMotivation = computed(() => motivationCards[motivationIndex.value])
 
 watch(searchDraft, (value) => {
   window.clearTimeout(searchTimer)
@@ -29,6 +32,7 @@ onMounted(async () => {
 
 async function createArticle(article) {
   await store.createArticle(article)
+  rotateMotivation()
   modalOpen.value = false
   viewMode.value = 'detail'
 }
@@ -39,11 +43,12 @@ async function saveArticle(article) {
 
 async function deleteArticle(articleId) {
   await store.deleteArticle(articleId)
-  viewMode.value = 'list'
+  showList()
 }
 
 async function openArticle(article) {
   await store.selectArticle(article)
+  rotateMotivation()
   viewMode.value = 'detail'
 }
 
@@ -52,7 +57,12 @@ async function toggleFavorite(article) {
 }
 
 function showList() {
+  if (viewMode.value !== 'list') rotateMotivation()
   viewMode.value = 'list'
+}
+
+function rotateMotivation() {
+  motivationIndex.value = (motivationIndex.value + 1) % motivationCards.length
 }
 
 function setStatus(status) {
@@ -156,13 +166,7 @@ function setFavoriteOnly() {
           </div>
         </section>
 
-        <section class="learning-boost-card" aria-label="学習継続のメッセージ">
-          <div>
-            <strong>今日も1つ学びを<br>ストックしよう</strong>
-            <span>小さな積み重ねが、あとで効いてきます。</span>
-          </div>
-          <img :src="learningPlant" alt="" aria-hidden="true">
-        </section>
+        <MotivationCard :card="currentMotivation" />
       </aside>
 
       <main class="content">
