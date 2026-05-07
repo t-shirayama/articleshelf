@@ -1,11 +1,11 @@
 package com.readstack.config;
 
 import com.readstack.application.auth.AuthService;
+import com.readstack.application.auth.AuthUser;
 import com.readstack.infrastructure.persistence.ArticleEntity;
 import com.readstack.infrastructure.persistence.SpringDataArticleJpaRepository;
 import com.readstack.infrastructure.persistence.SpringDataTagJpaRepository;
 import com.readstack.infrastructure.persistence.TagEntity;
-import com.readstack.infrastructure.persistence.UserEntity;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -32,8 +32,8 @@ public class ReadStackDataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        UserEntity owner = authService.ensureInitialUser();
-        assignOwnerToLegacyData(owner.getId());
+        AuthUser owner = authService.ensureInitialUser();
+        assignOwnerToLegacyData(owner.id());
     }
 
     private void assignOwnerToLegacyData(UUID ownerId) {

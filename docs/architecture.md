@@ -50,14 +50,22 @@
   - `Article` (集約ルート)
   - `Tag` (値オブジェクト／エンティティ)
   - `ArticleRepository` (インターフェース)
+  - `TagRepository` (タグ管理用インターフェース)
 - `com.readstack.application.article`
   - `ArticleService` / `ArticleUseCase`
+  - `TagService` (タグ一覧、作成、名称変更、マージ、未使用タグ削除)
   - `AddArticleCommand`
   - `ArticleResponse`
   - `ArticleMetadataProvider` (OGP 取得など外部メタデータ取得のポート)
+- `com.readstack.application.auth`
+  - `AuthService`
+  - `AuthUserRepository` / `RefreshTokenRepository` (認証永続化ポート)
+  - `AccessTokenIssuer` / `RefreshTokenSecretService` / `PasswordHasher` (セキュリティ実装のポート)
 - `com.readstack.infrastructure.persistence`
   - `ArticleEntity`
   - `JpaArticleRepository`
+  - `JpaAuthUserRepository`
+  - `JpaRefreshTokenRepository`
 - `com.readstack.infrastructure.ogp`
   - `OgpClient`
   - `OgpService` (ArticleMetadataProvider の実装)
@@ -69,7 +77,9 @@
 
 - `Article` と `Tag` をドメインオブジェクトとして扱う
 - URL/OGP取得ロジックはインフラ層で実装し、アプリケーション層は `ArticleMetadataProvider` ポート経由で呼び出す
-- 永続化と記事一覧の基本検索条件（ステータス、単一タグ、検索語、お気に入り）はリポジトリインターフェース経由で扱い、Spring Data JPA 実装はインフラ層に閉じる
+- 記事ユースケースは `ArticleService`、タグ管理ユースケースは `TagService` に分け、コントローラーも各サービスへ直接委譲する
+- 永続化と記事一覧の基本検索条件（ステータス、単一タグ、検索語、お気に入り）は `ArticleRepository` 経由で扱い、タグ一覧・名称変更・マージ・未使用削除は `TagRepository` 経由で扱う
+- 認証ユースケースは `AuthService` に閉じ、JPA Entity、Spring Data Repository、JWT発行、refresh token hash、password encoder は application 層のポート越しに扱う
 - API層は DTO を受け取り、アプリケーションサービスに変換して処理する
 
 ## 3. DB設計

@@ -3,6 +3,7 @@ package com.readstack.infrastructure.security;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.readstack.application.auth.AccessTokenIssuer;
 import com.readstack.application.auth.CurrentUser;
 import com.readstack.config.AuthProperties;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class JwtTokenService {
+public class JwtTokenService implements AccessTokenIssuer {
     private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
 
@@ -31,6 +32,7 @@ public class JwtTokenService {
         this.objectMapper = objectMapper;
     }
 
+    @Override
     public String issue(CurrentUser user) {
         Instant now = Instant.now();
         Map<String, Object> header = Map.of("alg", "HS256", "typ", "JWT");

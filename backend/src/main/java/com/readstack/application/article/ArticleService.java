@@ -7,16 +7,12 @@ import com.readstack.domain.article.ArticleRepository;
 import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
-import com.readstack.domain.article.DuplicateTagNameException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.Tag;
-import com.readstack.domain.article.TagInUseException;
-import com.readstack.domain.article.TagNotFoundException;
-import com.readstack.domain.article.TagUsage;
+import com.readstack.domain.article.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -26,10 +22,12 @@ import java.util.UUID;
 @Service
 public class ArticleService {
     private final ArticleRepository articleRepository;
+    private final TagRepository tagRepository;
     private final ArticleMetadataProvider metadataProvider;
 
-    public ArticleService(ArticleRepository articleRepository, ArticleMetadataProvider metadataProvider) {
+    public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository, ArticleMetadataProvider metadataProvider) {
         this.articleRepository = articleRepository;
+        this.tagRepository = tagRepository;
         this.metadataProvider = metadataProvider;
     }
 
@@ -121,57 +119,6 @@ public class ArticleService {
         articleRepository.deleteByIdAndUserId(id, user.id());
     }
 
-    @Transactional(readOnly = true)
-    public List<TagResponse> findTags(CurrentUser user) {
-        return articleRepository.findAllTagUsagesByUserId(user.id()).stream()
-                .map(TagResponse::from)
-                .sorted(Comparator.comparing(TagResponse::name))
-                .toList();
-    }
-
-    @Transactional
-    public TagResponse addTag(CurrentUser user, String name) {
-        return TagResponse.from(articleRepository.saveTag(user.id(), name));
-    }
-
-    @Transactional
-    public TagResponse renameTag(CurrentUser user, UUID id, String name) {
-        Tag current = articleRepository.findTagByIdAndUserId(id, user.id())
-                .orElseThrow(() -> new TagNotFoundException(id));
-        String normalized = normalizeName(name);
-        articleRepository.findTagByNameAndUserId(normalized, user.id())
-                .filter(tag -> !tag.getId().equals(current.getId()))
-                .ifPresent(tag -> {
-                    throw new DuplicateTagNameException(normalized);
-                });
-        Tag renamed = articleRepository.renameTag(user.id(), id, normalized);
-        long articleCount = articleRepository.countArticlesByTagIdAndUserId(id, user.id());
-        return TagResponse.from(new TagUsage(renamed, articleCount));
-    }
-
-    @Transactional
-    public void mergeTags(CurrentUser user, UUID sourceId, UUID targetId) {
-        if (sourceId.equals(targetId)) {
-            throw new DuplicateTagNameException("merge target must be different");
-        }
-        articleRepository.findTagByIdAndUserId(sourceId, user.id())
-                .orElseThrow(() -> new TagNotFoundException(sourceId));
-        articleRepository.findTagByIdAndUserId(targetId, user.id())
-                .orElseThrow(() -> new TagNotFoundException(targetId));
-        articleRepository.mergeTags(user.id(), sourceId, targetId);
-    }
-
-    @Transactional
-    public void deleteUnusedTag(CurrentUser user, UUID id) {
-        Tag tag = articleRepository.findTagByIdAndUserId(id, user.id())
-                .orElseThrow(() -> new TagNotFoundException(id));
-        long articleCount = articleRepository.countArticlesByTagIdAndUserId(id, user.id());
-        if (articleCount > 0) {
-            throw new TagInUseException(tag.getName(), articleCount);
-        }
-        articleRepository.deleteTagByIdAndUserId(id, user.id());
-    }
-
     private Set<Tag> resolveTags(CurrentUser user, List<String> names) {
         if (names == null) {
             return new LinkedHashSet<>();
@@ -182,7 +129,7 @@ public class ArticleService {
                 .map(this::normalizeName)
                 .filter(value -> !value.isBlank())
                 .distinct()
-                .forEach(name -> tags.add(articleRepository.saveTag(user.id(), name)));
+                .forEach(name -> tags.add(tagRepository.saveTag(user.id(), name)));
         return tags;
     }
 

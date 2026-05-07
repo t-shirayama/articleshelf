@@ -3,13 +3,6 @@ package com.readstack.application.auth;
 import com.readstack.config.AuthProperties;
 import com.readstack.domain.user.PasswordPolicy;
 import com.readstack.domain.user.UserStatus;
-import com.readstack.infrastructure.persistence.RefreshTokenEntity;
-import com.readstack.infrastructure.persistence.SpringDataRefreshTokenJpaRepository;
-import com.readstack.infrastructure.persistence.SpringDataUserJpaRepository;
-import com.readstack.infrastructure.persistence.UserEntity;
-import com.readstack.infrastructure.security.JwtTokenService;
-import com.readstack.infrastructure.security.RefreshTokenHashService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,28 +16,28 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
-    private final SpringDataUserJpaRepository userRepository;
-    private final SpringDataRefreshTokenJpaRepository refreshTokenRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenService jwtTokenService;
-    private final RefreshTokenHashService refreshTokenHashService;
+    private final AuthUserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final PasswordHasher passwordHasher;
+    private final AccessTokenIssuer accessTokenIssuer;
+    private final RefreshTokenSecretService refreshTokenSecretService;
     private final AuthProperties properties;
     private final PasswordPolicy passwordPolicy = new PasswordPolicy();
     private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
-            SpringDataUserJpaRepository userRepository,
-            SpringDataRefreshTokenJpaRepository refreshTokenRepository,
-            PasswordEncoder passwordEncoder,
-            JwtTokenService jwtTokenService,
-            RefreshTokenHashService refreshTokenHashService,
+            AuthUserRepository userRepository,
+            RefreshTokenRepository refreshTokenRepository,
+            PasswordHasher passwordHasher,
+            AccessTokenIssuer accessTokenIssuer,
+            RefreshTokenSecretService refreshTokenSecretService,
             AuthProperties properties
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenService = jwtTokenService;
-        this.refreshTokenHashService = refreshTokenHashService;
+        this.passwordHasher = passwordHasher;
+        this.accessTokenIssuer = accessTokenIssuer;
+        this.refreshTokenSecretService = refreshTokenSecretService;
         this.properties = properties;
     }
 
@@ -56,23 +49,33 @@ public class AuthService {
         }
         passwordPolicy.validate(normalizedEmail, password);
 
-        UserEntity user = new UserEntity();
-        user.setEmail(normalizedEmail);
-        user.setPasswordHash(passwordEncoder.encode(password));
-        user.setDisplayName(normalizeDisplayName(displayName, normalizedEmail));
-        user.setRole("USER");
-        user.setStatus(UserStatus.ACTIVE);
-        user.setLastLoginAt(Instant.now());
+        AuthUser user = new AuthUser(
+                null,
+                normalizedEmail,
+                passwordHasher.hash(password),
+                normalizeDisplayName(displayName, normalizedEmail),
+                "USER",
+                UserStatus.ACTIVE,
+                Instant.now()
+        );
         return issueAuthResult(userRepository.save(user), UUID.randomUUID(), userAgent, ipAddress);
     }
 
     @Transactional
     public AuthResult login(String email, String password, String userAgent, String ipAddress) {
-        UserEntity user = userRepository.findByEmail(normalizeEmail(email))
-                .filter(candidate -> candidate.getStatus() == UserStatus.ACTIVE)
-                .filter(candidate -> passwordEncoder.matches(password == null ? "" : password, candidate.getPasswordHash()))
+        AuthUser user = userRepository.findByEmail(normalizeEmail(email))
+                .filter(candidate -> candidate.status() == UserStatus.ACTIVE)
+                .filter(candidate -> passwordHasher.matches(password == null ? "" : password, candidate.passwordHash()))
                 .orElseThrow(() -> new AuthException("メールアドレスまたはパスワードが正しくありません"));
-        user.setLastLoginAt(Instant.now());
+        user = userRepository.save(new AuthUser(
+                user.id(),
+                user.email(),
+                user.passwordHash(),
+                user.displayName(),
+                user.role(),
+                user.status(),
+                Instant.now()
+        ));
         return issueAuthResult(user, UUID.randomUUID(), userAgent, ipAddress);
     }
 
@@ -82,21 +85,19 @@ public class AuthService {
             throw new AuthException("refresh token is missing");
         }
         Instant now = Instant.now();
-        RefreshTokenEntity current = refreshTokenRepository.findByTokenHash(refreshTokenHashService.hash(rawRefreshToken))
+        RefreshTokenRecord current = refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
                 .orElseThrow(() -> new AuthException("refresh token is invalid"));
-        UserEntity user = current.getUser();
-        if (user.getStatus() != UserStatus.ACTIVE || current.getExpiresAt().isBefore(now)) {
+        AuthUser user = current.user();
+        if (user.status() != UserStatus.ACTIVE || current.expiresAt().isBefore(now)) {
             throw new AuthException("refresh token is invalid");
         }
-        if (current.getRevokedAt() != null) {
-            refreshTokenRepository.revokeFamily(user.getId(), current.getFamilyId(), now);
+        if (current.revokedAt() != null) {
+            refreshTokenRepository.revokeFamily(user.id(), current.familyId(), now);
             throw new AuthException("refresh token is invalid");
         }
 
-        CreatedRefreshToken replacement = createRefreshToken(user, current.getFamilyId(), userAgent, ipAddress);
-        current.setRevokedAt(now);
-        current.setReplacedByTokenId(replacement.entity().getId());
-        refreshTokenRepository.save(current);
+        CreatedRefreshToken replacement = createRefreshToken(user, current.familyId(), userAgent, ipAddress);
+        refreshTokenRepository.replace(current.id(), replacement.record().id(), now);
         return new AuthResult(toAuthResponse(user), new RefreshSession(replacement.rawToken(), issueCsrfToken()));
     }
 
@@ -105,11 +106,10 @@ public class AuthService {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
             return;
         }
-        refreshTokenRepository.findByTokenHash(refreshTokenHashService.hash(rawRefreshToken))
+        refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
                 .ifPresent(token -> {
-                    if (token.getRevokedAt() == null) {
-                        token.setRevokedAt(Instant.now());
-                        refreshTokenRepository.save(token);
+                    if (token.revokedAt() == null) {
+                        refreshTokenRepository.revoke(token.id(), Instant.now());
                     }
                 });
     }
@@ -117,46 +117,50 @@ public class AuthService {
     @Transactional(readOnly = true)
     public UserResponse currentUser(CurrentUser currentUser) {
         return userRepository.findById(currentUser.id())
-                .filter(user -> user.getStatus() == UserStatus.ACTIVE)
+                .filter(user -> user.status() == UserStatus.ACTIVE)
                 .map(UserResponse::from)
                 .orElseThrow(() -> new AuthException("user is not active"));
     }
 
     @Transactional
-    public UserEntity ensureInitialUser() {
+    public AuthUser ensureInitialUser() {
         String email = normalizeEmail(properties.initialUserEmail());
         return userRepository.findByEmail(email).orElseGet(() -> {
             passwordPolicy.validate(email, properties.initialUserPassword());
-            UserEntity user = new UserEntity();
-            user.setEmail(email);
-            user.setPasswordHash(passwordEncoder.encode(properties.initialUserPassword()));
-            user.setDisplayName("ReadStack Owner");
-            user.setRole("USER");
-            user.setStatus(UserStatus.ACTIVE);
+            AuthUser user = new AuthUser(
+                    null,
+                    email,
+                    passwordHasher.hash(properties.initialUserPassword()),
+                    "ReadStack Owner",
+                    "USER",
+                    UserStatus.ACTIVE,
+                    null
+            );
             return userRepository.save(user);
         });
     }
 
-    private AuthResult issueAuthResult(UserEntity user, UUID familyId, String userAgent, String ipAddress) {
+    private AuthResult issueAuthResult(AuthUser user, UUID familyId, String userAgent, String ipAddress) {
         CreatedRefreshToken refreshToken = createRefreshToken(user, familyId, userAgent, ipAddress);
         return new AuthResult(toAuthResponse(user), new RefreshSession(refreshToken.rawToken(), issueCsrfToken()));
     }
 
-    private CreatedRefreshToken createRefreshToken(UserEntity user, UUID familyId, String userAgent, String ipAddress) {
-        String rawToken = refreshTokenHashService.generateRawToken();
-        RefreshTokenEntity token = new RefreshTokenEntity();
-        token.setUser(user);
-        token.setTokenHash(refreshTokenHashService.hash(rawToken));
-        token.setFamilyId(familyId);
-        token.setExpiresAt(Instant.now().plus(properties.refreshTokenTtlDays(), ChronoUnit.DAYS));
-        token.setUserAgent(userAgent);
-        token.setIpAddress(ipAddress);
-        return new CreatedRefreshToken(rawToken, refreshTokenRepository.save(token));
+    private CreatedRefreshToken createRefreshToken(AuthUser user, UUID familyId, String userAgent, String ipAddress) {
+        String rawToken = refreshTokenSecretService.generateRawToken();
+        RefreshTokenRecord token = refreshTokenRepository.create(
+                user,
+                refreshTokenSecretService.hash(rawToken),
+                familyId,
+                Instant.now().plus(properties.refreshTokenTtlDays(), ChronoUnit.DAYS),
+                userAgent,
+                ipAddress
+        );
+        return new CreatedRefreshToken(rawToken, token);
     }
 
-    private AuthResponse toAuthResponse(UserEntity user) {
-        CurrentUser currentUser = new CurrentUser(user.getId(), user.getEmail(), user.getDisplayName(), List.of(user.getRole()));
-        return new AuthResponse(UserResponse.from(user), jwtTokenService.issue(currentUser));
+    private AuthResponse toAuthResponse(AuthUser user) {
+        CurrentUser currentUser = new CurrentUser(user.id(), user.email(), user.displayName(), List.of(user.role()));
+        return new AuthResponse(UserResponse.from(user), accessTokenIssuer.issue(currentUser));
     }
 
     private String issueCsrfToken() {
@@ -177,6 +181,6 @@ public class AuthService {
         return atIndex > 0 ? email.substring(0, atIndex) : email;
     }
 
-    private record CreatedRefreshToken(String rawToken, RefreshTokenEntity entity) {
+    private record CreatedRefreshToken(String rawToken, RefreshTokenRecord record) {
     }
 }
