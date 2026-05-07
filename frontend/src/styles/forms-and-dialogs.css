@@ -212,6 +212,14 @@
   padding-inline-start: 6px;
 }
 
+.readstack-date-field input {
+  cursor: pointer;
+}
+
+.readstack-date-field .v-field--disabled input {
+  cursor: not-allowed;
+}
+
 .date-picker-button {
   display: inline-grid;
   width: 34px;
@@ -244,6 +252,17 @@
   background: rgba(105, 112, 109, 0.08);
   border-color: rgba(105, 112, 109, 0.18);
   cursor: not-allowed;
+}
+
+.date-picker-menu {
+  border-radius: 10px;
+  box-shadow: 0 18px 42px rgba(27, 41, 39, 0.18);
+}
+
+.readstack-date-picker {
+  border: 1px solid rgba(222, 217, 206, 0.78);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .read-later-check {
