@@ -102,13 +102,7 @@
 
 .rating-field {
   display: grid;
-  gap: 8px;
-  padding: 0 2px;
-}
-
-.rating-field span {
-  color: var(--muted);
-  font-size: 0.84rem;
+  gap: 12px;
 }
 
 .star-rating {
@@ -331,7 +325,7 @@
 }
 
 .article-modal {
-  width: min(560px, 100%);
+  width: min(640px, 100%);
 }
 
 .article-modal .v-card-actions,

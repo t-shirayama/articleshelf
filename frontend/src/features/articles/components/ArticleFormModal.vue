@@ -66,7 +66,7 @@ function submit(): void {
 </script>
 
 <template>
-  <VDialog :model-value="props.open" max-width="560" @update:model-value="handleDialogUpdate">
+  <VDialog :model-value="props.open" max-width="640" @update:model-value="handleDialogUpdate">
     <VCard class="article-modal" title="記事を追加">
       <VCardText class="article-modal-body">
         <div v-if="props.error" class="form-error-banner" role="alert" aria-live="assertive">
@@ -91,6 +91,7 @@ function submit(): void {
             label="URL"
             type="url"
             placeholder="https://example.com/article"
+            hide-details="auto"
             :error-messages="submitted && urlError ? [urlError] : []"
           />
         </div>
@@ -116,7 +117,9 @@ function submit(): void {
         </div>
 
         <div class="modal-field rating-field">
-          <span>おすすめ度</span>
+          <div class="modal-subsection-heading">
+            <span>おすすめ度</span>
+          </div>
           <StarRating v-model="form.rating" />
         </div>
 
@@ -136,6 +139,7 @@ function submit(): void {
             type="date"
             :disabled="form.readLater"
             clearable
+            hide-details
           />
         </div>
 
@@ -145,6 +149,7 @@ function submit(): void {
             label="メモ"
             rows="5"
             auto-grow
+            hide-details
             placeholder="読んだポイントや次に試したいこと"
           />
         </div>
