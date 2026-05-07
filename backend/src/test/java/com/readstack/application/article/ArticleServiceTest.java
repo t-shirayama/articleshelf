@@ -121,15 +121,137 @@ class ArticleServiceTest {
         assertThat(repository.findAllByUserId(user.id())).isEmpty();
     }
 
+    @Test
+    void updateArticleDoesNotRefetchMetadataWhenUrlDoesNotChange() {
+        metadataProvider.next = new ArticleMetadata("Original", "Summary", "https://example.com/thumb.png", true);
+        ArticleResponse response = service.addArticle(user, command("https://example.com/original", "Original"));
+        metadataProvider.fetchCount = 0;
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                "https://example.com/original",
+                "Updated title",
+                "Updated summary",
+                ArticleStatus.UNREAD,
+                null,
+                true,
+                2,
+                "Updated notes",
+                List.of("Java")
+        ));
+
+        assertThat(metadataProvider.fetchCount).isZero();
+        assertThat(updated.title()).isEqualTo("Updated title");
+        assertThat(updated.favorite()).isTrue();
+    }
+
+    @Test
+    void updateArticleRejectsDuplicateUrlWithinSameUserOnly() {
+        ArticleResponse first = service.addArticle(user, command("https://example.com/first", "First"));
+        service.addArticle(user, command("https://example.com/second", "Second"));
+
+        assertThatThrownBy(() -> service.updateArticle(user, first.id(), new UpdateArticleCommand(
+                "https://example.com/second",
+                "First",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                List.of()
+        ))).isInstanceOf(DuplicateArticleUrlException.class);
+
+        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other@example.com", "Other", List.of("USER"));
+        service.addArticle(anotherUser, command("https://example.com/shared", "Other"));
+        ArticleResponse ownArticle = service.addArticle(user, command("https://example.com/user-owned", "Mine"));
+
+        ArticleResponse updated = service.updateArticle(user, ownArticle.id(), new UpdateArticleCommand(
+                "https://example.com/shared",
+                "Mine updated",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                List.of()
+        ));
+
+        assertThat(updated.url()).isEqualTo("https://example.com/shared");
+    }
+
+    @Test
+    void updateArticleClearsReadDateWhenMovedBackToUnread() {
+        ArticleResponse response = service.addArticle(user, new AddArticleCommand(
+                "https://example.com/read",
+                "Read article",
+                "",
+                ArticleStatus.READ,
+                LocalDate.parse("2026-05-07"),
+                false,
+                1,
+                "",
+                List.of()
+        ));
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.url(),
+                response.title(),
+                response.summary(),
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                1,
+                "",
+                List.of()
+        ));
+
+        assertThat(updated.status()).isEqualTo(ArticleStatus.UNREAD);
+        assertThat(updated.readDate()).isNull();
+    }
+
+    @Test
+    void updateArticleClampsRatingAndReplacesTags() {
+        ArticleResponse response = service.addArticle(user, new AddArticleCommand(
+                "https://example.com/tags",
+                "Tag article",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                3,
+                "",
+                List.of("Java", "Spring")
+        ));
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.url(),
+                response.title(),
+                response.summary(),
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                -1,
+                "",
+                List.of("Vue")
+        ));
+
+        assertThat(updated.rating()).isZero();
+        assertThat(updated.tags()).extracting(TagResponse::name).containsExactly("Vue");
+        assertThat(updated.tags()).extracting(TagResponse::name).doesNotContain("Java", "Spring");
+    }
+
     private AddArticleCommand command(String url, String title) {
         return new AddArticleCommand(url, title, "", ArticleStatus.UNREAD, null, false, 0, "", List.of());
     }
 
     private static class StubMetadataProvider implements ArticleMetadataProvider {
         private ArticleMetadata next = new ArticleMetadata("", "", "", true);
+        private int fetchCount = 0;
 
         @Override
         public ArticleMetadata fetch(String url) {
+            fetchCount += 1;
             return next;
         }
     }

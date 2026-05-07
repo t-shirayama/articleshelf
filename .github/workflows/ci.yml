@@ -53,3 +53,16 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run E2E tests
         run: npm run test:e2e
+      - name: Show compose logs on E2E failure
+        if: failure()
+        working-directory: .
+        run: docker compose -p readstack-e2e -f docker-compose.e2e.yml logs --tail 300
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          if-no-files-found: ignore

@@ -1,0 +1,153 @@
+package com.readstack.infrastructure.persistence;
+
+import com.readstack.domain.article.Article;
+import com.readstack.domain.article.ArticleStatus;
+import com.readstack.domain.article.Tag;
+import com.readstack.domain.user.UserStatus;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
+
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+@SpringBootTest
+@TestPropertySource(properties = {
+        "spring.datasource.url=jdbc:postgresql://db:5432/readstack",
+        "spring.datasource.username=readstack",
+        "spring.datasource.password=readstack",
+        "spring.flyway.enabled=true",
+        "spring.jpa.hibernate.ddl-auto=validate",
+        "readstack.frontend-origin=http://localhost:5173",
+        "readstack.auth.access-token-secret=test-readstack-access-secret-change-me-please-32bytes",
+        "readstack.auth.refresh-token-hash-secret=test-readstack-refresh-hash-secret-change-me",
+        "readstack.auth.cookie-secure=false",
+        "readstack.auth.cookie-same-site=Lax",
+        "readstack.auth.csrf-enabled=false",
+        "readstack.auth.initial-user-email=owner-test@example.com",
+        "readstack.auth.initial-user-password=password123"
+})
+class JpaArticleRepositoryPostgresIntegrationTest {
+    @Autowired
+    private JpaArticleRepository repository;
+
+    @Autowired
+    private SpringDataArticleJpaRepository articleJpaRepository;
+
+    @Autowired
+    private SpringDataUserJpaRepository userJpaRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void cleanDatabase() {
+        jdbcTemplate.execute("TRUNCATE TABLE article_tags, articles, tags, refresh_tokens, users CASCADE");
+    }
+
+    @Test
+    void postgresSchemaAllowsSameUrlAcrossUsersButRejectsDuplicatesPerUser() {
+        UUID userA = createUser("postgres-a@example.com");
+        UUID userB = createUser("postgres-b@example.com");
+
+        repository.save(article(userA, "https://example.com/shared", 4, LocalDate.parse("2026-05-07"), Set.of(tag(userA, "Vue"))));
+        repository.save(article(userB, "https://example.com/shared", 2, null, Set.of(tag(userB, "Java"))));
+
+        assertThat(repository.findAllByUserId(userA)).singleElement()
+                .satisfies(article -> {
+                    assertThat(article.getRating()).isEqualTo(4);
+                    assertThat(article.getReadDate()).isEqualTo(LocalDate.parse("2026-05-07"));
+                    assertThat(article.getTags()).extracting(Tag::getName).containsExactly("Vue");
+                });
+        assertThat(repository.findAllByUserId(userB)).singleElement()
+                .satisfies(article -> assertThat(article.getTags()).extracting(Tag::getName).containsExactly("Java"));
+
+        assertThatThrownBy(() -> {
+            repository.save(article(userA, "https://example.com/shared", 1, null, Set.of()));
+            articleJpaRepository.flush();
+        }).isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void postgresPersistenceReplacesArticleTagsWithoutLeavingStaleRelations() {
+        UUID userId = createUser("postgres-tags@example.com");
+        Article saved = repository.save(article(
+                userId,
+                "https://example.com/tags",
+                3,
+                null,
+                new LinkedHashSet<>(List.of(tag(userId, "Java"), tag(userId, "Spring")))
+        ));
+
+        Article updated = repository.save(new Article(
+                saved.getId(),
+                userId,
+                saved.getUrl(),
+                saved.getTitle(),
+                saved.getSummary(),
+                saved.getThumbnailUrl(),
+                ArticleStatus.READ,
+                LocalDate.parse("2026-05-08"),
+                true,
+                5,
+                "updated note",
+                new LinkedHashSet<>(List.of(tag(userId, "Vue"))),
+                saved.getCreatedAt(),
+                saved.getUpdatedAt()
+        ));
+        articleJpaRepository.flush();
+
+        assertThat(updated.getStatus()).isEqualTo(ArticleStatus.READ);
+        assertThat(updated.getReadDate()).isEqualTo(LocalDate.parse("2026-05-08"));
+        assertThat(updated.getTags()).extracting(Tag::getName).containsExactly("Vue");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM article_tags WHERE article_id = ?",
+                Integer.class,
+                updated.getId()
+        )).isEqualTo(1);
+    }
+
+    private UUID createUser(String email) {
+        UserEntity user = new UserEntity();
+        user.setEmail(email);
+        user.setPasswordHash("hashed-password");
+        user.setDisplayName("Test User");
+        user.setRole("USER");
+        user.setStatus(UserStatus.ACTIVE);
+        return userJpaRepository.save(user).getId();
+    }
+
+    private Article article(UUID userId, String url, int rating, LocalDate readDate, Set<Tag> tags) {
+        return new Article(
+                null,
+                userId,
+                url,
+                "Stored article",
+                "Stored summary",
+                "",
+                readDate == null ? ArticleStatus.UNREAD : ArticleStatus.READ,
+                readDate,
+                false,
+                rating,
+                "Stored note",
+                tags,
+                Instant.now(),
+                Instant.now()
+        );
+    }
+
+    private Tag tag(UUID userId, String name) {
+        return repository.saveTag(userId, name);
+    }
+}

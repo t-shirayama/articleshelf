@@ -1,8 +1,14 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const useExistingServerOnly = process.env.PLAYWRIGHT_USE_EXISTING_SERVER === '1'
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
+  reporter: [
+    ['line'],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }]
+  ],
   expect: {
     timeout: 10_000
   },
@@ -16,11 +22,13 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] }
     }
   ],
-  webServer: {
-    command: 'sh ./frontend/scripts/e2e-webserver.sh',
-    cwd: '..',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000
-  }
+  webServer: useExistingServerOnly
+    ? undefined
+    : {
+        command: 'sh ./frontend/scripts/e2e-webserver.sh',
+        cwd: '..',
+        url: 'http://localhost:5173',
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000
+      }
 })
