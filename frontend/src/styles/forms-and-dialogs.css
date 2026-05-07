@@ -1,11 +1,13 @@
 .article-modal-body {
   display: grid;
-  gap: 16px;
+  gap: 0;
   padding: 22px 24px 10px;
 }
 
 .modal-field {
   min-width: 0;
+  padding: 16px 0;
+  border-top: 1px solid rgba(222, 217, 206, 0.72);
 }
 
 .title-input-group {
@@ -24,6 +26,18 @@
 .tag-editor {
   display: grid;
   gap: 12px;
+}
+
+.modal-tag-field {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-subsection-heading {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .tag-editor-selected {

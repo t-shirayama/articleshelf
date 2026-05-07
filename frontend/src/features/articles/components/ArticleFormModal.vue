@@ -105,7 +105,10 @@ function submit(): void {
           <p>未入力の場合はURLから取得した記事タイトルを自動設定します</p>
         </div>
 
-        <div class="modal-field">
+        <div class="modal-field modal-tag-field">
+          <div class="modal-subsection-heading">
+            <span>タグ選択</span>
+          </div>
           <TagEditor
             v-model="form.tags"
             :options="tagOptions"
