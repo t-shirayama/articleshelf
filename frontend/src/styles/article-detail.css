@@ -1,9 +1,9 @@
 .detail-page {
   box-sizing: border-box;
   width: min(1360px, calc(100% - 24px));
-  height: calc(100vh - 36px);
-  min-height: 0;
-  overflow-y: auto;
+  height: auto;
+  min-height: calc(100vh - 36px);
+  overflow: visible;
   margin: 18px auto;
   border-radius: 8px;
   padding: 26px;
@@ -11,9 +11,6 @@
 
 .detail-page.is-editing {
   width: min(1360px, calc(100% - 24px));
-  height: auto;
-  min-height: calc(100vh - 36px);
-  overflow: visible;
 }
 
 .empty-detail,

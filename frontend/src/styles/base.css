@@ -6,9 +6,9 @@ body,
   scrollbar-gutter: stable;
 }
 
-html:has(.detail-page.is-editing),
-body:has(.detail-page.is-editing),
-#app:has(.detail-page.is-editing) {
+html:has(.detail-page),
+body:has(.detail-page),
+#app:has(.detail-page) {
   height: auto;
   min-height: 100%;
   overflow: auto;
