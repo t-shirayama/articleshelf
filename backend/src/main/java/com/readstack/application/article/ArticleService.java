@@ -4,6 +4,7 @@ import com.readstack.application.auth.CurrentUser;
 import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleRepository;
+import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
@@ -30,16 +31,8 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public List<ArticleResponse> findArticles(CurrentUser user, ArticleStatus status, String tag, String search, Boolean favorite) {
-        String normalizedTag = normalizeFilter(tag);
-        String normalizedSearch = normalizeFilter(search);
-
-        return articleRepository.findAllByUserId(user.id()).stream()
-                .filter(article -> status == null || article.getStatus() == status)
-                .filter(article -> favorite == null || article.isFavorite() == favorite)
-                .filter(article -> normalizedTag == null || article.getTags().stream()
-                        .anyMatch(item -> item.getName().equalsIgnoreCase(normalizedTag)))
-                .filter(article -> normalizedSearch == null || matchesSearch(article, normalizedSearch))
-                .sorted(Comparator.comparing(Article::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+        ArticleSearchCriteria criteria = new ArticleSearchCriteria(status, normalizeFilter(tag), normalizeFilter(search), favorite);
+        return articleRepository.searchByUserId(user.id(), criteria).stream()
                 .map(ArticleResponse::from)
                 .toList();
     }
@@ -151,16 +144,6 @@ public class ArticleService {
         return tags;
     }
 
-    private boolean matchesSearch(Article article, String search) {
-        String haystack = String.join(" ",
-                nullToEmpty(article.getTitle()),
-                nullToEmpty(article.getUrl()),
-                nullToEmpty(article.getSummary()),
-                nullToEmpty(article.getNotes())
-        ).toLowerCase(Locale.ROOT);
-        return haystack.contains(search);
-    }
-
     private String normalizeFilter(String value) {
         if (value == null || value.isBlank()) {
             return null;
@@ -181,7 +164,4 @@ public class ArticleService {
         return "";
     }
 
-    private String nullToEmpty(String value) {
-        return value == null ? "" : value;
-    }
 }

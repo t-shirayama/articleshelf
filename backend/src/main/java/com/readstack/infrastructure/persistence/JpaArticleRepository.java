@@ -2,6 +2,7 @@ package com.readstack.infrastructure.persistence;
 
 import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleRepository;
+import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.Tag;
 import org.springframework.stereotype.Repository;
 
@@ -27,6 +28,17 @@ public class JpaArticleRepository implements ArticleRepository {
     @Override
     public List<Article> findAllByUserId(UUID userId) {
         return articleJpaRepository.findAllByUserId(userId).stream().map(this::toDomain).toList();
+    }
+
+    @Override
+    public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
+        return articleJpaRepository.searchByUserId(
+                userId,
+                criteria.status(),
+                criteria.tag(),
+                criteria.search(),
+                criteria.favorite()
+        ).stream().map(this::toDomain).toList();
     }
 
     @Override

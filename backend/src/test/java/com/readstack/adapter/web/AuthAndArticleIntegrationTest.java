@@ -125,6 +125,41 @@ class AuthAndArticleIntegrationTest {
     }
 
     @Test
+    void articleListAppliesRepositoryBackedFilters() throws Exception {
+        when(metadataProvider.fetch(anyString()))
+                .thenReturn(new ArticleMetadata("", "", "", true));
+        AuthSession session = register("filter-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/vue-%s",
+                                  "title": "Vue memo",
+                                  "summary": "frontend",
+                                  "status": "READ",
+                                  "favorite": true,
+                                  "rating": 5,
+                                  "notes": "pinia note",
+                                  "tags": ["Vue"]
+                                }
+                                """.formatted(UUID.randomUUID())))
+                .andExpect(status().isCreated());
+        createArticle(session, "https://example.com/java-" + UUID.randomUUID(), "Java memo");
+
+        mockMvc.perform(get("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .param("status", "READ")
+                        .param("tag", "vue")
+                        .param("search", "pinia")
+                        .param("favorite", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("Vue memo"));
+    }
+
+    @Test
     void otherUsersCannotUpdateOrDeletePrivateArticles() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("Fetched title", "Fetched summary", "", true));

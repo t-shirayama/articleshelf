@@ -7,6 +7,8 @@ import java.util.UUID;
 public interface ArticleRepository {
     List<Article> findAllByUserId(UUID userId);
 
+    List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria);
+
     Optional<Article> findByIdAndUserId(UUID id, UUID userId);
 
     Optional<Article> findByUrlAndUserId(String url, UUID userId);

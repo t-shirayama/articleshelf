@@ -4,6 +4,7 @@ import com.readstack.application.auth.CurrentUser;
 import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleRepository;
+import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
@@ -13,9 +14,11 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -268,6 +271,18 @@ class ArticleServiceTest {
         }
 
         @Override
+        public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
+            return findAllByUserId(userId).stream()
+                    .filter(article -> criteria.status() == null || article.getStatus() == criteria.status())
+                    .filter(article -> criteria.favorite() == null || article.isFavorite() == criteria.favorite())
+                    .filter(article -> criteria.tag() == null || article.getTags().stream()
+                            .anyMatch(tag -> tag.getName().equalsIgnoreCase(criteria.tag())))
+                    .filter(article -> criteria.search() == null || matchesSearch(article, criteria.search()))
+                    .sorted(Comparator.comparing(Article::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                    .toList();
+        }
+
+        @Override
         public Optional<Article> findByIdAndUserId(UUID id, UUID userId) {
             return Optional.ofNullable(articles.get(id))
                     .filter(article -> article.getUserId().equals(userId));
@@ -339,6 +354,20 @@ class ArticleServiceTest {
                         tags.put(tag.getId(), tag);
                         return tag;
                     });
+        }
+
+        private boolean matchesSearch(Article article, String search) {
+            String haystack = String.join(" ",
+                    nullToEmpty(article.getTitle()),
+                    nullToEmpty(article.getUrl()),
+                    nullToEmpty(article.getSummary()),
+                    nullToEmpty(article.getNotes())
+            ).toLowerCase(Locale.ROOT);
+            return haystack.contains(search);
+        }
+
+        private String nullToEmpty(String value) {
+            return value == null ? "" : value;
         }
     }
 }
