@@ -105,6 +105,7 @@ E2E は Playwright と Docker Compose を使い、登録、記事追加、ログ
 ## 現状整理
 
 - プロジェクトの進捗と残作業は [docs/project-status.md](docs/project-status.md) に整理しています
+- 優先度つきの残タスク一覧は [docs/task-backlog.md](docs/task-backlog.md) に整理しています
 - テスト戦略は [docs/testing.md](docs/testing.md) に整理しています
 - ユーザー登録・ログイン・JWT認証の実装と設計は [docs/specification/authentication.md](docs/specification/authentication.md) に整理しています
 - 無料枠を中心にした公開・CI/CD構成案は [docs/deployment/free-deployment.md](docs/deployment/free-deployment.md) に整理しています
