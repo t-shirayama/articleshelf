@@ -35,7 +35,7 @@
 
 .detail-form {
   display: grid;
-  gap: 16px;
+  gap: 12px;
 }
 
 .detail-topbar-actions {
@@ -112,7 +112,7 @@
 .detail-header {
   align-items: flex-start;
   min-width: 0;
-  padding-bottom: 4px;
+  padding-bottom: 0;
 }
 
 .detail-header > div {
@@ -243,7 +243,7 @@
 }
 
 .detail-edit-notes-field textarea {
-  min-height: clamp(430px, calc(100vh - 550px), 540px);
+  min-height: clamp(430px, calc(100vh - 455px), 620px);
   line-height: 1.65;
 }
 
