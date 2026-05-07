@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Run backend static analysis
+        run: docker compose run --rm backend mvn clean compile spotbugs:check
       - name: Run backend tests
         run: docker compose run --rm backend mvn test
       - name: Show db logs on failure

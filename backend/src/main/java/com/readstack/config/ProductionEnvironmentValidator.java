@@ -4,15 +4,27 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Arrays;
 
 @Component
 public class ProductionEnvironmentValidator {
+    private final Environment environment;
+    private final AuthProperties authProperties;
+    private final String frontendOrigin;
+
     public ProductionEnvironmentValidator(
             Environment environment,
             AuthProperties authProperties,
             @Value("${readstack.frontend-origin}") String frontendOrigin
     ) {
+        this.environment = environment;
+        this.authProperties = authProperties;
+        this.frontendOrigin = frontendOrigin;
+    }
+
+    @PostConstruct
+    void validate() {
         if ("None".equalsIgnoreCase(authProperties.cookieSameSite()) && !authProperties.cookieSecure()) {
             throw new IllegalStateException("AUTH_COOKIE_SAME_SITE=None の場合は AUTH_COOKIE_SECURE=true が必要です");
         }

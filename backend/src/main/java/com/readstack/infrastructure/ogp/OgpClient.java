@@ -2,6 +2,8 @@ package com.readstack.infrastructure.ogp;
 
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -48,7 +50,12 @@ public class OgpClient {
                     imageUrl,
                     true
             );
-        } catch (Exception ignored) {
+        } catch (IllegalArgumentException ignored) {
+            return OgpMetadata.unavailable();
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+            return OgpMetadata.unavailable();
+        } catch (IOException | UncheckedIOException ignored) {
             return OgpMetadata.unavailable();
         }
     }
@@ -103,7 +110,7 @@ public class OgpClient {
     private String resolveUrl(String pageUrl, String imageUrl) {
         try {
             return URI.create(pageUrl).resolve(imageUrl).toString();
-        } catch (Exception ignored) {
+        } catch (IllegalArgumentException ignored) {
             return imageUrl;
         }
     }
