@@ -40,6 +40,15 @@ const sortOptions = computed(() => [
   { title: t("tags.sortNameAsc"), value: "NAME_ASC" },
 ]);
 
+const sortWidthStyle = computed(() => {
+  const longestLength = sortOptions.value.reduce(
+    (maxLength, option) => Math.max(maxLength, Array.from(option.title).length),
+    0,
+  );
+  const textWidth = currentTextLocale() === "ja" ? `${longestLength}em` : `${longestLength}ch`;
+  return { "--tag-management-sort-width": `calc(${textWidth} + 104px)` };
+});
+
 const filteredTags = computed(() => {
   const keyword = (searchQuery.value || "").trim().toLocaleLowerCase(currentTextLocale());
   if (!keyword) return props.tags;
@@ -169,6 +178,7 @@ function currentTextLocale(): string {
         <VSelect
           v-model="sortMode"
           class="readstack-select sort-select tag-management-sort"
+          :style="sortWidthStyle"
           :items="sortOptions"
           item-title="title"
           item-value="value"

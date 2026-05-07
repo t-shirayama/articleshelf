@@ -53,9 +53,9 @@
 }
 
 .tag-management-sort {
-  flex: 0 0 220px;
-  width: 220px;
-  min-width: 220px;
+  flex: 0 0 var(--tag-management-sort-width, 252px);
+  width: var(--tag-management-sort-width, 252px);
+  min-width: var(--tag-management-sort-width, 252px);
 }
 
 .tag-management-row {
@@ -153,9 +153,9 @@
 }
 
 .tag-management-add-button {
-  flex: 0 0 150px;
-  width: 150px;
-  min-width: 150px;
+  flex: 0 0 168px;
+  width: 168px;
+  min-width: 168px;
   min-height: var(--header-control-height);
   white-space: nowrap;
 }
