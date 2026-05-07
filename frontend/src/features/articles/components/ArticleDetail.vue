@@ -18,9 +18,15 @@ import { formatDateTime } from '../../../shared/utils/dateFormat'
 const props = withDefaults(defineProps<{
   article?: Article | null
   tags?: Tag[]
+  saving?: boolean
+  deleting?: boolean
+  error?: string
 }>(), {
   article: null,
-  tags: () => []
+  tags: () => [],
+  saving: false,
+  deleting: false,
+  error: ''
 })
 
 const emit = defineEmits<{
@@ -34,6 +40,7 @@ const form = reactive(createEmptyArticleDetailForm())
 const deleteDialogOpen = ref(false)
 const isEditing = ref(false)
 const articleDetailsOpen = ref(false)
+const submitted = ref(false)
 const detailMode = computed<'view' | 'edit'>({
   get: () => (isEditing.value ? 'edit' : 'view'),
   set: (value) => {
@@ -57,6 +64,10 @@ const notesText = computed(() => props.article?.notes?.trim() || '')
 const hasUnsavedChanges = computed(() => Boolean(
   props.article && isEditing.value && hasArticleDetailFormChanges(form, props.article)
 ))
+const urlError = computed(() => (form.url.trim() ? '' : 'URLは必須です'))
+const titleError = computed(() => (form.title.trim() ? '' : 'タイトルを入力してください'))
+const readDateError = computed(() => (form.status === 'READ' && !form.readDate ? '既読にする場合は既読日を入力してください' : ''))
+const formValid = computed(() => !urlError.value && !titleError.value && !readDateError.value)
 
 watch(
   () => props.article,
@@ -64,6 +75,7 @@ watch(
     Object.assign(form, article ? articleToDetailForm(article) : createEmptyArticleDetailForm())
     isEditing.value = false
     articleDetailsOpen.value = false
+    submitted.value = false
   },
   { immediate: true }
 )
@@ -73,19 +85,22 @@ watch(hasUnsavedChanges, (value) => {
 }, { immediate: true })
 
 function submit(): void {
+  submitted.value = true
+  if (!formValid.value || props.saving) return
   emit('save', detailFormToArticleInput(form))
-  isEditing.value = false
 }
 
 function startEditing(): void {
   if (!props.article) return
   Object.assign(form, articleToDetailForm(props.article))
   isEditing.value = true
+  submitted.value = false
 }
 
 function cancelEditing(): void {
   Object.assign(form, props.article ? articleToDetailForm(props.article) : createEmptyArticleDetailForm())
   isEditing.value = false
+  submitted.value = false
 }
 
 function toggleFavorite(): void {
@@ -100,6 +115,7 @@ function toggleFavorite(): void {
 
 function confirmDelete(): void {
   if (!props.article) return
+  if (props.deleting) return
   deleteDialogOpen.value = false
   emit('delete', props.article.id)
 }
@@ -142,7 +158,8 @@ function confirmDelete(): void {
             variant="flat"
             type="submit"
             class="detail-action-icon-button detail-save-button"
-            :disabled="!isEditing"
+            :disabled="!isEditing || props.saving"
+            :loading="props.saving"
             title="保存"
             aria-label="保存"
           >
@@ -155,6 +172,8 @@ function confirmDelete(): void {
             title="削除"
             aria-label="削除"
             variant="outlined"
+            :loading="props.deleting"
+            :disabled="props.deleting"
             @click="deleteDialogOpen = true"
           >
             <Trash2 :size="18" />
@@ -178,6 +197,14 @@ function confirmDelete(): void {
 
       <div class="detail-layout">
         <section class="detail-main">
+          <div
+            v-if="props.error"
+            class="form-error-banner detail-form-error-banner"
+            role="alert"
+            aria-live="assertive"
+          >
+            <span>{{ props.error }}</span>
+          </div>
           <template v-if="isEditing">
             <section class="detail-section detail-edit-notes-section">
               <div class="detail-section-header detail-notes-header">
@@ -208,11 +235,24 @@ function confirmDelete(): void {
               <Transition name="detail-accordion">
                 <div v-if="articleDetailsOpen" class="detail-edit-fields">
                   <div class="detail-edit-field-row">
-                    <VTextField v-model="form.title" label="タイトル" required hide-details variant="outlined" />
+                    <VTextField
+                      v-model="form.title"
+                      label="タイトル"
+                      required
+                      variant="outlined"
+                      :error-messages="submitted && titleError ? [titleError] : []"
+                    />
                   </div>
 
                   <div class="detail-edit-field-row">
-                    <VTextField v-model="form.url" label="URL" type="url" required hide-details variant="outlined" />
+                    <VTextField
+                      v-model="form.url"
+                      label="URL"
+                      type="url"
+                      required
+                      variant="outlined"
+                      :error-messages="submitted && urlError ? [urlError] : []"
+                    />
                   </div>
 
                   <div class="detail-edit-field-row">
@@ -290,6 +330,7 @@ function confirmDelete(): void {
                 density="comfortable"
                 :disabled="!isEditing"
                 :clearable="isEditing"
+                :error-messages="submitted && readDateError ? [readDateError] : []"
               />
             </div>
 
@@ -318,7 +359,7 @@ function confirmDelete(): void {
           <VCardActions>
             <VSpacer />
             <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteDialogOpen = false">キャンセル</VBtn>
-            <VBtn class="action-button action-button-danger" color="error" variant="flat" @click="confirmDelete">削除する</VBtn>
+            <VBtn class="action-button action-button-danger" color="error" variant="flat" :loading="props.deleting" :disabled="props.deleting" @click="confirmDelete">削除する</VBtn>
           </VCardActions>
         </VCard>
       </VDialog>

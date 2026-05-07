@@ -15,9 +15,33 @@ const localError = ref("");
 const isRegister = computed(() => mode.value === "register");
 const title = computed(() => (isRegister.value ? "ユーザー登録" : "ログイン"));
 const submitLabel = computed(() => (isRegister.value ? "登録して始める" : "ログイン"));
+const submitted = ref(false);
+const emailError = computed(() => {
+  const value = email.value.trim();
+  if (!value) return "メールアドレスを入力してください";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    ? ""
+    : "メールアドレスの形式が正しくありません";
+});
+const displayNameError = computed(() => {
+  if (!isRegister.value) return "";
+  return displayName.value.trim() ? "" : "表示名を入力してください";
+});
+const passwordError = computed(() => {
+  if (!password.value) return "パスワードを入力してください";
+  if (isRegister.value && password.value.length < 8) {
+    return "パスワードは8文字以上で入力してください";
+  }
+  return "";
+});
+const formValid = computed(
+  () => !emailError.value && !displayNameError.value && !passwordError.value,
+);
 
 async function submit(): Promise<void> {
   localError.value = "";
+  submitted.value = true;
+  if (!formValid.value || authStore.loading) return;
   try {
     if (isRegister.value) {
       await authStore.register({
@@ -36,6 +60,7 @@ async function submit(): Promise<void> {
 
 function switchMode(nextMode: AuthMode): void {
   mode.value = nextMode;
+  submitted.value = false;
   localError.value = "";
   authStore.error = "";
 }
@@ -87,12 +112,14 @@ function handleModeUpdate(value: unknown): void {
           type="email"
           autocomplete="email"
           required
+          :error-messages="submitted && emailError ? [emailError] : []"
         />
         <VTextField
           v-if="isRegister"
           v-model="displayName"
           label="表示名"
           autocomplete="name"
+          :error-messages="submitted && displayNameError ? [displayNameError] : []"
         />
         <VTextField
           v-model="password"
@@ -100,6 +127,7 @@ function handleModeUpdate(value: unknown): void {
           type="password"
           :autocomplete="isRegister ? 'new-password' : 'current-password'"
           required
+          :error-messages="submitted && passwordError ? [passwordError] : []"
         />
 
         <div v-if="localError || authStore.error" class="form-error-banner">

@@ -11,11 +11,13 @@ const props = withDefaults(defineProps<{
   tags?: Tag[]
   error?: string
   duplicateArticleId?: string
+  saving?: boolean
 }>(), {
   open: false,
   tags: () => [],
   error: '',
-  duplicateArticleId: ''
+  duplicateArticleId: '',
+  saving: false
 })
 
 const emit = defineEmits<{
@@ -29,6 +31,8 @@ const submitted = ref(false)
 const urlInput = ref<{ focus: () => void } | null>(null)
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
 const urlError = computed(() => (form.url.trim() ? '' : 'URLは必須です'))
+const readDateError = computed(() => (!form.readLater && !form.readDate ? '既読として保存する場合は既読日を入力してください' : ''))
+const formValid = computed(() => !urlError.value && !readDateError.value)
 
 watch(
   () => props.open,
@@ -50,6 +54,7 @@ function focusUrlInput(): void {
 }
 
 function cancel(): void {
+  if (props.saving) return
   submitted.value = false
   emit('close')
 }
@@ -60,7 +65,7 @@ function handleDialogUpdate(open: boolean): void {
 
 function submit(): void {
   submitted.value = true
-  if (urlError.value) return
+  if (!formValid.value || props.saving) return
 
   emit('submit', createFormToArticleInput(form))
 }
@@ -72,8 +77,8 @@ function submit(): void {
       <header class="article-modal-header">
         <h2>記事を追加</h2>
         <div class="article-modal-header-actions">
-          <VBtn class="action-button action-button-secondary" type="button" variant="outlined" @click.stop.prevent="cancel">閉じる</VBtn>
-          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" @click="submit">保存する</VBtn>
+          <VBtn class="action-button action-button-secondary" type="button" variant="outlined" :disabled="props.saving" @click.stop.prevent="cancel">閉じる</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving" @click="submit">保存する</VBtn>
         </div>
       </header>
 
@@ -147,6 +152,7 @@ function submit(): void {
             label="既読日"
             :disabled="form.readLater"
             clearable
+            :error-messages="submitted && readDateError ? [readDateError] : []"
           />
         </div>
 

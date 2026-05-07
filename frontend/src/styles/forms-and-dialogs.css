@@ -390,6 +390,15 @@
   font-size: 0.88rem;
 }
 
+.error-banner-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.error-banner-action {
+  min-width: 112px;
+}
+
 .form-error-banner {
   display: flex;
   align-items: center;
@@ -407,6 +416,10 @@
 
 .form-error-banner span {
   min-width: 0;
+}
+
+.detail-form-error-banner {
+  margin: 0 0 8px;
 }
 
 .duplicate-article-link {
@@ -554,4 +567,3 @@
   color: var(--muted);
   line-height: 1.7;
 }
-

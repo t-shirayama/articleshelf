@@ -24,6 +24,7 @@ const emit = defineEmits<{
   deleteArticle: [article: Article];
   toggleStatus: [article: Article];
   toggleFavorite: [article: Article];
+  retry: [];
 }>();
 </script>
 
@@ -52,6 +53,16 @@ const emit = defineEmits<{
     >
       <strong>データを読み込めませんでした</strong>
       <span>{{ error }}</span>
+      <div class="error-banner-actions">
+        <VBtn
+          class="action-button action-button-secondary error-banner-action"
+          variant="outlined"
+          size="small"
+          @click="emit('retry')"
+        >
+          再試行
+        </VBtn>
+      </div>
     </div>
 
     <section class="article-list" aria-live="polite">

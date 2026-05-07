@@ -55,7 +55,11 @@ export const useArticlesStore = defineStore('articles', {
       }
     },
     async fetchTags(): Promise<void> {
-      this.tags = await articlesApi.findTags()
+      try {
+        this.tags = await articlesApi.findTags()
+      } catch (error: unknown) {
+        this.error = error instanceof Error ? error.message : 'タグの取得に失敗しました'
+      }
     },
     async selectArticle(article: Article): Promise<void> {
       this.selectedArticle = await articlesApi.findArticle(article.id)

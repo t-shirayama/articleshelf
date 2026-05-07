@@ -35,6 +35,7 @@ const store = useArticlesStore();
 const modalOpen = ref(false);
 const filterDialogOpen = ref(false);
 const articleFormError = ref("");
+const detailFormError = ref("");
 const duplicateArticleId = ref("");
 const searchDraft = ref("");
 const viewMode = ref<ViewMode>("list");
@@ -45,6 +46,9 @@ const statusSnackbarMessage = ref("");
 const detailHasUnsavedChanges = ref(false);
 const unsavedChangesDialogOpen = ref(false);
 const pendingNavigation = ref<(() => void) | null>(null);
+const isCreatingArticle = ref(false);
+const isSavingDetail = ref(false);
+const isDeletingArticle = ref(false);
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
@@ -82,7 +86,7 @@ watch(searchDraft, (value) => {
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
-  await Promise.all([store.fetchArticles(), store.fetchTags()]);
+  await loadInitialData();
 });
 
 onBeforeUnmount(() => {
@@ -90,8 +94,10 @@ onBeforeUnmount(() => {
 });
 
 async function createArticle(article: ArticleInput): Promise<void> {
+  if (isCreatingArticle.value) return;
   articleFormError.value = "";
   duplicateArticleId.value = "";
+  isCreatingArticle.value = true;
   try {
     await store.createArticle(article);
     rotateMotivation();
@@ -102,11 +108,23 @@ async function createArticle(article: ArticleInput): Promise<void> {
       error instanceof Error ? error.message : "記事を保存できませんでした";
     duplicateArticleId.value =
       error instanceof ApiRequestError ? error.existingArticleId || "" : "";
+  } finally {
+    isCreatingArticle.value = false;
   }
 }
 
 async function saveArticle(article: ArticleInput): Promise<void> {
-  await store.updateArticle(article);
+  if (isSavingDetail.value) return;
+  detailFormError.value = "";
+  isSavingDetail.value = true;
+  try {
+    await store.updateArticle(article);
+  } catch (error: unknown) {
+    detailFormError.value =
+      error instanceof Error ? error.message : "記事を保存できませんでした";
+  } finally {
+    isSavingDetail.value = false;
+  }
 }
 
 async function logout(): Promise<void> {
@@ -117,9 +135,19 @@ async function logout(): Promise<void> {
 }
 
 async function deleteArticle(articleId: string): Promise<void> {
-  await store.deleteArticle(articleId);
-  detailHasUnsavedChanges.value = false;
-  navigateToList();
+  if (isDeletingArticle.value) return;
+  detailFormError.value = "";
+  isDeletingArticle.value = true;
+  try {
+    await store.deleteArticle(articleId);
+    detailHasUnsavedChanges.value = false;
+    navigateToList();
+  } catch (error: unknown) {
+    detailFormError.value =
+      error instanceof Error ? error.message : "記事を削除できませんでした";
+  } finally {
+    isDeletingArticle.value = false;
+  }
 }
 
 function requestDeleteArticle(article: Article): void {
@@ -134,6 +162,7 @@ async function confirmListDelete(): Promise<void> {
 }
 
 async function openArticle(article: Article): Promise<void> {
+  detailFormError.value = "";
   await store.selectArticle(article);
   rotateMotivation();
   viewMode.value = "detail";
@@ -220,9 +249,18 @@ function openArticleModal(): void {
 }
 
 function closeArticleModal(): void {
+  if (isCreatingArticle.value) return;
   articleFormError.value = "";
   duplicateArticleId.value = "";
   modalOpen.value = false;
+}
+
+async function loadInitialData(): Promise<void> {
+  await Promise.all([store.fetchArticles(), store.fetchTags()]);
+}
+
+async function retryInitialLoad(): Promise<void> {
+  await loadInitialData();
 }
 
 function applyAdvancedFilters(filters: {
@@ -271,6 +309,7 @@ function requestNavigation(action: () => void): void {
 
 function navigateToList(): void {
   if (viewMode.value !== "list") rotateMotivation();
+  detailFormError.value = "";
   viewMode.value = "list";
 }
 
@@ -325,10 +364,10 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         :sort="store.filters.sort"
         :filter-summary="activeFilterSummary"
         :active-filter-count="activeFilterCount"
-        :error="store.error"
-        :loading="store.loading"
-        :articles="store.sortedArticles"
-        :selected-article-id="store.selectedArticle?.id"
+      :error="store.error"
+      :loading="store.loading"
+      :articles="store.sortedArticles"
+      :selected-article-id="store.selectedArticle?.id"
         @update:search="searchDraft = $event"
         @update:sort="setSort"
         @open-filters="filterDialogOpen = true"
@@ -337,6 +376,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         @delete-article="requestDeleteArticle"
         @toggle-status="toggleArticleStatus"
         @toggle-favorite="toggleFavorite"
+        @retry="retryInitialLoad"
       />
 
       <CalendarView
@@ -351,6 +391,9 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
     v-else
     :article="store.selectedArticle"
     :tags="store.tags"
+    :saving="isSavingDetail"
+    :deleting="isDeletingArticle"
+    :error="detailFormError"
     @update:dirty="detailHasUnsavedChanges = $event"
     @back="showList"
     @save="saveArticle"
@@ -362,6 +405,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
     :tags="store.tags"
     :error="articleFormError"
     :duplicate-article-id="duplicateArticleId"
+    :saving="isCreatingArticle"
     @close="closeArticleModal"
     @open-duplicate="openDuplicateArticle"
     @submit="createArticle"

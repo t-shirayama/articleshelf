@@ -12,12 +12,14 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   clearable?: boolean
   density?: 'default' | 'comfortable' | 'compact'
+  hideDetails?: boolean | 'auto'
 }>(), {
   modelValue: null,
   label: '',
   disabled: false,
   clearable: false,
-  density: 'comfortable'
+  density: 'comfortable',
+  hideDetails: 'auto'
 })
 
 const emit = defineEmits<{
@@ -86,8 +88,8 @@ function formatDisplayValue(value?: string | null): string {
           :density="density"
           :disabled="disabled"
           :clearable="clearable"
+          :hide-details="hideDetails"
           readonly
-          hide-details
           variant="outlined"
           @click="openDatePicker"
           @click:clear.stop="clearDate"
