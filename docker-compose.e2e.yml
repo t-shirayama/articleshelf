@@ -1,0 +1,52 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: readstack
+      POSTGRES_USER: readstack
+      POSTGRES_PASSWORD: readstack
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U readstack -d readstack"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/readstack
+      SPRING_DATASOURCE_USERNAME: readstack
+      SPRING_DATASOURCE_PASSWORD: readstack
+      FRONTEND_ORIGIN: http://localhost:5173
+      JWT_ACCESS_SECRET: dev-readstack-access-secret-change-me-please-32bytes
+      AUTH_REFRESH_TOKEN_HASH_SECRET: dev-readstack-refresh-hash-secret-change-me
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_COOKIE_SAME_SITE: Lax
+      AUTH_CSRF_ENABLED: "false"
+      READSTACK_INITIAL_USER_EMAIL: owner@example.com
+      READSTACK_INITIAL_USER_PASSWORD: password123
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy

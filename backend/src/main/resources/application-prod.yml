@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+readstack:
+  frontend-origin: ${FRONTEND_ORIGIN}
+  auth:
+    cookie-secure: ${AUTH_COOKIE_SECURE:true}
+    cookie-same-site: ${AUTH_COOKIE_SAME_SITE:None}
+    csrf-enabled: ${AUTH_CSRF_ENABLED:true}
+
+server:
+  forward-headers-strategy: framework
