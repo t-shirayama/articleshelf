@@ -13,6 +13,8 @@
 
 1. `docker compose up --build -d` でアプリを起動する
 2. `frontend` で `npm run capture:designs` を実行する
+   - ブラウザ locale は `ja-JP` とする
+   - デスクトップ版スクリーンショットは `1920x1080` で取得する
 3. 差し替え前の画像は `archive/<YYYY-MM-DD>/` に移動して残す
 4. UI 仕様との差分が出た場合は `docs/design.md` も同じ作業内で更新する
 

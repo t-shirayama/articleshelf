@@ -10,6 +10,8 @@ const repoRoot = path.resolve(frontendDir, "..");
 const outputDir = path.join(repoRoot, "docs", "designs");
 const baseUrl =
   process.env.READSTACK_SCREENSHOT_BASE_URL || "http://localhost:5173";
+const desktopViewport = { width: 1920, height: 1080 };
+const mobileViewport = { width: 430, height: 932 };
 
 async function waitForArticleList(page) {
   await page.goto(baseUrl, { waitUntil: "networkidle" });
@@ -18,7 +20,7 @@ async function waitForArticleList(page) {
 }
 
 async function captureDesktopList(page) {
-  await page.setViewportSize({ width: 1440, height: 1024 });
+  await page.setViewportSize(desktopViewport);
   await waitForArticleList(page);
   await page.screenshot({
     path: path.join(outputDir, "desktop_article_list.png"),
@@ -26,7 +28,7 @@ async function captureDesktopList(page) {
 }
 
 async function captureDesktopDetail(page) {
-  await page.setViewportSize({ width: 1440, height: 1024 });
+  await page.setViewportSize(desktopViewport);
   await waitForArticleList(page);
   const firstCard = page.locator(".article-card").first();
 
@@ -43,7 +45,7 @@ async function captureDesktopDetail(page) {
 }
 
 async function captureAddModal(page) {
-  await page.setViewportSize({ width: 1440, height: 1024 });
+  await page.setViewportSize(desktopViewport);
   await waitForArticleList(page);
   await page.getByRole("button", { name: "記事を追加" }).click();
   await page.waitForSelector(".article-modal", { timeout: 30000 });
@@ -54,7 +56,7 @@ async function captureAddModal(page) {
 }
 
 async function captureMobileList(page) {
-  await page.setViewportSize({ width: 430, height: 932 });
+  await page.setViewportSize(mobileViewport);
   await waitForArticleList(page);
   await page.screenshot({
     path: path.join(outputDir, "mobile_article_list.png"),
@@ -66,7 +68,11 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
 
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage();
+  const context = await browser.newContext({
+    locale: "ja-JP",
+    viewport: desktopViewport,
+  });
+  const page = await context.newPage();
 
   try {
     await captureDesktopList(page);

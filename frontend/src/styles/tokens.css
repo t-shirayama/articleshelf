@@ -1,7 +1,29 @@
 :root {
   color: #15201f;
   background: #f5f3ed;
-  font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+  font-family:
+    "Noto Sans JP",
+    "M PLUS 1p",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    "Meiryo",
+    system-ui,
+    sans-serif;
+  --font-sans:
+    "Noto Sans JP",
+    "M PLUS 1p",
+    "Hiragino Kaku Gothic ProN",
+    "Yu Gothic",
+    "Meiryo",
+    system-ui,
+    sans-serif;
+  --font-mono:
+    "JetBrains Mono",
+    "Fira Code",
+    "Cascadia Code",
+    "SFMono-Regular",
+    Consolas,
+    monospace;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --bg: #f5f3ed;
