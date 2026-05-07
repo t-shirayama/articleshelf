@@ -22,11 +22,11 @@ public interface SpringDataArticleJpaRepository extends JpaRepository<ArticleEnt
               and (:favorite is null or article.favorite = :favorite)
               and (:tag is null or lower(tag.name) = :tag)
               and (
-                    :search is null
-                    or lower(article.title) like concat('%', :search, '%')
-                    or lower(article.url) like concat('%', :search, '%')
-                    or lower(coalesce(article.summary, '')) like concat('%', :search, '%')
-                    or lower(coalesce(article.notes, '')) like concat('%', :search, '%')
+                    :searchPattern is null
+                    or lower(article.title) like :searchPattern
+                    or lower(article.url) like :searchPattern
+                    or lower(coalesce(article.summary, '')) like :searchPattern
+                    or lower(coalesce(article.notes, '')) like :searchPattern
               )
             order by article.createdAt desc
             """)
@@ -34,7 +34,7 @@ public interface SpringDataArticleJpaRepository extends JpaRepository<ArticleEnt
             @Param("userId") UUID userId,
             @Param("status") ArticleStatus status,
             @Param("tag") String tag,
-            @Param("search") String search,
+            @Param("searchPattern") String searchPattern,
             @Param("favorite") Boolean favorite
     );
 

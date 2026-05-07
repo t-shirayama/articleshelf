@@ -106,29 +106,39 @@ function handleModeUpdate(value: unknown): void {
       </VBtnToggle>
 
       <form class="auth-form" @submit.prevent="submit">
-        <VTextField
-          v-model="email"
-          label="メールアドレス"
-          type="email"
-          autocomplete="email"
-          required
-          :error-messages="submitted && emailError ? [emailError] : []"
-        />
-        <VTextField
-          v-if="isRegister"
-          v-model="displayName"
-          label="表示名"
-          autocomplete="name"
-          :error-messages="submitted && displayNameError ? [displayNameError] : []"
-        />
-        <VTextField
-          v-model="password"
-          label="パスワード"
-          type="password"
-          :autocomplete="isRegister ? 'new-password' : 'current-password'"
-          required
-          :error-messages="submitted && passwordError ? [passwordError] : []"
-        />
+        <div class="auth-field">
+          <label class="auth-field-label" for="auth-email">メールアドレス</label>
+          <VTextField
+            id="auth-email"
+            v-model="email"
+            type="email"
+            autocomplete="username"
+            placeholder="name@example.com"
+            required
+            :error-messages="submitted && emailError ? [emailError] : []"
+          />
+        </div>
+        <div v-if="isRegister" class="auth-field">
+          <label class="auth-field-label" for="auth-display-name">表示名</label>
+          <VTextField
+            id="auth-display-name"
+            v-model="displayName"
+            autocomplete="name"
+            placeholder="山田 太郎"
+            :error-messages="submitted && displayNameError ? [displayNameError] : []"
+          />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field-label" for="auth-password">パスワード</label>
+          <VTextField
+            id="auth-password"
+            v-model="password"
+            type="password"
+            :autocomplete="isRegister ? 'new-password' : 'current-password'"
+            required
+            :error-messages="submitted && passwordError ? [passwordError] : []"
+          />
+        </div>
 
         <div v-if="localError || authStore.error" class="form-error-banner">
           <span>{{ localError || authStore.error }}</span>

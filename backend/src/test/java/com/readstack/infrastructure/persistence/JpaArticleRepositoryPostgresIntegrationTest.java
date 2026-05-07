@@ -1,6 +1,7 @@
 package com.readstack.infrastructure.persistence;
 
 import com.readstack.domain.article.Article;
+import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.Tag;
 import com.readstack.domain.user.UserStatus;
@@ -116,6 +117,54 @@ class JpaArticleRepositoryPostgresIntegrationTest {
                 Integer.class,
                 updated.getId()
         )).isEqualTo(1);
+    }
+
+    @Test
+    void postgresSearchAppliesOptionalFiltersWithoutTypeInferenceErrors() {
+        UUID userId = createUser("postgres-search@example.com");
+        Tag vue = tag(userId, "Vue");
+        Tag java = tag(userId, "Java");
+
+        repository.save(new Article(
+                null,
+                userId,
+                "https://example.com/pinia",
+                "Pinia patterns",
+                "Vue store summary",
+                "",
+                ArticleStatus.READ,
+                LocalDate.parse("2026-05-07"),
+                true,
+                4,
+                "State management note",
+                Set.of(vue),
+                Instant.now(),
+                Instant.now()
+        ));
+        repository.save(new Article(
+                null,
+                userId,
+                "https://example.com/spring",
+                "Spring guide",
+                "Backend summary",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                3,
+                "Java note",
+                Set.of(java),
+                Instant.now(),
+                Instant.now()
+        ));
+
+        List<Article> result = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(ArticleStatus.READ, "vue", "pinia", true)
+        );
+
+        assertThat(result).singleElement()
+                .satisfies(article -> assertThat(article.getUrl()).isEqualTo("https://example.com/pinia"));
     }
 
     private UUID createUser(String email) {

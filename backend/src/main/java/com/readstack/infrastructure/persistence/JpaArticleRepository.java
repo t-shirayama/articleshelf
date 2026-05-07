@@ -41,7 +41,7 @@ public class JpaArticleRepository implements ArticleRepository {
                 userId,
                 criteria.status(),
                 criteria.tag(),
-                criteria.search(),
+                toLikePattern(criteria.search()),
                 criteria.favorite()
         ).stream().map(this::toDomain).toList();
     }
@@ -192,5 +192,9 @@ public class JpaArticleRepository implements ArticleRepository {
 
     private Tag toDomain(TagEntity entity) {
         return new Tag(entity.getId(), entity.getUserId(), entity.getName(), entity.getCreatedAt(), entity.getUpdatedAt());
+    }
+
+    private String toLikePattern(String value) {
+        return value == null ? null : "%" + value + "%";
     }
 }
