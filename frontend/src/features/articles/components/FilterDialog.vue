@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import DateField from '../../../shared/components/DateField.vue'
 import TagEditor from './TagEditor.vue'
@@ -23,6 +24,7 @@ const emit = defineEmits<{
   apply: [value: FilterDraft]
 }>()
 
+const { t } = useI18n()
 const draft = reactive<FilterDraft>(createDraft(props.filters))
 
 watch(() => props.open, (isOpen) => {
@@ -37,14 +39,14 @@ watch(() => props.filters, (value) => {
   }
 }, { deep: true })
 
-const ratingOptions = [
-  { label: '未設定', value: 0 },
+const ratingOptions = computed(() => [
+  { label: t('filters.unrated'), value: 0 },
   { label: '1 / 5', value: 1 },
   { label: '2 / 5', value: 2 },
   { label: '3 / 5', value: 3 },
   { label: '4 / 5', value: 4 },
   { label: '5 / 5', value: 5 }
-]
+])
 const hasAnyDraft = computed(() => (
   draft.tags.length > 0 ||
   draft.ratings.length > 0 ||
@@ -97,19 +99,19 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
   <VDialog :model-value="open" max-width="640" @update:model-value="value => { if (!value) emit('close') }">
     <VCard class="filter-dialog">
       <header class="article-modal-header filter-dialog-title-row">
-        <h2>フィルタ</h2>
+        <h2>{{ t('filters.title') }}</h2>
         <div class="article-modal-header-actions filter-dialog-title-actions">
-          <VBtn class="action-button action-button-secondary" variant="outlined" :disabled="!hasAnyDraft" @click="resetDraft">条件をクリア</VBtn>
-          <VBtn class="action-button action-button-secondary" variant="outlined" @click="emit('close')">閉じる</VBtn>
-          <VBtn class="action-button action-button-primary" color="primary" variant="flat" @click="applyFilters">適用する</VBtn>
+          <VBtn class="action-button action-button-secondary" variant="outlined" :disabled="!hasAnyDraft" @click="resetDraft">{{ t('filters.clearAll') }}</VBtn>
+          <VBtn class="action-button action-button-secondary" variant="outlined" @click="emit('close')">{{ t('common.close') }}</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" @click="applyFilters">{{ t('filters.apply') }}</VBtn>
         </div>
       </header>
 
       <VCardText class="filter-dialog-body">
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
-            <strong>タグ</strong>
-            <span>複数選択したタグのいずれかに一致する記事を表示します</span>
+            <strong>{{ t('filters.tags') }}</strong>
+            <span>{{ t('filters.tagsHelp') }}</span>
           </div>
           <TagEditor
             v-model="draft.tags"
@@ -120,8 +122,8 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
 
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
-            <strong>おすすめ度</strong>
-            <span>複数選択したおすすめ度のいずれかに一致する記事を表示します</span>
+            <strong>{{ t('filters.rating') }}</strong>
+            <span>{{ t('filters.ratingHelp') }}</span>
           </div>
           <div class="filter-rating-grid">
             <VBtn
@@ -140,26 +142,26 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
             <div>
-              <strong>登録日</strong>
-              <span>期間を指定して追加タイミングで絞り込みます</span>
+              <strong>{{ t('filters.createdRange') }}</strong>
+              <span>{{ t('filters.createdRangeHelp') }}</span>
             </div>
             <VBtn class="filter-section-clear" variant="outlined" :disabled="!draft.createdRange.from && !draft.createdRange.to" @click="clearCreatedRange">
               <template #prepend>
                 <X :size="15" />
               </template>
-              登録日をクリア
+              {{ t('filters.clearCreated') }}
             </VBtn>
           </div>
           <div class="filter-date-grid">
             <DateField
               v-model="draft.createdRange.from"
               class="filter-date-field"
-              label="開始日"
+              :label="t('filters.startDate')"
             />
             <DateField
               v-model="draft.createdRange.to"
               class="filter-date-field"
-              label="終了日"
+              :label="t('filters.endDate')"
             />
           </div>
         </div>
@@ -167,26 +169,26 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
             <div>
-              <strong>既読日</strong>
-              <span>既読の記事だけを期間で見たいときに使えます</span>
+              <strong>{{ t('filters.readRange') }}</strong>
+              <span>{{ t('filters.readRangeHelp') }}</span>
             </div>
             <VBtn class="filter-section-clear" variant="outlined" :disabled="!draft.readRange.from && !draft.readRange.to" @click="clearReadRange">
               <template #prepend>
                 <X :size="15" />
               </template>
-              既読日をクリア
+              {{ t('filters.clearRead') }}
             </VBtn>
           </div>
           <div class="filter-date-grid">
             <DateField
               v-model="draft.readRange.from"
               class="filter-date-field"
-              label="開始日"
+              :label="t('filters.startDate')"
             />
             <DateField
               v-model="draft.readRange.to"
               class="filter-date-field"
-              label="終了日"
+              :label="t('filters.endDate')"
             />
           </div>
         </div>

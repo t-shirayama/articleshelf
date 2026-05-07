@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
 defineProps<{
   open: boolean;
 }>();
@@ -7,6 +9,8 @@ const emit = defineEmits<{
   cancel: [];
   confirm: [];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -15,10 +19,10 @@ const emit = defineEmits<{
     max-width="420"
     @update:model-value="(value) => { if (!value) emit('cancel') }"
   >
-    <VCard class="delete-confirm-dialog" title="未保存の編集があります">
+    <VCard class="delete-confirm-dialog" :title="t('dialogs.unsavedTitle')">
       <VCardText>
         <p>
-          保存していない変更があります。このまま移動すると編集内容は破棄されます。
+          {{ t("dialogs.unsavedBody") }}
         </p>
       </VCardText>
       <VCardActions>
@@ -27,14 +31,14 @@ const emit = defineEmits<{
           class="action-button action-button-secondary"
           variant="outlined"
           @click="emit('cancel')"
-          >編集を続ける</VBtn
+          >{{ t("dialogs.continueEditing") }}</VBtn
         >
         <VBtn
           class="action-button action-button-danger"
           color="error"
           variant="flat"
           @click="emit('confirm')"
-          >破棄して移動</VBtn
+          >{{ t("dialogs.discardAndMove") }}</VBtn
         >
       </VCardActions>
     </VCard>

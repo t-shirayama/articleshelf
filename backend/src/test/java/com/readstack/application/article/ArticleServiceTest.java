@@ -9,6 +9,8 @@ import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.Tag;
+import com.readstack.domain.article.TagNotFoundException;
+import com.readstack.domain.article.TagUsage;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -335,10 +337,16 @@ class ArticleServiceTest {
             findByIdAndUserId(id, userId).ifPresent(article -> articles.remove(article.getId()));
         }
 
-        @Override
         public List<Tag> findAllTagsByUserId(UUID userId) {
             return tags.values().stream()
                     .filter(tag -> tag.getUserId().equals(userId))
+                    .toList();
+        }
+
+        @Override
+        public List<TagUsage> findAllTagUsagesByUserId(UUID userId) {
+            return findAllTagsByUserId(userId).stream()
+                    .map(tag -> new TagUsage(tag, countArticlesByTagIdAndUserId(tag.getId(), userId)))
                     .toList();
         }
 
@@ -356,6 +364,64 @@ class ArticleServiceTest {
                     });
         }
 
+        @Override
+        public Optional<Tag> findTagByIdAndUserId(UUID id, UUID userId) {
+            return Optional.ofNullable(tags.get(id))
+                    .filter(tag -> tag.getUserId().equals(userId));
+        }
+
+        @Override
+        public Optional<Tag> findTagByNameAndUserId(String name, UUID userId) {
+            String normalized = name == null ? "" : name.trim();
+            return tags.values().stream()
+                    .filter(tag -> tag.getUserId().equals(userId))
+                    .filter(tag -> tag.getName().equalsIgnoreCase(normalized))
+                    .findFirst();
+        }
+
+        @Override
+        public long countArticlesByTagIdAndUserId(UUID tagId, UUID userId) {
+            return articles.values().stream()
+                    .filter(article -> article.getUserId().equals(userId))
+                    .filter(article -> article.getTags().stream().anyMatch(tag -> tag.getId().equals(tagId)))
+                    .count();
+        }
+
+        @Override
+        public Tag renameTag(UUID userId, UUID tagId, String name) {
+            Tag current = findTagByIdAndUserId(tagId, userId).orElseThrow(() -> new TagNotFoundException(tagId));
+            Tag renamed = new Tag(current.getId(), current.getUserId(), name, current.getCreatedAt(), Instant.now());
+            tags.put(renamed.getId(), renamed);
+            articles.replaceAll((id, article) -> {
+                Set<Tag> updatedTags = article.getTags().stream()
+                        .map(tag -> tag.getId().equals(tagId) ? renamed : tag)
+                        .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
+                return copyArticle(article, updatedTags);
+            });
+            return renamed;
+        }
+
+        @Override
+        public void mergeTags(UUID userId, UUID sourceTagId, UUID targetTagId) {
+            Tag target = findTagByIdAndUserId(targetTagId, userId).orElseThrow(() -> new TagNotFoundException(targetTagId));
+            findTagByIdAndUserId(sourceTagId, userId).orElseThrow(() -> new TagNotFoundException(sourceTagId));
+            articles.replaceAll((id, article) -> {
+                if (!article.getUserId().equals(userId)) {
+                    return article;
+                }
+                Set<Tag> updatedTags = article.getTags().stream()
+                        .map(tag -> tag.getId().equals(sourceTagId) ? target : tag)
+                        .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
+                return copyArticle(article, updatedTags);
+            });
+            tags.remove(sourceTagId);
+        }
+
+        @Override
+        public void deleteTagByIdAndUserId(UUID tagId, UUID userId) {
+            findTagByIdAndUserId(tagId, userId).ifPresent(tag -> tags.remove(tag.getId()));
+        }
+
         private boolean matchesSearch(Article article, String search) {
             String haystack = String.join(" ",
                     nullToEmpty(article.getTitle()),
@@ -368,6 +434,25 @@ class ArticleServiceTest {
 
         private String nullToEmpty(String value) {
             return value == null ? "" : value;
+        }
+
+        private Article copyArticle(Article article, Set<Tag> tags) {
+            return new Article(
+                    article.getId(),
+                    article.getUserId(),
+                    article.getUrl(),
+                    article.getTitle(),
+                    article.getSummary(),
+                    article.getThumbnailUrl(),
+                    article.getStatus(),
+                    article.getReadDate(),
+                    article.isFavorite(),
+                    article.getRating(),
+                    article.getNotes(),
+                    tags,
+                    article.getCreatedAt(),
+                    Instant.now()
+            );
         }
     }
 }

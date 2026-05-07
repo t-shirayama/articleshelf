@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { LogIn, UserPlus } from "lucide-vue-next";
 import { useAuthStore } from "../stores/auth";
 
 type AuthMode = "login" | "register";
 
 const authStore = useAuthStore();
+const { t } = useI18n();
 const mode = ref<AuthMode>("login");
 const email = ref("");
 const password = ref("");
@@ -13,24 +15,24 @@ const displayName = ref("");
 const localError = ref("");
 
 const isRegister = computed(() => mode.value === "register");
-const title = computed(() => (isRegister.value ? "ユーザー登録" : "ログイン"));
-const submitLabel = computed(() => (isRegister.value ? "登録して始める" : "ログイン"));
+const title = computed(() => (isRegister.value ? t("auth.registerTitle") : t("auth.login")));
+const submitLabel = computed(() => (isRegister.value ? t("auth.submitRegister") : t("auth.login")));
 const submitted = ref(false);
 const emailError = computed(() => {
   const value = email.value.trim();
-  if (!value) return "メールアドレスを入力してください";
+  if (!value) return t("auth.errors.emailRequired");
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
     ? ""
-    : "メールアドレスの形式が正しくありません";
+    : t("auth.errors.emailInvalid");
 });
 const displayNameError = computed(() => {
   if (!isRegister.value) return "";
-  return displayName.value.trim() ? "" : "表示名を入力してください";
+  return displayName.value.trim() ? "" : t("auth.errors.displayNameRequired");
 });
 const passwordError = computed(() => {
-  if (!password.value) return "パスワードを入力してください";
+  if (!password.value) return t("auth.errors.passwordRequired");
   if (isRegister.value && password.value.length < 8) {
-    return "パスワードは8文字以上で入力してください";
+    return t("auth.errors.passwordLength");
   }
   return "";
 });
@@ -54,7 +56,7 @@ async function submit(): Promise<void> {
     await authStore.login({ email: email.value, password: password.value });
   } catch (error: unknown) {
     localError.value =
-      error instanceof Error ? error.message : "認証処理に失敗しました";
+      error instanceof Error ? error.message : t("auth.errors.authFailed");
   }
 }
 
@@ -79,8 +81,8 @@ function handleModeUpdate(value: unknown): void {
           <UserPlus v-else :size="22" />
         </div>
         <div>
-          <strong>ReadStack</strong>
-          <span>学びを蓄える記事棚</span>
+          <strong>{{ t("common.appName") }}</strong>
+          <span>{{ t("common.appTagline") }}</span>
         </div>
       </div>
 
@@ -89,8 +91,8 @@ function handleModeUpdate(value: unknown): void {
         <p>
           {{
             isRegister
-              ? "アカウントを作成して、自分の記事だけを管理できます。"
-              : "登録済みのメールアドレスで続行します。"
+              ? t("auth.registerDescription")
+              : t("auth.loginDescription")
           }}
         </p>
       </div>
@@ -101,34 +103,44 @@ function handleModeUpdate(value: unknown): void {
         class="auth-mode-toggle"
         @update:model-value="handleModeUpdate"
       >
-        <VBtn value="login">ログイン</VBtn>
-        <VBtn value="register">登録</VBtn>
+        <VBtn value="login">{{ t("auth.login") }}</VBtn>
+        <VBtn value="register">{{ t("auth.register") }}</VBtn>
       </VBtnToggle>
 
       <form class="auth-form" @submit.prevent="submit">
-        <VTextField
-          v-model="email"
-          label="メールアドレス"
-          type="email"
-          autocomplete="email"
-          required
-          :error-messages="submitted && emailError ? [emailError] : []"
-        />
-        <VTextField
-          v-if="isRegister"
-          v-model="displayName"
-          label="表示名"
-          autocomplete="name"
-          :error-messages="submitted && displayNameError ? [displayNameError] : []"
-        />
-        <VTextField
-          v-model="password"
-          label="パスワード"
-          type="password"
-          :autocomplete="isRegister ? 'new-password' : 'current-password'"
-          required
-          :error-messages="submitted && passwordError ? [passwordError] : []"
-        />
+        <div class="auth-field">
+          <label class="auth-field-label" for="auth-email">{{ t("auth.email") }}</label>
+          <VTextField
+            id="auth-email"
+            v-model="email"
+            type="email"
+            autocomplete="username"
+            placeholder="name@example.com"
+            required
+            :error-messages="submitted && emailError ? [emailError] : []"
+          />
+        </div>
+        <div v-if="isRegister" class="auth-field">
+          <label class="auth-field-label" for="auth-display-name">{{ t("auth.displayName") }}</label>
+          <VTextField
+            id="auth-display-name"
+            v-model="displayName"
+            autocomplete="name"
+            :placeholder="t('auth.displayNamePlaceholder')"
+            :error-messages="submitted && displayNameError ? [displayNameError] : []"
+          />
+        </div>
+        <div class="auth-field">
+          <label class="auth-field-label" for="auth-password">{{ t("auth.password") }}</label>
+          <VTextField
+            id="auth-password"
+            v-model="password"
+            type="password"
+            :autocomplete="isRegister ? 'new-password' : 'current-password'"
+            required
+            :error-messages="submitted && passwordError ? [passwordError] : []"
+          />
+        </div>
 
         <div v-if="localError || authStore.error" class="form-error-banner">
           <span>{{ localError || authStore.error }}</span>

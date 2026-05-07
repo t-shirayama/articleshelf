@@ -19,9 +19,12 @@
 }
 
 .calendar-month-button {
+  display: grid;
   height: 42px;
-  width: 96px;
-  min-width: 96px;
+  width: 42px;
+  min-width: 42px;
+  padding-inline: 0;
+  place-items: center;
 }
 
 .calendar-month-label {
@@ -47,7 +50,7 @@
 
 .calendar-month-controls {
   display: grid;
-  grid-template-columns: 96px minmax(128px, auto) 96px;
+  grid-template-columns: 42px minmax(128px, auto) 42px;
   gap: 10px;
   align-items: center;
   justify-self: center;
@@ -226,4 +229,3 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-

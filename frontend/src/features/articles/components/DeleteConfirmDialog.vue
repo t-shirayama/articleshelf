@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import type { Article } from "../types";
 
 defineProps<{
@@ -9,6 +10,8 @@ const emit = defineEmits<{
   cancel: [];
   confirm: [];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -17,10 +20,10 @@ const emit = defineEmits<{
     max-width="420"
     @update:model-value="(value) => { if (!value) emit('cancel') }"
   >
-    <VCard class="delete-confirm-dialog" title="記事を削除しますか？">
+    <VCard class="delete-confirm-dialog" :title="t('dialogs.deleteArticleTitle')">
       <VCardText>
         <p>
-          「{{ article?.title }}」を削除します。この操作は取り消せません。
+          {{ t("dialogs.deleteArticleBody", { title: article?.title || "" }) }}
         </p>
       </VCardText>
       <VCardActions>
@@ -29,14 +32,14 @@ const emit = defineEmits<{
           class="action-button action-button-secondary"
           variant="outlined"
           @click="emit('cancel')"
-          >キャンセル</VBtn
+          >{{ t("common.cancel") }}</VBtn
         >
         <VBtn
           class="action-button action-button-danger"
           color="error"
           variant="flat"
           @click="emit('confirm')"
-          >削除する</VBtn
+          >{{ t("common.deleteAction") }}</VBtn
         >
       </VCardActions>
     </VCard>

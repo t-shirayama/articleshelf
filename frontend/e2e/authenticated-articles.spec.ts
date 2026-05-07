@@ -34,8 +34,8 @@ test('duplicate article url shows an error and can open the existing article', a
   })
 
   await openArticleModal(page)
-  await page.getByLabel('URL').fill(sharedUrl)
-  await page.getByLabel('タイトル（任意）').fill(`Duplicate ${uniqueSuffix(testInfo)}`)
+  await page.getByRole('textbox', { name: 'URL', exact: true }).fill(sharedUrl)
+  await page.getByRole('textbox', { name: 'タイトル（任意）', exact: true }).fill(`Duplicate ${uniqueSuffix(testInfo)}`)
   await page.getByRole('button', { name: '保存する' }).click()
 
   await expect(page.getByRole('alert')).toContainText('このURLはすでに登録されています')
@@ -58,13 +58,13 @@ test('user can edit article details and persist notes tags and rating', async ({
 
   await openArticleFromList(page, articleTitle)
   await page.getByRole('button', { name: '編集' }).click()
-  await page.getByLabel('メモ').fill('Edited memo with details')
+  await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Edited memo with details')
   await page.getByRole('button', { name: '記事の詳細' }).click()
-  await page.getByLabel('タイトル').fill(`${articleTitle} updated`)
-  await page.getByLabel('新しいタグ').fill('Vue')
-  await page.getByLabel('新しいタグ').press('Enter')
+  await page.getByRole('textbox', { name: 'タイトル', exact: true }).fill(`${articleTitle} updated`)
+  await page.getByRole('textbox', { name: '新しいタグ', exact: true }).fill('Vue')
+  await page.getByRole('textbox', { name: '新しいタグ', exact: true }).press('Enter')
   await page.getByRole('button', { name: 'おすすめ度 4 を選択' }).click()
-  await page.getByLabel('概要').fill('Edited summary')
+  await page.getByRole('textbox', { name: '概要', exact: true }).fill('Edited summary')
   await page.getByRole('button', { name: '保存' }).click()
 
   await expect(page.getByRole('heading', { level: 2, name: `${articleTitle} updated` })).toBeVisible()
@@ -144,6 +144,81 @@ test('user can filter articles by search, tag and rating', async ({ page }, test
   await expect(page.getByText('適用中')).toBeVisible()
 })
 
+test('user can search tags and open articles from tag management', async ({ page }, testInfo) => {
+  const email = uniqueEmail('tag-management', testInfo)
+  const matchingTitle = `Tagged AI ${uniqueSuffix(testInfo)}`
+  const nonMatchingTitle = `Tagged Ops ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('tag-management-ai', testInfo),
+    title: matchingTitle,
+    tags: ['AI']
+  })
+  await createArticle(page, {
+    url: uniqueUrl('tag-management-ops', testInfo),
+    title: nonMatchingTitle,
+    tags: ['Ops']
+  })
+
+  await page.getByRole('button', { name: 'タグ管理' }).click()
+  await expect(page.getByRole('heading', { name: /タグ管理/ })).toBeVisible()
+  await expect(page.getByText('2件')).toBeVisible()
+
+  await page.getByPlaceholder('タグ名で検索').fill('AI')
+  const aiRow = page.locator('.tag-management-row').filter({ hasText: 'AI' })
+  await expect(aiRow).toBeVisible()
+  await expect(page.locator('.tag-management-row').filter({ hasText: 'Ops' })).toHaveCount(0)
+  await expect(aiRow.getByRole('button', { name: '削除' })).toBeDisabled()
+
+  await aiRow.getByRole('button', { name: 'AI の記事一覧を開く' }).click()
+  await expect(page.getByRole('heading', { level: 1, name: 'AI' })).toBeVisible()
+  await expect(articleCard(page, matchingTitle)).toBeVisible()
+  await expect(articleCard(page, nonMatchingTitle)).toHaveCount(0)
+})
+
+test('user can create a standalone tag from tag management', async ({ page }, testInfo) => {
+  const email = uniqueEmail('tag-create', testInfo)
+  const tagName = `Idea-${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await page.getByRole('button', { name: 'タグ管理' }).click()
+  await expect(page.getByRole('heading', { name: /タグ管理/ })).toBeVisible()
+  await page.getByRole('button', { name: '最初のタグを追加' }).click()
+
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('textbox', { name: 'タグ名' }).fill(tagName)
+  await dialog.getByRole('button', { name: '追加', exact: true }).click()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toBeVisible()
+})
+
+test('user can switch to English and the choice persists', async ({ page }, testInfo) => {
+  const email = uniqueEmail('english', testInfo)
+
+  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'en'))
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Sign up', exact: true }).click()
+  await page.getByLabel('Email address').fill(email)
+  await page.getByLabel('Display name').fill('E2E User')
+  await page.getByLabel('Password').fill('password123')
+  await page.getByRole('button', { name: 'Sign up and start' }).click()
+
+  await expect(page.getByRole('heading', { name: 'All articles' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Tag management' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Log out/ })).toBeVisible()
+
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'All articles' })).toBeVisible()
+
+  await page
+    .getByLabel('Language')
+    .getByRole('button', { name: '日本語', exact: true })
+    .click()
+  await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
+})
+
 test('users cannot see each other articles', async ({ page }, testInfo) => {
   const firstEmail = uniqueEmail('first', testInfo)
   const secondEmail = uniqueEmail('second', testInfo)
@@ -200,6 +275,7 @@ test('user separation also blocks update and delete through the API', async ({ r
 })
 
 async function register(page: Page, email: string): Promise<void> {
+  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'ja'))
   await page.goto('/')
   await page.getByRole('button', { name: '登録', exact: true }).click()
   await page.getByLabel('メールアドレス').fill(email)
@@ -231,13 +307,13 @@ async function createArticle(
   input: { url: string, title: string, notes?: string, tags?: string[], rating?: number }
 ): Promise<void> {
   await openArticleModal(page)
-  await page.getByLabel('URL').fill(input.url)
-  await page.getByLabel('タイトル（任意）').fill(input.title)
+  await page.getByRole('textbox', { name: 'URL', exact: true }).fill(input.url)
+  await page.getByRole('textbox', { name: 'タイトル（任意）', exact: true }).fill(input.title)
 
   if (input.tags?.length) {
     for (const tag of input.tags) {
-      await page.getByLabel('新しいタグ').fill(tag)
-      await page.getByLabel('新しいタグ').press('Enter')
+      await page.getByRole('textbox', { name: '新しいタグ', exact: true }).fill(tag)
+      await page.getByRole('textbox', { name: '新しいタグ', exact: true }).press('Enter')
     }
   }
 
@@ -246,7 +322,7 @@ async function createArticle(
   }
 
   if (input.notes) {
-    await page.getByLabel('メモ').fill(input.notes)
+    await page.getByRole('textbox', { name: 'メモ', exact: true }).fill(input.notes)
   }
 
   await page.getByRole('button', { name: '保存する' }).click()

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
 const props = defineProps<{
   open: boolean;
   message: string;
@@ -8,6 +10,8 @@ const emit = defineEmits<{
   "update:open": [value: boolean];
   undo: [];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -18,7 +22,7 @@ const emit = defineEmits<{
   >
     {{ message }}
     <template #actions>
-      <VBtn variant="text" @click="emit('undo')">元に戻す</VBtn>
+      <VBtn variant="text" @click="emit('undo')">{{ t("articles.undo") }}</VBtn>
     </template>
   </VSnackbar>
 </template>

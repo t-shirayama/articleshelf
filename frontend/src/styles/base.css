@@ -19,6 +19,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  font-family: var(--font-sans);
   background:
     linear-gradient(140deg, rgba(24, 108, 116, 0.12), transparent 38%),
     radial-gradient(
@@ -27,6 +28,13 @@ body {
       transparent 32%
     ),
     var(--bg);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
 }
 
 button,

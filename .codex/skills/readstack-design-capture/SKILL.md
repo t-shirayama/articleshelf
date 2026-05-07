@@ -21,6 +21,9 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 3. Capture fresh screenshots from the live implementation.
    Run `npm run capture:designs` in `frontend/`.
    This uses `frontend/scripts/capture-design-screenshots.mjs` and writes directly into `docs/designs/`.
+   The script must create deterministic capture data through the API, then authenticate the browser with the normal login form before capturing authenticated screens.
+   Do not rely on API request storage state or copied auth cookies to enter the app; cookie transfer can differ between Playwright API contexts and browser contexts.
+   Keep the browser context locale as `ja-JP`, set the app locale to `ja`, and capture desktop images at `1920x1080`.
    If Playwright cannot launch Chromium, install it with `npx playwright install chromium` from `frontend/`.
 
 4. Verify that the captures still represent the current product accurately.
@@ -32,11 +35,27 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
    When only the screenshot script or docs change, run `npm run build` in `frontend/` after script edits.
    When screenshot generation behavior changes, run the capture command once and confirm the PNGs were regenerated.
 
+## Deterministic Auth/Data Pattern
+
+Use this sequence for authenticated screenshot capture:
+
+1. Create a unique capture user with `POST /api/auth/register`.
+2. Create representative articles and standalone tags with authenticated API calls using the returned access token.
+3. Start a fresh browser context with `locale: "ja-JP"`, `viewport: { width: 1920, height: 1080 }`, `deviceScaleFactor: 1`, and `reducedMotion: "reduce"`.
+4. Set `localStorage["readstack.locale"] = "ja"` via `addInitScript`.
+5. Navigate to the frontend login screen and log in through the visible form using the capture user's email/password.
+6. Wait for `.article-list` and at least one `.article-card` before capturing authenticated screens.
+
+This keeps screenshots independent from the developer's current browser state, existing local data, and Playwright API cookie behavior.
+
+If the script captures new screens or dialogs, add the filenames to `docs/designs/README.md`, update `docs/design.md`, and include user-facing README images when appropriate.
+
 ## Notes
 
 - Do not replace archived images in place; keep each refresh date as a separate folder.
 - Prefer the skill plus screenshot script over a pre-commit hook. A hook can warn, but it cannot reliably decide whether the currently running UI and data are screenshot-worthy.
 - If the user explicitly asks for different captured states, update the Playwright script rather than taking one-off manual screenshots.
+- Avoid one-off local browser screenshots for README/design docs unless the user explicitly requests a temporary diagnostic image.
 
 ## Files To Touch Together
 

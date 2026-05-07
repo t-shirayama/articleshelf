@@ -1,3 +1,5 @@
+import { getCurrentLocale, translate } from "../i18n"
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 const CSRF_COOKIE = 'READSTACK_CSRF'
 
@@ -46,6 +48,7 @@ async function performRequest<T>(path: string, options: RequestOptions, retried:
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        'Accept-Language': getCurrentLocale(),
         ...authorizationHeader(skipAuthorization),
         ...csrfHeader(fetchOptions.method),
         ...headers
@@ -54,7 +57,7 @@ async function performRequest<T>(path: string, options: RequestOptions, retried:
     })
   } catch (error: unknown) {
     if (error instanceof TypeError) {
-      throw new Error('サーバーに接続できませんでした。バックエンドが起動しているか確認してください。')
+      throw new Error(translate('errors.connection'))
     }
     throw error
   }
@@ -73,10 +76,10 @@ async function performRequest<T>(path: string, options: RequestOptions, retried:
   const payload = await response.json().catch(() => null) as T | ApiErrorPayload | null
   if (!response.ok) {
     if (response.status >= 500) {
-      throw new Error('サーバー側でエラーが発生しました。少し待ってから再読み込みしてください。')
+      throw new Error(translate('errors.server'))
     }
     const errorPayload = payload as ApiErrorPayload | null
-    const message = errorPayload?.messages?.join(', ') || 'API request failed'
+    const message = errorPayload?.messages?.join(', ') || translate('errors.api')
     throw new ApiRequestError(message, errorPayload?.existingArticleId)
   }
   return payload as T

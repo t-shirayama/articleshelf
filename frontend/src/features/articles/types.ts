@@ -11,6 +11,7 @@ export interface Tag {
   name: string
   createdAt?: string
   updatedAt?: string
+  articleCount?: number
 }
 
 export interface Article {

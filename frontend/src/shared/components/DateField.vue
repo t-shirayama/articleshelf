@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { CalendarDays } from 'lucide-vue-next'
 
 defineOptions({
@@ -26,6 +27,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string | null]
 }>()
 
+const { t } = useI18n()
 const menuOpen = ref(false)
 
 const displayValue = computed(() => formatDisplayValue(props.modelValue))
@@ -99,7 +101,7 @@ function formatDisplayValue(value?: string | null): string {
               class="date-picker-button"
               type="button"
               :disabled="disabled"
-              :aria-label="`${label || '日付'}のカレンダーを開く`"
+              :aria-label="t('common.openDatePicker', { label: label || t('common.date') })"
               @mousedown.prevent
               @click.stop="openDatePicker"
             >

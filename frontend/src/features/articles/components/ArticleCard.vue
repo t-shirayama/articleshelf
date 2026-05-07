@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Bookmark, CalendarDays, Check, CheckCircle2, Circle, Heart, Star, Trash2 } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { loadThumbnailFromCache } from '../../../shared/services/thumbnailCache'
 import type { Article } from '../types'
 import { formatDate } from '../../../shared/utils/dateFormat'
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   'toggle-favorite': []
 }>()
 
+const { t } = useI18n()
 const thumbnailFailed = ref(false)
 const thumbnailRoot = ref<HTMLElement | null>(null)
 const thumbnailSrc = ref('')
@@ -105,7 +107,7 @@ function domainFrom(url: string): string {
         <img
           v-if="thumbnailSrc && !thumbnailFailed"
           :src="thumbnailSrc"
-          :alt="`${article.title} のサムネイル`"
+          :alt="t('articles.thumbnailAlt', { title: article.title })"
           loading="lazy"
           @error="thumbnailFailed = true"
         >
@@ -122,7 +124,7 @@ function domainFrom(url: string): string {
               size="small"
               type="button"
               variant="outlined"
-              :title="article.status === 'READ' ? '未読に戻す' : '既読にする'"
+              :title="article.status === 'READ' ? t('articles.markUnread') : t('articles.markRead')"
               @click.stop="emit('toggle-status')"
               @keydown.enter.stop="emit('toggle-status')"
               @keydown.space.stop.prevent="emit('toggle-status')"
@@ -135,7 +137,7 @@ function domainFrom(url: string): string {
               icon
               size="small"
               variant="text"
-              :title="article.favorite ? 'お気に入りを解除' : 'お気に入りに追加'"
+              :title="article.favorite ? t('articles.removeFavorite') : t('articles.addFavorite')"
               @click.stop="emit('toggle-favorite')"
               @keydown.enter.stop="emit('toggle-favorite')"
               @keydown.space.stop.prevent="emit('toggle-favorite')"
@@ -148,7 +150,7 @@ function domainFrom(url: string): string {
               icon
               size="small"
               variant="text"
-              title="記事を削除"
+              :title="t('articles.deleteArticle')"
               @click.stop="emit('delete')"
               @keydown.enter.stop="emit('delete')"
               @keydown.space.stop.prevent="emit('delete')"
@@ -162,7 +164,7 @@ function domainFrom(url: string): string {
         <div class="article-card-footer">
           <div class="article-meta-group">
             <div class="article-meta-line">
-              <div class="rating-inline" :class="{ 'is-empty': article.rating <= 0 }" :aria-label="`おすすめ度 ${article.rating} / 5`">
+              <div class="rating-inline" :class="{ 'is-empty': article.rating <= 0 }" :aria-label="t('common.ratingValue', { value: article.rating })">
                 <Star v-for="star in 5" :key="star" :size="14" :fill="star <= article.rating ? 'currentColor' : 'none'" />
               </div>
               <div class="tag-list article-card-tag-list">
@@ -176,14 +178,14 @@ function domainFrom(url: string): string {
                   <VChip class="status-chip" :color="article.status === 'READ' ? 'success' : 'warning'" size="small" variant="tonal">
                     <CheckCircle2 v-if="article.status === 'READ'" :size="14" />
                     <Circle v-else :size="14" />
-                    {{ article.status === 'READ' ? '既読' : '未読' }}
+                    {{ article.status === 'READ' ? t('articles.statusRead') : t('articles.statusUnread') }}
                   </VChip>
                 </div>
-                <div class="card-date-list" aria-label="記事の日付">
+                <div class="card-date-list" :aria-label="t('articles.dateListLabel')">
                   <CalendarDays :size="14" />
                   <div class="card-date-values">
-                    <span v-if="article.createdAt" class="date-meta">登録日 {{ formatDate(article.createdAt) }}</span>
-                    <span class="date-meta">既読日 {{ formatDate(article.readDate) }}</span>
+                    <span v-if="article.createdAt" class="date-meta">{{ t('articles.createdDate') }} {{ formatDate(article.createdAt) }}</span>
+                    <span class="date-meta">{{ t('articles.readDate') }} {{ formatDate(article.readDate) }}</span>
                   </div>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Star } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
@@ -16,6 +17,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: number]
 }>()
 
+const { t } = useI18n()
 const hoverRating = ref(0)
 
 const previewRating = computed(() => {
@@ -42,7 +44,7 @@ function clearPreview(): void {
   <div
     class="star-rating"
     :class="{ 'is-readonly': readonly }"
-    :aria-label="`おすすめ度 ${modelValue} / 5`"
+    :aria-label="t('common.ratingValue', { value: modelValue })"
     @mouseleave="clearPreview"
   >
     <button
@@ -55,7 +57,7 @@ function clearPreview(): void {
         'is-preview': !readonly && hoverRating > 0 && star <= hoverRating
       }"
       :disabled="readonly"
-      :aria-label="`おすすめ度 ${star} を選択`"
+      :aria-label="t('common.selectRating', { value: star })"
       @focus="preview(star)"
       @blur="clearPreview"
       @mouseenter="preview(star)"

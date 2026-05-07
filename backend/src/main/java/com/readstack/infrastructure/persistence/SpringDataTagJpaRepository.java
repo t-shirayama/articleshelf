@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface SpringDataTagJpaRepository extends JpaRepository<TagEntity, UUID> {
     List<TagEntity> findAllByUserId(UUID userId);
 
+    Optional<TagEntity> findByIdAndUserId(UUID id, UUID userId);
+
     Optional<TagEntity> findByUserIdAndNameIgnoreCase(UUID userId, String name);
 
     List<TagEntity> findAllByUserIdIsNull();

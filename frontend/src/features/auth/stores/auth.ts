@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { translate } from '../../../shared/i18n'
 import { configureAuthRefresh, setAccessToken } from '../../../shared/api/client'
 import { authApi } from '../api/authApi'
 import type { AuthCredentials, RegisterInput, User } from '../types'
@@ -41,7 +42,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.applyAuthResponse(await authApi.register(input))
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : 'ユーザー登録に失敗しました'
+        this.error = error instanceof Error ? error.message : translate('auth.errors.registerFailed')
         throw error
       } finally {
         this.loading = false
@@ -53,7 +54,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.applyAuthResponse(await authApi.login(input))
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : 'ログインに失敗しました'
+        this.error = error instanceof Error ? error.message : translate('auth.errors.loginFailed')
         throw error
       } finally {
         this.loading = false

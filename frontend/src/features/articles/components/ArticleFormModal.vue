@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
@@ -26,12 +27,13 @@ const emit = defineEmits<{
   submit: [article: ArticleInput]
 }>()
 
+const { t } = useI18n()
 const form = reactive(createEmptyArticleCreateForm())
 const submitted = ref(false)
 const urlInput = ref<{ focus: () => void } | null>(null)
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
-const urlError = computed(() => (form.url.trim() ? '' : 'URLは必須です'))
-const readDateError = computed(() => (!form.readLater && !form.readDate ? '既読として保存する場合は既読日を入力してください' : ''))
+const urlError = computed(() => (form.url.trim() ? '' : t('articleForm.validation.urlRequired')))
+const readDateError = computed(() => (!form.readLater && !form.readDate ? t('articleForm.validation.readDateRequired') : ''))
 const formValid = computed(() => !urlError.value && !readDateError.value)
 
 watch(
@@ -75,10 +77,10 @@ function submit(): void {
   <VDialog :model-value="props.open" max-width="640" @update:model-value="handleDialogUpdate">
     <VCard class="article-modal">
       <header class="article-modal-header">
-        <h2>記事を追加</h2>
+        <h2>{{ t('articleForm.titleAdd') }}</h2>
         <div class="article-modal-header-actions">
-          <VBtn class="action-button action-button-secondary" type="button" variant="outlined" :disabled="props.saving" @click.stop.prevent="cancel">閉じる</VBtn>
-          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving" @click="submit">保存する</VBtn>
+          <VBtn class="action-button action-button-secondary" type="button" variant="outlined" :disabled="props.saving" @click.stop.prevent="cancel">{{ t('common.close') }}</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving" @click="submit">{{ t('common.saveArticle') }}</VBtn>
         </div>
       </header>
 
@@ -94,7 +96,7 @@ function submit(): void {
             variant="flat"
             @click="emit('open-duplicate', props.duplicateArticleId)"
           >
-            登録済みの記事を開く
+            {{ t('articles.duplicateOpen') }}
           </VBtn>
         </div>
 
@@ -102,9 +104,9 @@ function submit(): void {
           <VTextField
             ref="urlInput"
             v-model="form.url"
-            label="URL"
+            :label="t('common.url')"
             type="url"
-            placeholder="https://example.com/article"
+            :placeholder="t('articleForm.urlPlaceholder')"
             hide-details="auto"
             :error-messages="submitted && urlError ? [urlError] : []"
           />
@@ -113,16 +115,16 @@ function submit(): void {
         <div class="modal-field title-input-group">
           <VTextField
             v-model="form.title"
-            label="タイトル（任意）"
+            :label="t('articleForm.titleOptional')"
             hide-details
-            placeholder="例: Vue 3 の状態管理を学ぶ"
+            :placeholder="t('articleForm.titlePlaceholder')"
           />
-          <p>未入力の場合はURLから取得した記事タイトルを自動設定します</p>
+          <p>{{ t('articleForm.titleHelp') }}</p>
         </div>
 
         <div class="modal-field modal-tag-field">
           <div class="modal-subsection-heading">
-            <span>タグ選択</span>
+            <span>{{ t('common.tags') }}</span>
           </div>
           <TagEditor
             v-model="form.tags"
@@ -132,7 +134,7 @@ function submit(): void {
 
         <div class="modal-field rating-field">
           <div class="modal-subsection-heading">
-            <span>おすすめ度</span>
+            <span>{{ t('common.rating') }}</span>
           </div>
           <StarRating v-model="form.rating" />
         </div>
@@ -142,14 +144,14 @@ function submit(): void {
             <input v-model="form.readLater" type="checkbox">
             <span class="read-later-box" aria-hidden="true" />
             <span class="read-later-copy">
-              <strong>あとで読む</strong>
-              <small>チェック中は未読として保存します</small>
+              <strong>{{ t('articleForm.readLater') }}</strong>
+              <small>{{ t('articleForm.readLaterHelp') }}</small>
             </span>
           </label>
           <DateField
             v-model="form.readDate"
             class="readstack-date-field"
-            label="既読日"
+            :label="t('common.readDate')"
             :disabled="form.readLater"
             clearable
             :error-messages="submitted && readDateError ? [readDateError] : []"
@@ -159,11 +161,11 @@ function submit(): void {
         <div class="modal-field">
           <VTextarea
             v-model="form.notes"
-            label="メモ"
+            :label="t('common.notes')"
             rows="5"
             auto-grow
             hide-details
-            placeholder="読んだポイントや次に試したいこと"
+            :placeholder="t('articleForm.notesPlaceholder')"
           />
         </div>
       </VCardText>

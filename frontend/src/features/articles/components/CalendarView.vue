@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   CalendarDays,
   CheckCircle2,
@@ -28,22 +29,22 @@ const emit = defineEmits<{
   "open-article": [article: Article];
 }>();
 
+const { t, locale } = useI18n();
 const mode = ref<CalendarMode>("created");
 const visibleMonth = ref(startOfMonth(new Date()));
-const weekdays = [
-  { label: "日", type: "sunday" },
-  { label: "月", type: "weekday" },
-  { label: "火", type: "weekday" },
-  { label: "水", type: "weekday" },
-  { label: "木", type: "weekday" },
-  { label: "金", type: "weekday" },
-  { label: "土", type: "saturday" },
-];
+const weekdays = computed(() => [
+  { label: t("calendar.weekdays.sun"), type: "sunday" },
+  { label: t("calendar.weekdays.mon"), type: "weekday" },
+  { label: t("calendar.weekdays.tue"), type: "weekday" },
+  { label: t("calendar.weekdays.wed"), type: "weekday" },
+  { label: t("calendar.weekdays.thu"), type: "weekday" },
+  { label: t("calendar.weekdays.fri"), type: "weekday" },
+  { label: t("calendar.weekdays.sat"), type: "saturday" },
+]);
 
 const monthLabel = computed(() => {
-  const year = visibleMonth.value.getFullYear();
-  const month = visibleMonth.value.getMonth() + 1;
-  return `${year}年${month}月`;
+  const intlLocale = locale.value === "ja" ? "ja-JP" : "en-US";
+  return new Intl.DateTimeFormat(intlLocale, { year: "numeric", month: "long" }).format(visibleMonth.value);
 });
 
 const monthStartKey = computed(() => toDateKey(visibleMonth.value));
@@ -158,7 +159,7 @@ function startOfMonth(date: Date): Date {
   <section class="calendar-view">
     <div class="calendar-toolbar">
       <div class="calendar-heading-group">
-        <h1>カレンダー</h1>
+        <h1>{{ t("calendar.title") }}</h1>
         <VBtnToggle
           v-model="mode"
           class="mode-toggle calendar-mode-toggle"
@@ -168,48 +169,54 @@ function startOfMonth(date: Date): Date {
             <template #prepend>
               <PlusCircle :size="16" />
             </template>
-            登録日
+            {{ t("calendar.createdMode") }}
           </VBtn>
           <VBtn value="read">
             <template #prepend>
               <CheckCircle2 :size="16" />
             </template>
-            既読日
+            {{ t("calendar.readMode") }}
           </VBtn>
         </VBtnToggle>
       </div>
 
       <div class="calendar-month-controls">
-        <VBtn
-          class="action-button action-button-secondary calendar-month-button"
-          variant="outlined"
-          @click="moveMonth(-1)"
-        >
-          <template #prepend>
+        <VTooltip :text="t('calendar.previousMonth')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn
+              v-bind="tooltipProps"
+              class="action-button action-button-secondary calendar-month-button"
+              variant="outlined"
+              :aria-label="t('calendar.previousMonth')"
+              @click="moveMonth(-1)"
+            >
             <ChevronLeft :size="17" />
+            </VBtn>
           </template>
-          前月
-        </VBtn>
+        </VTooltip>
         <strong class="calendar-month-label">{{ monthLabel }}</strong>
-        <VBtn
-          class="action-button action-button-secondary calendar-month-button"
-          variant="outlined"
-          @click="moveMonth(1)"
-        >
-          次月
-          <template #append>
+        <VTooltip :text="t('calendar.nextMonth')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn
+              v-bind="tooltipProps"
+              class="action-button action-button-secondary calendar-month-button"
+              variant="outlined"
+              :aria-label="t('calendar.nextMonth')"
+              @click="moveMonth(1)"
+            >
             <ChevronRight :size="17" />
+            </VBtn>
           </template>
-        </VBtn>
+        </VTooltip>
       </div>
 
       <div class="calendar-summary">
         <span>
-          <span class="calendar-summary-label">追加</span>
+          <span class="calendar-summary-label">{{ t("calendar.added") }}</span>
           <strong>{{ createdInMonth.length }}</strong>
         </span>
         <span>
-          <span class="calendar-summary-label">既読</span>
+          <span class="calendar-summary-label">{{ t("calendar.read") }}</span>
           <strong>{{ readInMonth.length }}</strong>
         </span>
         <span
@@ -218,7 +225,7 @@ function startOfMonth(date: Date): Date {
             'is-negative': backlogDelta < 0,
           }"
         >
-          <span class="calendar-summary-label">積読差分</span>
+          <span class="calendar-summary-label">{{ t("calendar.backlogDiff") }}</span>
           <strong>{{ backlogDelta >= 0 ? "+" : "" }}{{ backlogDelta }}</strong>
         </span>
       </div>
@@ -252,9 +259,7 @@ function startOfMonth(date: Date): Date {
             <div class="calendar-day-title">
               <span class="calendar-day-number">{{ cell.label }}</span>
             </div>
-            <small v-if="cell.articles.length > 0"
-              >{{ cell.articles.length }}件</small
-            >
+            <small v-if="cell.articles.length > 0">{{ t("calendar.articleCount", { count: cell.articles.length }) }}</small>
           </div>
 
           <div class="calendar-day-articles">
