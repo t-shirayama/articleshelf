@@ -122,6 +122,7 @@ const emit = defineEmits<{
         </template>
         <span>カレンダー</span>
       </VBtn>
+      <div class="side-nav-divider" aria-hidden="true" />
       <VBtn
         class="side-nav-item"
         :class="{ 'is-active': isTagsActive }"
@@ -142,7 +143,8 @@ const emit = defineEmits<{
     <div class="sidebar-account">
       <span>{{ userName }}</span>
       <VBtn
-        variant="text"
+        block
+        variant="outlined"
         color="primary"
         class="sidebar-logout-button"
         @click="emit('logout')"

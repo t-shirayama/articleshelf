@@ -159,8 +159,19 @@
 }
 
 .sidebar-logout-button {
+  width: 100%;
   justify-content: flex-start;
-  min-height: 38px;
+  min-height: 40px;
+  padding-inline: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(24, 108, 116, 0.34);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.sidebar-logout-button:hover {
+  background: rgba(216, 239, 238, 0.42);
+  border-color: rgba(24, 108, 116, 0.54);
 }
 
 .auth-loading,
