@@ -10,7 +10,7 @@
 - UI 表示言語は日本語 / English に対応する
 - 初期表示言語は `localStorage` の `readstack.locale`、ブラウザ言語、英語フォールバックの順で決定する
 - 未対応ブラウザ言語、未対応 locale、未定義翻訳キーは英語へフォールバックする
-- 左サイドバー下部の言語切替 UI で日本語 / English を切り替え、選択結果は `localStorage` に保存する
+- 左サイドバー下部ではユーザー名の下に言語切替トグルを表示し、日本語 / English を切り替えられるようにする。選択結果は `localStorage` に保存する
 - UIフォントは `Noto Sans JP`、`M PLUS 1p`、日本語OS標準ゴシック、system-ui の順にフォールバックする
 - コード表示は `JetBrains Mono`、`Fira Code`、`Cascadia Code`、OS標準等幅フォントの順にフォールバックする
 - Vuetify のUIロケールは現在の表示言語に追従し、カレンダーや入力補助UIも日本語 / 英語で表示する

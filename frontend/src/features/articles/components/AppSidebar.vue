@@ -9,7 +9,6 @@ import {
   LogOut,
   Tags,
 } from "lucide-vue-next";
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
 import type { SupportedLocale } from "../../../shared/i18n/locales";
@@ -43,10 +42,6 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n({ useScope: "global" });
-const languageOptions = computed(() => [
-  { title: t("locale.ja"), value: "ja" },
-  { title: t("locale.en"), value: "en" },
-]);
 
 function changeLocale(value: unknown): void {
   const nextLocale: SupportedLocale = value === "ja" ? "ja" : "en";
@@ -157,19 +152,20 @@ function changeLocale(value: unknown): void {
     <MotivationCard :card="currentMotivation" />
 
     <div class="sidebar-account">
-      <VSelect
-        class="sidebar-language-select"
-        :model-value="getCurrentLocale()"
-        :items="languageOptions"
-        item-title="title"
-        item-value="value"
-        density="compact"
-        variant="outlined"
-        hide-details
-        :label="t('locale.label')"
-        @update:model-value="changeLocale"
-      />
       <span>{{ userName }}</span>
+      <VBtnToggle
+        class="sidebar-language-toggle"
+        :model-value="getCurrentLocale()"
+        mandatory
+        divided
+        density="comfortable"
+        color="primary"
+        :aria-label="t('locale.label')"
+        @update:model-value="changeLocale"
+      >
+        <VBtn value="ja">{{ t("locale.ja") }}</VBtn>
+        <VBtn value="en">{{ t("locale.en") }}</VBtn>
+      </VBtnToggle>
       <VBtn
         block
         variant="outlined"
