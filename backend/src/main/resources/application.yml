@@ -5,6 +5,9 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/readstack}
     username: ${SPRING_DATASOURCE_USERNAME:readstack}
     password: ${SPRING_DATASOURCE_PASSWORD:readstack}
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   jpa:
     hibernate:
       ddl-auto: update
