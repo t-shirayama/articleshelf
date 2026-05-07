@@ -5,8 +5,10 @@ import { Plus, Tag, X } from 'lucide-vue-next'
 const props = withDefaults(defineProps<{
   modelValue: string[]
   options?: string[]
+  allowCreate?: boolean
 }>(), {
-  options: () => []
+  options: () => [],
+  allowCreate: true
 })
 
 const emit = defineEmits<{
@@ -95,7 +97,7 @@ function normalizeTags(tags: string[]): string[] {
         @update:model-value="addExistingTag(String($event || ''))"
       />
 
-      <div class="tag-editor-new">
+      <div v-if="props.allowCreate" class="tag-editor-new">
         <VTextField
           v-model="newTag"
           class="tag-editor-new-input"

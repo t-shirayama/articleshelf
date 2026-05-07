@@ -2,6 +2,7 @@
 import { computed, reactive, watch } from 'vue'
 import { X } from 'lucide-vue-next'
 import DateField from '../../../shared/components/DateField.vue'
+import TagEditor from './TagEditor.vue'
 import type { ArticleDateRange } from '../types'
 
 interface FilterDraft {
@@ -110,17 +111,10 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
             <strong>タグ</strong>
             <span>複数選択したタグのいずれかに一致する記事を表示します</span>
           </div>
-          <VAutocomplete
+          <TagEditor
             v-model="draft.tags"
-            class="readstack-select"
-            :items="availableTags"
-            chips
-            closable-chips
-            clearable
-            hide-details
-            label="タグを選択"
-            multiple
-            variant="outlined"
+            :options="availableTags"
+            :allow-create="false"
           />
         </div>
 
