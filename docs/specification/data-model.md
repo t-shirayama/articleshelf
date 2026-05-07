@@ -1,5 +1,9 @@
 # データモデル
 
+公開に向けたユーザー登録・ログイン追加時は、`User` と `RefreshToken` を追加し、`Article` と `Tag` はユーザーごとの所有データとして扱う方針です。
+その場合、`Article.url` と `Tag.name` の一意性は全体一意ではなくユーザー単位の一意性に変更します。
+詳細な認証・ユーザースコープ設計は `authentication.md` を参照してください。
+
 ## Article
 
 - id: UUID
