@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Check, GitMerge, Pencil, Trash2, X } from "lucide-vue-next";
+import { Check, GitMerge, Pencil, Search, Trash2, X } from "lucide-vue-next";
 import type { Tag } from "../types";
+
+type TagSort = "COUNT_DESC" | "COUNT_ASC" | "NAME_ASC";
 
 const props = defineProps<{
   tags: Tag[];
@@ -14,6 +16,8 @@ const emit = defineEmits<{
   renameTag: [id: string, name: string];
   mergeTag: [sourceId: string, targetId: string];
   deleteTag: [id: string];
+  openTagArticles: [tagName: string];
+  addArticle: [];
   retry: [];
 }>();
 
@@ -22,13 +26,37 @@ const renameDraft = ref("");
 const mergeSource = ref<Tag | null>(null);
 const mergeTargetId = ref("");
 const deleteCandidate = ref<Tag | null>(null);
+const searchQuery = ref<string | null>("");
+const sortMode = ref<TagSort>("COUNT_DESC");
 
-const sortedTags = computed(() =>
-  [...props.tags].sort((left, right) => {
-    const countDiff = (right.articleCount || 0) - (left.articleCount || 0);
-    return countDiff || left.name.localeCompare(right.name);
-  }),
-);
+const sortOptions = [
+  { title: "記事数が多い順", value: "COUNT_DESC" },
+  { title: "記事数が少ない順", value: "COUNT_ASC" },
+  { title: "名前順", value: "NAME_ASC" },
+];
+
+const filteredTags = computed(() => {
+  const keyword = (searchQuery.value || "").trim().toLocaleLowerCase("ja");
+  if (!keyword) return props.tags;
+  return props.tags.filter((tag) =>
+    tag.name.toLocaleLowerCase("ja").includes(keyword),
+  );
+});
+
+const sortedTags = computed(() => {
+  const tags = [...filteredTags.value];
+  return tags.sort((left, right) => {
+    const leftCount = left.articleCount || 0;
+    const rightCount = right.articleCount || 0;
+    if (sortMode.value === "COUNT_ASC") {
+      return leftCount - rightCount || left.name.localeCompare(right.name, "ja");
+    }
+    if (sortMode.value === "NAME_ASC") {
+      return left.name.localeCompare(right.name, "ja");
+    }
+    return rightCount - leftCount || left.name.localeCompare(right.name, "ja");
+  });
+});
 
 const mergeOptions = computed(() =>
   props.tags
@@ -82,17 +110,20 @@ function confirmDelete(): void {
   emit("deleteTag", deleteCandidate.value.id);
   deleteCandidate.value = null;
 }
+
+function deleteTooltip(tag: Tag): string {
+  return (tag.articleCount || 0) > 0 ? "使用中のタグは削除できません" : "削除";
+}
 </script>
 
 <template>
   <section class="tag-management-view">
     <header class="page-header tag-management-header">
       <div>
-        <h1>タグ管理</h1>
-      </div>
-      <div class="tag-management-summary">
-        <span>タグ数</span>
-        <strong>{{ tags.length }}</strong>
+        <h1>
+          タグ管理
+          <span class="tag-management-title-count">{{ tags.length }}件</span>
+        </h1>
       </div>
     </header>
 
@@ -121,11 +152,44 @@ function confirmDelete(): void {
     </div>
 
     <div v-else-if="tags.length === 0" class="empty-state">
-      <h2>タグはまだありません</h2>
-      <p>記事にタグを付けると、ここで整理できるようになります。</p>
+      <h2>まだタグがありません</h2>
+      <p>記事を登録するときにタグを追加すると、ここで整理できます。</p>
+      <VBtn
+        class="action-button action-button-primary"
+        color="primary"
+        variant="flat"
+        @click="emit('addArticle')"
+      >
+        記事を追加する
+      </VBtn>
     </div>
 
     <div v-else class="tag-management-list" aria-live="polite">
+      <div class="tag-management-toolbar">
+        <VTextField
+          v-model="searchQuery"
+          class="tag-management-search"
+          density="compact"
+          hide-details
+          placeholder="タグ名で検索"
+          clearable
+        >
+          <template #prepend-inner>
+            <Search :size="17" />
+          </template>
+        </VTextField>
+        <VSelect
+          v-model="sortMode"
+          class="readstack-select tag-management-sort"
+          density="compact"
+          hide-details
+          :items="sortOptions"
+          item-title="title"
+          item-value="value"
+          aria-label="タグの並び順"
+        />
+      </div>
+
       <div class="tag-management-row tag-management-row-head">
         <span>タグ</span>
         <span>記事数</span>
@@ -171,50 +235,99 @@ function confirmDelete(): void {
             </VBtn>
           </template>
           <template v-else>
-            <VChip size="small" color="secondary" variant="flat">{{ tag.name }}</VChip>
+            <button
+              class="tag-management-tag-link"
+              type="button"
+              @click="emit('openTagArticles', tag.name)"
+            >
+              <VChip size="small" color="secondary" variant="flat">{{ tag.name }}</VChip>
+            </button>
           </template>
         </div>
 
         <div class="tag-management-count-cell">
-          <strong>{{ tag.articleCount || 0 }}</strong>
+          <button
+            class="tag-management-count-button"
+            type="button"
+            :aria-label="`${tag.name} の記事一覧を開く`"
+            @click="emit('openTagArticles', tag.name)"
+          >
+            {{ tag.articleCount || 0 }}
+          </button>
         </div>
 
         <div class="tag-management-actions">
-          <VBtn
-            icon
-            size="small"
-            variant="text"
-            color="primary"
-            :disabled="saving"
-            aria-label="タグ名を変更"
-            @click="startRename(tag)"
-          >
-            <Pencil :size="17" />
-          </VBtn>
-          <VBtn
-            icon
-            size="small"
-            variant="text"
-            color="primary"
-            :disabled="saving || tags.length < 2"
-            aria-label="タグを統合"
-            @click="openMerge(tag)"
-          >
-            <GitMerge :size="17" />
-          </VBtn>
-          <VBtn
-            icon
-            size="small"
-            variant="text"
-            color="error"
-            :disabled="saving || (tag.articleCount || 0) > 0"
-            aria-label="未使用タグを削除"
-            @click="requestDelete(tag)"
-          >
-            <Trash2 :size="17" />
-          </VBtn>
+          <VTooltip text="編集" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <span v-bind="tooltipProps">
+                <VBtn
+                  class="tag-management-action"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  :disabled="saving"
+                  aria-label="編集"
+                  @click="startRename(tag)"
+                >
+                  <template #prepend>
+                    <Pencil :size="16" />
+                  </template>
+                  編集
+                </VBtn>
+              </span>
+            </template>
+          </VTooltip>
+          <VTooltip text="タグを統合" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <span v-bind="tooltipProps">
+                <VBtn
+                  class="tag-management-action"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  :disabled="saving || tags.length < 2"
+                  aria-label="タグを統合"
+                  @click="openMerge(tag)"
+                >
+                  <template #prepend>
+                    <GitMerge :size="16" />
+                  </template>
+                  統合
+                </VBtn>
+              </span>
+            </template>
+          </VTooltip>
+          <VTooltip :text="deleteTooltip(tag)" location="top">
+            <template #activator="{ props: tooltipProps }">
+              <span v-bind="tooltipProps">
+                <VBtn
+                  class="tag-management-action"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  :disabled="saving || (tag.articleCount || 0) > 0"
+                  aria-label="削除"
+                  @click="requestDelete(tag)"
+                >
+                  <template #prepend>
+                    <Trash2 :size="16" />
+                  </template>
+                  削除
+                </VBtn>
+              </span>
+            </template>
+          </VTooltip>
         </div>
       </div>
+
+      <div v-if="sortedTags.length === 0" class="tag-management-empty-filter">
+        <strong>条件に一致するタグがありません</strong>
+        <span>検索語を変えると、別のタグが見つかるかもしれません。</span>
+      </div>
+
+      <p class="tag-management-help">
+        タグ名の編集、統合、削除ができます。使用中のタグは削除できません。タグ名や記事数を選ぶと、そのタグの記事一覧へ移動します。
+      </p>
     </div>
 
     <VDialog :model-value="Boolean(mergeSource)" max-width="460" @update:model-value="!$event && closeMerge()">
@@ -255,8 +368,9 @@ function confirmDelete(): void {
       <VCard class="tag-management-dialog">
         <VCardTitle>未使用タグを削除</VCardTitle>
         <VCardText>
-          <strong>{{ deleteCandidate?.name }}</strong>
-          を削除します。
+          未使用の
+          <strong>「{{ deleteCandidate?.name }}」</strong>
+          タグを削除します。このタグは記事に紐づいていません。記事自体は削除されません。
         </VCardText>
         <VCardActions>
           <VSpacer />

@@ -309,6 +309,16 @@ async function deleteTag(id: string): Promise<void> {
   }
 }
 
+function openTagArticles(tagName: string): void {
+  requestNavigation(() => {
+    navigateToList();
+    searchDraft.value = "";
+    store.setSearch("");
+    void store.setAllArticles();
+    store.setTags([tagName]);
+  });
+}
+
 function applyAdvancedFilters(filters: {
   tags: string[];
   ratings: number[];
@@ -417,10 +427,10 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         :sort="store.filters.sort"
         :filter-summary="activeFilterSummary"
         :active-filter-count="activeFilterCount"
-      :error="store.error"
-      :loading="store.loading"
-      :articles="store.sortedArticles"
-      :selected-article-id="store.selectedArticle?.id"
+        :error="store.error"
+        :loading="store.loading"
+        :articles="store.sortedArticles"
+        :selected-article-id="store.selectedArticle?.id"
         @update:search="searchDraft = $event"
         @update:sort="setSort"
         @open-filters="filterDialogOpen = true"
@@ -447,6 +457,8 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         @rename-tag="renameTag"
         @merge-tag="mergeTag"
         @delete-tag="deleteTag"
+        @open-tag-articles="openTagArticles"
+        @add-article="openArticleModal"
         @retry="retryInitialLoad"
       />
     </main>

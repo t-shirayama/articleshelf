@@ -53,6 +53,8 @@ const emit = defineEmits<{
 
     <nav class="side-nav">
       <VBtn
+        class="side-nav-item"
+        :class="{ 'is-active': isAllArticlesActive }"
         block
         variant="text"
         :color="isAllArticlesActive ? 'primary' : undefined"
@@ -65,6 +67,8 @@ const emit = defineEmits<{
         <strong>{{ counts.all }}</strong>
       </VBtn>
       <VBtn
+        class="side-nav-item"
+        :class="{ 'is-active': isUnreadActive }"
         block
         variant="text"
         :color="isUnreadActive ? 'primary' : undefined"
@@ -77,6 +81,8 @@ const emit = defineEmits<{
         <strong>{{ counts.unread }}</strong>
       </VBtn>
       <VBtn
+        class="side-nav-item"
+        :class="{ 'is-active': isReadActive }"
         block
         variant="text"
         :color="isReadActive ? 'primary' : undefined"
@@ -90,6 +96,8 @@ const emit = defineEmits<{
       </VBtn>
       <div class="side-nav-divider" aria-hidden="true" />
       <VBtn
+        class="side-nav-item"
+        :class="{ 'is-active': isFavoriteActive }"
         block
         variant="text"
         :color="isFavoriteActive ? 'primary' : undefined"
@@ -102,6 +110,8 @@ const emit = defineEmits<{
       </VBtn>
       <div class="side-nav-divider" aria-hidden="true" />
       <VBtn
+        class="side-nav-item"
+        :class="{ 'is-active': isCalendarActive }"
         block
         variant="text"
         :color="isCalendarActive ? 'primary' : undefined"
@@ -113,6 +123,8 @@ const emit = defineEmits<{
         <span>カレンダー</span>
       </VBtn>
       <VBtn
+        class="side-nav-item"
+        :class="{ 'is-active': isTagsActive }"
         block
         variant="text"
         :color="isTagsActive ? 'primary' : undefined"

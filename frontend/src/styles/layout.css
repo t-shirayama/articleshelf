@@ -73,8 +73,24 @@
 }
 
 .side-nav .v-btn {
+  position: relative;
   min-height: 42px;
   justify-content: flex-start;
+}
+
+.side-nav-item.is-active {
+  background: rgba(216, 239, 238, 0.58);
+}
+
+.side-nav-item.is-active::before {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 999px 999px 0;
+  content: "";
 }
 
 .side-nav .v-btn__content {

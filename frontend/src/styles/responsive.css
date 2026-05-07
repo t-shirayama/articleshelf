@@ -116,6 +116,10 @@
     justify-content: flex-start;
   }
 
+  .tag-management-toolbar {
+    grid-template-columns: 1fr;
+  }
+
   .filter-date-grid {
     grid-template-columns: 1fr;
   }
