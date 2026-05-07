@@ -83,8 +83,8 @@ public class JpaArticleRepository implements ArticleRepository, TagRepository {
 
     @Override
     public List<TagUsage> findAllTagUsagesByUserId(UUID userId) {
-        return tagJpaRepository.findAllByUserId(userId).stream()
-                .map(tag -> new TagUsage(toDomain(tag), countArticlesByTagIdAndUserId(tag.getId(), userId)))
+        return tagJpaRepository.findAllTagUsagesByUserId(userId).stream()
+                .map(row -> new TagUsage(toDomain(row.tag()), row.articleCount()))
                 .toList();
     }
 
@@ -186,6 +186,13 @@ public class JpaArticleRepository implements ArticleRepository, TagRepository {
     }
 
     private String toLikePattern(String value) {
-        return value == null ? null : "%" + value + "%";
+        return value == null ? null : "%" + escapeLikePattern(value) + "%";
+    }
+
+    private String escapeLikePattern(String value) {
+        return value
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
     }
 }
