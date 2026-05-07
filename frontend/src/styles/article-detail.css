@@ -1,5 +1,6 @@
 .detail-page {
-  width: min(1120px, calc(100% - 36px));
+  box-sizing: border-box;
+  width: min(1360px, calc(100% - 24px));
   height: calc(100vh - 36px);
   min-height: 0;
   overflow-y: auto;
@@ -9,9 +10,10 @@
 }
 
 .detail-page.is-editing {
-  height: calc(100vh - 36px);
-  min-height: 0;
-  overflow-y: auto;
+  width: min(1360px, calc(100% - 24px));
+  height: auto;
+  min-height: calc(100vh - 36px);
+  overflow: visible;
 }
 
 .empty-detail,
@@ -186,7 +188,7 @@
 
 .detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 18px;
   align-items: start;
 }
@@ -201,10 +203,6 @@
 .detail-main > .v-input,
 .detail-main > .tag-editor {
   min-width: 0;
-}
-
-.detail-edit-tag-editor {
-  margin-bottom: 22px;
 }
 
 .detail-section {
@@ -226,6 +224,110 @@
 .detail-section h3 {
   margin: 0;
   font-size: 0.94rem;
+}
+
+.detail-edit-notes-section {
+  gap: 10px;
+  padding: 16px 20px 14px;
+}
+
+.detail-notes-header {
+  justify-content: flex-start;
+}
+
+.detail-notes-header span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.detail-edit-notes-field .v-field {
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.detail-edit-notes-field textarea {
+  min-height: clamp(430px, calc(100vh - 550px), 540px);
+  line-height: 1.65;
+}
+
+.detail-edit-article-section {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.detail-edit-fields {
+  display: grid;
+  min-width: 0;
+  padding: 0 20px 18px;
+}
+
+.detail-edit-fields > .v-input,
+.detail-edit-fields > .tag-editor {
+  min-width: 0;
+}
+
+.detail-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 58px;
+  padding: 0 20px;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+}
+
+.detail-accordion-trigger svg {
+  flex: 0 0 auto;
+  color: var(--muted);
+  transition: transform 0.18s ease;
+}
+
+.detail-accordion-trigger[aria-expanded="true"] svg {
+  transform: rotate(180deg);
+}
+
+.detail-accordion-trigger:hover {
+  background: rgba(24, 108, 116, 0.05);
+}
+
+.detail-accordion-trigger:focus-visible {
+  outline: 3px solid rgba(24, 108, 116, 0.22);
+  outline-offset: -3px;
+}
+
+.detail-edit-field-row {
+  padding: 14px 0;
+  border-top: 1px solid rgba(222, 217, 206, 0.72);
+}
+
+.detail-edit-field-row:first-child {
+  border-top-color: rgba(222, 217, 206, 0.9);
+}
+
+.detail-edit-field-row > .v-input,
+.detail-edit-field-row > .tag-editor {
+  min-width: 0;
+}
+
+.detail-accordion-enter-active,
+.detail-accordion-leave-active {
+  overflow: hidden;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.detail-accordion-enter-from,
+.detail-accordion-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .detail-body-copy {

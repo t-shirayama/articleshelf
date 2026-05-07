@@ -9,8 +9,9 @@ body,
 html:has(.detail-page.is-editing),
 body:has(.detail-page.is-editing),
 #app:has(.detail-page.is-editing) {
-  height: 100%;
-  overflow: hidden;
+  height: auto;
+  min-height: 100%;
+  overflow: auto;
   scrollbar-gutter: stable;
 }
 

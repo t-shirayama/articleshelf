@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
-import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
 import StarRating from '../../../shared/components/StarRating.vue'
 import MarkdownViewer from './MarkdownViewer.vue'
 import TagEditor from './TagEditor.vue'
@@ -32,6 +32,7 @@ const emit = defineEmits<{
 const form = reactive(createEmptyArticleDetailForm())
 const deleteDialogOpen = ref(false)
 const isEditing = ref(false)
+const articleDetailsOpen = ref(false)
 const detailMode = computed<'view' | 'edit'>({
   get: () => (isEditing.value ? 'edit' : 'view'),
   set: (value) => {
@@ -61,6 +62,7 @@ watch(
   (article) => {
     Object.assign(form, article ? articleToDetailForm(article) : createEmptyArticleDetailForm())
     isEditing.value = false
+    articleDetailsOpen.value = false
   },
   { immediate: true }
 )
@@ -77,11 +79,13 @@ function submit(): void {
 function startEditing(): void {
   if (!props.article) return
   Object.assign(form, articleToDetailForm(props.article))
+  articleDetailsOpen.value = false
   isEditing.value = true
 }
 
 function cancelEditing(): void {
   Object.assign(form, props.article ? articleToDetailForm(props.article) : createEmptyArticleDetailForm())
+  articleDetailsOpen.value = false
   isEditing.value = false
 }
 
@@ -176,19 +180,56 @@ function confirmDelete(): void {
       <div class="detail-layout">
         <section class="detail-main">
           <template v-if="isEditing">
-            <VTextField v-model="form.title" label="タイトル" required />
+            <section class="detail-section detail-edit-notes-section">
+              <div class="detail-section-header detail-notes-header">
+                <h3>メモ</h3>
+                <span>内容が一覧でのプレビューや検索の対象になります</span>
+              </div>
+              <VTextarea
+                v-model="form.notes"
+                class="detail-edit-notes-field"
+                counter="2000"
+                label="メモ"
+                rows="13"
+                variant="outlined"
+              />
+            </section>
 
-            <VTextField v-model="form.url" label="URL" type="url" required />
+            <section class="detail-section detail-edit-article-section">
+              <button
+                class="detail-accordion-trigger"
+                type="button"
+                :aria-expanded="articleDetailsOpen"
+                @click="articleDetailsOpen = !articleDetailsOpen"
+              >
+                <span>記事の詳細</span>
+                <ChevronDown :size="18" aria-hidden="true" />
+              </button>
 
-            <VTextarea v-model="form.summary" label="概要" rows="5" auto-grow />
+              <Transition name="detail-accordion">
+                <div v-if="articleDetailsOpen" class="detail-edit-fields">
+                  <div class="detail-edit-field-row">
+                    <VTextField v-model="form.title" label="タイトル" required variant="outlined" />
+                  </div>
 
-            <TagEditor
-              v-model="form.tags"
-              class="detail-edit-tag-editor"
-              :options="tagOptions"
-            />
+                  <div class="detail-edit-field-row">
+                    <VTextField v-model="form.url" label="URL" type="url" required variant="outlined" />
+                  </div>
 
-            <VTextarea v-model="form.notes" label="メモ" rows="8" auto-grow />
+                  <div class="detail-edit-field-row">
+                    <VTextarea v-model="form.summary" label="概要" rows="4" auto-grow variant="outlined" />
+                  </div>
+
+                  <div class="detail-edit-field-row">
+                    <TagEditor
+                      v-model="form.tags"
+                      class="detail-edit-tag-editor"
+                      :options="tagOptions"
+                    />
+                  </div>
+                </div>
+              </Transition>
+            </section>
           </template>
           <template v-else>
             <section class="detail-section">
