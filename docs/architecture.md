@@ -154,7 +154,7 @@
 ## 6. 拡張ポイント
 
 - URLからOGP取得はバックエンドで実装済み。今後は手動再取得や保存済み画像の扱いを拡張できる
-- ユーザー認証を追加し、記事 / タグ API は user scoped repository で分離済み。`article_tags.user_id` と複合 FK による DB レベルの不一致防止は本番 migration 導入時のフォローとする
+- ユーザー認証を追加し、記事 / タグ API は user scoped repository で分離済み。`article_tags.user_id` と複合 FK も導入し、DB レベルでも article / tag の user mismatch を拒否する
 - 画像アップロードは将来的な拡張として検討
 - AI要約やメタ情報抽出をバックエンドで行う
 

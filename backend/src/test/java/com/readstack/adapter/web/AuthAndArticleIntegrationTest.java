@@ -20,8 +20,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
+        "spring.flyway.enabled=false",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "readstack.frontend-origin=http://localhost:5173",
         "readstack.auth.access-token-secret=test-readstack-access-secret-change-me-please-32bytes",
@@ -119,6 +122,37 @@ class AuthAndArticleIntegrationTest {
                 .andExpect(jsonPath("$.existingArticleId").isNotEmpty());
 
         createArticle(userB, url, "Other user");
+    }
+
+    @Test
+    void otherUsersCannotUpdateOrDeletePrivateArticles() throws Exception {
+        when(metadataProvider.fetch(anyString()))
+                .thenReturn(new ArticleMetadata("Fetched title", "Fetched summary", "", true));
+        AuthSession userA = register("owner-" + UUID.randomUUID() + "@example.com");
+        AuthSession userB = register("intruder-" + UUID.randomUUID() + "@example.com");
+
+        MvcResult createResult = mockMvc.perform(post("/api/articles")
+                        .header("Authorization", userA.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJson("https://example.com/private-" + UUID.randomUUID(), "Private article")))
+                .andExpect(status().isCreated())
+                .andReturn();
+        String articleId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
+
+        mockMvc.perform(put("/api/articles/{id}", articleId)
+                        .header("Authorization", userB.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJson("https://example.com/private-" + UUID.randomUUID(), "Hijacked article")))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(delete("/api/articles/{id}", articleId)
+                        .header("Authorization", userB.bearer()))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/api/articles/{id}", articleId)
+                        .header("Authorization", userA.bearer()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Private article"));
     }
 
     @Test

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 
 test('user can register, create an article, logout and login again', async ({ page }) => {
   const email = uniqueEmail('reader')
@@ -30,6 +30,38 @@ test('users cannot see each other articles', async ({ page }) => {
   await expect(page.getByText(privateTitle)).toHaveCount(0)
 })
 
+test('user separation also blocks update and delete through the API', async ({ request }) => {
+  const owner = await registerByApi(request, uniqueEmail('owner'))
+  const intruder = await registerByApi(request, uniqueEmail('intruder'))
+  const created = await createArticleByApi(request, owner.accessToken, `https://example.com/private-${Date.now()}`, 'Owner article')
+
+  const updateResponse = await request.put(apiUrl(`/api/articles/${created.id}`), {
+    headers: {
+      Authorization: `Bearer ${intruder.accessToken}`
+    },
+    data: {
+      ...created.payload,
+      title: 'Stolen title'
+    }
+  })
+  expect(updateResponse.status()).toBe(404)
+
+  const deleteResponse = await request.delete(apiUrl(`/api/articles/${created.id}`), {
+    headers: {
+      Authorization: `Bearer ${intruder.accessToken}`
+    }
+  })
+  expect(deleteResponse.status()).toBe(404)
+
+  const ownerFetch = await request.get(apiUrl(`/api/articles/${created.id}`), {
+    headers: {
+      Authorization: `Bearer ${owner.accessToken}`
+    }
+  })
+  expect(ownerFetch.ok()).toBeTruthy()
+  expect((await ownerFetch.json()).title).toBe('Owner article')
+})
+
 async function register(page: Page, email: string): Promise<void> {
   await page.goto('/')
   await page.getByRole('button', { name: '登録', exact: true }).click()
@@ -58,4 +90,48 @@ async function createArticle(page: Page, title: string): Promise<void> {
 
 function uniqueEmail(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}@example.com`
+}
+
+function apiUrl(path: string): string {
+  return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:8080'}${path}`
+}
+
+async function registerByApi(request: APIRequestContext, email: string): Promise<{ accessToken: string }> {
+  const response = await request.post(apiUrl('/api/auth/register'), {
+    data: {
+      email,
+      password: 'password123',
+      displayName: 'E2E User'
+    }
+  })
+  expect(response.ok()).toBeTruthy()
+  const body = await response.json()
+  return { accessToken: body.accessToken as string }
+}
+
+async function createArticleByApi(
+  request: APIRequestContext,
+  accessToken: string,
+  url: string,
+  title: string
+): Promise<{ id: string, payload: Record<string, unknown> }> {
+  const payload = {
+    url,
+    title,
+    summary: '',
+    status: 'UNREAD',
+    favorite: false,
+    rating: 0,
+    notes: 'Private note',
+    tags: ['private']
+  }
+  const response = await request.post(apiUrl('/api/articles'), {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    data: payload
+  })
+  expect(response.status()).toBe(201)
+  const body = await response.json()
+  return { id: body.id as string, payload }
 }

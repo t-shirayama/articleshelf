@@ -24,7 +24,7 @@ public class TagEntity {
     @Id
     private UUID id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable = false)
     private UUID userId;
 
     @Column(nullable = false)

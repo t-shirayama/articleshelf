@@ -18,18 +18,18 @@
 
 ### 1.2 認証・権限まわりの回帰防止
 
-- ユーザー分離の更新 / 削除ケースを IT / E2E に追加
-- 認証・権限まわりの重要導線を回帰確認しやすい形に整える
+- 完了: ユーザー分離の更新 / 削除ケースを IT / E2E に追加
+- 完了: 認証・権限まわりの重要導線を回帰確認しやすい形に整備
 
 ### 1.3 本番運用前に必要な基盤整備
 
-- `ddl-auto=update` 依存からの脱却
-- Flyway などの明示的マイグレーション導入
-- 既存 DB の旧 unique 制約整理
-- `article_tags` の複合 FK 化
-- production 設定の整備
-- health check の本番運用対応
-- managed DB 接続の整備
+- 完了: `ddl-auto=update` 依存からの脱却
+- 完了: Flyway などの明示的マイグレーション導入
+- 完了: 既存 DB の旧 unique 制約整理
+- 完了: `article_tags` の複合 FK 化
+- 完了: production 設定の整備
+- 完了: health check の本番運用対応
+- 完了: managed DB 接続の整備
 - CI/CD の deploy workflow 整備
 
 ## 2. 優先度中

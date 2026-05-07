@@ -64,7 +64,7 @@ public class JpaArticleRepository implements ArticleRepository {
         entity.setFavorite(article.isFavorite());
         entity.setRating(article.getRating());
         entity.setNotes(article.getNotes());
-        entity.setTags(resolveTagEntities(article.getUserId(), article.getTags()));
+        entity.setArticleTags(resolveArticleTagEntities(entity, article.getUserId(), article.getTags()));
         return toDomain(articleJpaRepository.save(entity));
     }
 
@@ -91,8 +91,8 @@ public class JpaArticleRepository implements ArticleRepository {
         return toDomain(tagJpaRepository.save(entity));
     }
 
-    private Set<TagEntity> resolveTagEntities(UUID userId, Set<Tag> tags) {
-        Set<TagEntity> entities = new LinkedHashSet<>();
+    private Set<ArticleTagEntity> resolveArticleTagEntities(ArticleEntity articleEntity, UUID userId, Set<Tag> tags) {
+        Set<ArticleTagEntity> entities = new LinkedHashSet<>();
         for (Tag tag : tags) {
             if (!userId.equals(tag.getUserId())) {
                 throw new IllegalStateException("article and tag user mismatch");
@@ -104,7 +104,7 @@ public class JpaArticleRepository implements ArticleRepository {
                         newTag.setName(tag.getName());
                         return newTag;
                     });
-            entities.add(tagJpaRepository.save(entity));
+            entities.add(ArticleTagEntity.link(articleEntity, tagJpaRepository.save(entity)));
         }
         return entities;
     }
@@ -122,7 +122,8 @@ public class JpaArticleRepository implements ArticleRepository {
                 entity.isFavorite(),
                 entity.getRating() == null ? 0 : entity.getRating(),
                 entity.getNotes(),
-                entity.getTags().stream()
+                entity.getArticleTags().stream()
+                        .map(ArticleTagEntity::getTag)
                         .map(this::toDomain)
                         .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll),
                 entity.getCreatedAt(),
