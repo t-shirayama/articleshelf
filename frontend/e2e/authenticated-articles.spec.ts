@@ -212,8 +212,10 @@ test('user can switch to English and the choice persists', async ({ page }, test
   await page.reload()
   await expect(page.getByRole('heading', { name: 'All articles' })).toBeVisible()
 
-  await page.getByRole('combobox', { name: 'Language' }).press('ArrowDown')
-  await page.getByRole('option', { name: '日本語' }).click()
+  await page
+    .getByLabel('Language')
+    .getByRole('button', { name: '日本語', exact: true })
+    .click()
   await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
 })
 
