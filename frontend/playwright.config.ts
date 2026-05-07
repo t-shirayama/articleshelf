@@ -17,7 +17,7 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'docker compose up --build',
+    command: 'sh ./frontend/scripts/e2e-webserver.sh',
     cwd: '..',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,

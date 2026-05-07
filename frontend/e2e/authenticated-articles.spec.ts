@@ -33,7 +33,12 @@ test('users cannot see each other articles', async ({ page }) => {
 test('user separation also blocks update and delete through the API', async ({ request }) => {
   const owner = await registerByApi(request, uniqueEmail('owner'))
   const intruder = await registerByApi(request, uniqueEmail('intruder'))
-  const created = await createArticleByApi(request, owner.accessToken, `https://example.com/private-${Date.now()}`, 'Owner article')
+  const created = await createArticleByApi(
+    request,
+    owner.accessToken,
+    `https://example.com/?readstackE2e=${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    'Owner article'
+  )
 
   const updateResponse = await request.put(apiUrl(`/api/articles/${created.id}`), {
     headers: {
