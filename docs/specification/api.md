@@ -2,15 +2,50 @@
 
 ## 認証方針
 
-現行 API は未認証で利用できる MVP 実装ですが、公開に向けてユーザー登録・ログイン・JWT 認証を追加する方針です。
-認証追加後は、既存の記事 API / タグ API はすべて認証必須とし、JWT の `sub` から確定したユーザー ID で記事・タグ・重複 URL 判定をスコープします。
+現行 API はユーザー登録・ログイン・JWT 認証を必須とします。
+記事 API / タグ API はすべて `Authorization: Bearer <accessToken>` が必要で、JWT の `sub` から確定したユーザー ID で記事・タグ・重複 URL 判定をスコープします。
+ログイン状態の復元には HttpOnly refresh cookie を使い、フロントエンドは access token をメモリ上に保持します。
 詳細は `authentication.md` を参照してください。
+
+### 認証 API
+
+#### `POST /api/auth/register`
+
+- 説明: ユーザー登録
+- リクエスト: `email`, `password`, `displayName`
+- レスポンス: `user`, `accessToken`
+- 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
+
+#### `POST /api/auth/login`
+
+- 説明: ログイン
+- リクエスト: `email`, `password`
+- レスポンス: `user`, `accessToken`
+- 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
+
+#### `POST /api/auth/refresh`
+
+- 説明: refresh cookie から access token を再発行
+- レスポンス: `user`, `accessToken`
+- 副作用: refresh token を rotation し、cookie を再設定
+
+#### `POST /api/auth/logout`
+
+- 説明: 現在端末の refresh token を失効してログアウト
+- レスポンス: `204 No Content`
+- 副作用: session cookie を削除
+
+#### `GET /api/users/me`
+
+- 説明: 現在のログインユーザーを取得
+- レスポンス: `id`, `email`, `displayName`, `roles`
 
 ## エンドポイント
 
 ### `GET /api/articles`
 
 - 説明: 記事一覧を取得
+- 認証: 必須
 - レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
 - パラメータ: `status`, `tag`, `search`, `favorite`
 - `status` は `UNREAD` または `READ`
@@ -22,11 +57,14 @@
 ### `GET /api/articles/{id}`
 
 - 説明: 記事詳細を取得
+- 認証: 必須
 - レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
+- 他ユーザーの記事 ID は `404 Not Found`
 
 ### `POST /api/articles`
 
 - 説明: 記事を追加
+- 認証: 必須
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
 - `url` は必須かつURL形式
 - `title` が未入力の場合は OGP タイトル、OGP タイトルがない場合は URL を使う
@@ -40,6 +78,7 @@
 ### `PUT /api/articles/{id}`
 
 - 説明: 記事を更新
+- 認証: 必須
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
 - `url` を変更する場合、変更先がアクセス不可、タイムアウト、または 4xx/5xx 応答なら保存しない
 - `url` を変更した場合、または既存記事に `thumbnailUrl` がない場合は OGP を再取得してサムネイルURLを補完する
@@ -49,22 +88,28 @@
 ### `DELETE /api/articles/{id}`
 
 - 説明: 記事を削除
+- 認証: 必須
+- 他ユーザーの記事 ID は `404 Not Found`
 
 ### `GET /api/tags`
 
 - 説明: タグ一覧を取得
+- 認証: 必須
 - レスポンス: `id`, `name`, `createdAt`, `updatedAt`
 - 備考: タグ名昇順で返す
 
 ### `POST /api/tags`
 
 - 説明: タグを追加
+- 認証: 必須
 - リクエスト: `name`
 - `name` は必須
 
 ## エラーレスポンス
 
 - バリデーションエラーや不正なパラメータは `400 Bad Request`
+- 未認証または token 不正は `401 Unauthorized`
+- CSRF token 不一致は `403 Forbidden`
 - アクセスできない URL は `400 Bad Request`
 - 存在しない記事 ID は `404 Not Found`
 - 重複 URL は `409 Conflict`

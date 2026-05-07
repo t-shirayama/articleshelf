@@ -24,6 +24,13 @@ services:
       SPRING_DATASOURCE_USERNAME: readstack
       SPRING_DATASOURCE_PASSWORD: readstack
       FRONTEND_ORIGIN: http://localhost:5173
+      JWT_ACCESS_SECRET: dev-readstack-access-secret-change-me-please-32bytes
+      AUTH_REFRESH_TOKEN_HASH_SECRET: dev-readstack-refresh-hash-secret-change-me
+      AUTH_COOKIE_SECURE: "false"
+      AUTH_COOKIE_SAME_SITE: Lax
+      AUTH_CSRF_ENABLED: "false"
+      READSTACK_INITIAL_USER_EMAIL: owner@example.com
+      READSTACK_INITIAL_USER_PASSWORD: password123
       HOT_RELOAD_POLL_INTERVAL: 2
       SPRING_DEVTOOLS_RESTART_ENABLED: "true"
     ports:

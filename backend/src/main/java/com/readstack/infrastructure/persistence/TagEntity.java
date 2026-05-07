@@ -6,18 +6,28 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "tags")
+@Table(
+        name = "tags",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_tags_user_name", columnNames = {"user_id", "name"}),
+                @UniqueConstraint(name = "uk_tags_user_id", columnNames = {"user_id", "id"})
+        }
+)
 public class TagEntity {
     @Id
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "user_id")
+    private UUID userId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, updatable = false)
@@ -47,6 +57,14 @@ public class TagEntity {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -81,11 +99,12 @@ public class TagEntity {
         if (!(object instanceof TagEntity tag)) {
             return false;
         }
-        return Objects.equals(name == null ? null : name.toLowerCase(), tag.name == null ? null : tag.name.toLowerCase());
+        return Objects.equals(userId, tag.userId)
+                && Objects.equals(name == null ? null : name.toLowerCase(), tag.name == null ? null : tag.name.toLowerCase());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name == null ? null : name.toLowerCase());
+        return Objects.hash(userId, name == null ? null : name.toLowerCase());
     }
 }

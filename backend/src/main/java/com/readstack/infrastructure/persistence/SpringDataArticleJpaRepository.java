@@ -4,11 +4,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.List;
 
 public interface SpringDataArticleJpaRepository extends JpaRepository<ArticleEntity, UUID> {
-    Optional<ArticleEntity> findByUrl(String url);
+    List<ArticleEntity> findAllByUserId(UUID userId);
 
-    boolean existsByUrl(String url);
+    Optional<ArticleEntity> findByIdAndUserId(UUID id, UUID userId);
 
-    boolean existsByUrlAndIdNot(String url, UUID id);
+    Optional<ArticleEntity> findByUrlAndUserId(String url, UUID userId);
+
+    boolean existsByUrlAndUserId(String url, UUID userId);
+
+    boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id);
+
+    List<ArticleEntity> findAllByUserIdIsNull();
 }

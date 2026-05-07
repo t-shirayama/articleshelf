@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ApiRequestError } from "../../../shared/api/client";
+import { useAuthStore } from "../../auth/stores/auth";
 import ArticleDetail from "../components/ArticleDetail.vue";
 import ArticleFormModal from "../components/ArticleFormModal.vue";
 import ArticleListView from "../components/ArticleListView.vue";
@@ -29,6 +30,7 @@ interface StatusUndoState {
   readDate: string | null;
 }
 
+const authStore = useAuthStore();
 const store = useArticlesStore();
 const modalOpen = ref(false);
 const filterDialogOpen = ref(false);
@@ -105,6 +107,13 @@ async function createArticle(article: ArticleInput): Promise<void> {
 
 async function saveArticle(article: ArticleInput): Promise<void> {
   await store.updateArticle(article);
+}
+
+async function logout(): Promise<void> {
+  await authStore.logout();
+  store.resetState();
+  detailHasUnsavedChanges.value = false;
+  viewMode.value = "list";
 }
 
 async function deleteArticle(articleId: string): Promise<void> {
@@ -300,10 +309,12 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       :is-read-active="isReadActive"
       :is-favorite-active="isFavoriteActive"
       :is-calendar-active="isCalendarActive"
+      :user-name="authStore.user?.displayName || authStore.user?.email || ''"
       @all-articles="setAllArticles"
       @status="setStatus"
       @favorite-only="setFavoriteOnly"
       @calendar="showCalendar"
+      @logout="logout"
     />
 
     <main class="content">

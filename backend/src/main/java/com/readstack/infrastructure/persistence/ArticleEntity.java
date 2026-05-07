@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,12 +22,21 @@ import java.util.Set;
 import java.util.UUID;
 
 @Entity
-@Table(name = "articles")
+@Table(
+        name = "articles",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_articles_user_url", columnNames = {"user_id", "url"}),
+                @UniqueConstraint(name = "uk_articles_user_id", columnNames = {"user_id", "id"})
+        }
+)
 public class ArticleEntity {
     @Id
     private UUID id;
 
-    @Column(nullable = false, unique = true, length = 2048)
+    @Column(name = "user_id")
+    private UUID userId;
+
+    @Column(nullable = false, length = 2048)
     private String url;
 
     @Column(nullable = false)
@@ -87,6 +97,14 @@ public class ArticleEntity {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public String getUrl() {

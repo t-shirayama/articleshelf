@@ -13,11 +13,12 @@
 ### 2.1 フロントエンド
 
 - `features/articles`: 記事管理機能の画面、コンポーネント、Pinia store、API adapter、ドメイン helper
+- `features/auth`: ユーザー登録 / ログイン画面、認証 API adapter、access token を保持する Pinia store
 - `features/articles/views`: 一覧 / カレンダー / 詳細を切り替える feature workspace
 - `features/articles/components`: 記事カード、詳細、追加モーダル、フィルタ、サイドバーなど記事機能の UI
 - `features/articles/domain`: フィルタ、ソート、フォーム変換、API 入力変換など副作用を持たない関数
 - `features/articles/api`: 記事 / タグ API を型付きで呼び出す feature adapter
-- `shared`: API client、共通 UI、IndexedDB キャッシュ、日付 formatting など機能横断の部品
+- `shared`: JWT 付与 / refresh retry 対応の API client、共通 UI、IndexedDB キャッシュ、日付 formatting など機能横断の部品
 - `styles`: design token、base、layout、controls、feature styles、responsive を責務単位で分割
 - `App.vue`: Vuetify アプリの最上位 shell と feature workspace の接続
 - `services/api.ts` / `types.ts`: 既存 import 互換の re-export
@@ -33,6 +34,7 @@
 - `infrastructure`: 永続化実装、外部APIクライアント、OGP取得、リポジトリ実装
 - `adapter`: Web/API レイヤー、コントローラー、HTTP 入力/出力のマッピング
 - `config`: Spring の設定、CORS、Bean 定義
+- `infrastructure.security`: Spring Security、JWT 発行 / 検証、refresh token hash、password encoder
 
 #### DDDの依存関係ルール
 
@@ -76,6 +78,7 @@
 
 - `articles`
   - id: UUID
+  - user_id: UUID
   - url: VARCHAR
   - title: VARCHAR
   - summary: TEXT
@@ -90,6 +93,7 @@
 
 - `tags`
   - id: UUID
+  - user_id: UUID
   - name: VARCHAR
   - created_at: TIMESTAMP
   - updated_at: TIMESTAMP
@@ -98,8 +102,35 @@
   - article_id: UUID
   - tag_id: UUID
 
+- `users`
+  - id: UUID
+  - email: VARCHAR
+  - password_hash: VARCHAR
+  - display_name: VARCHAR
+  - role: VARCHAR
+  - status: VARCHAR
+  - created_at: TIMESTAMP
+  - updated_at: TIMESTAMP
+  - last_login_at: TIMESTAMP
+
+- `refresh_tokens`
+  - id: UUID
+  - user_id: UUID
+  - token_hash: VARCHAR
+  - family_id: UUID
+  - expires_at: TIMESTAMP
+  - revoked_at: TIMESTAMP
+  - created_at: TIMESTAMP
+  - replaced_by_token_id: UUID
+  - user_agent: VARCHAR
+  - ip_address: VARCHAR
+
 ## 4. APIクライアントフロー
 
+- 未ログイン時は `AuthScreen` を表示し、`POST /api/auth/login` または `POST /api/auth/register` で access token と refresh cookie を受け取る
+- access token は Pinia の `features/auth` store にメモリ保持し、API client が `Authorization: Bearer` を付与する
+- ページ再読み込み時は `POST /api/auth/refresh` で session を復元する
+- access token の期限前 refresh と、`401` 時の refresh / retry を API client が担当する
 - フロントエンドは `GET /api/articles` で一覧を取得
 - 初回取得では検索、ステータス、お気に入り条件をクエリパラメータで送信できる
 - 複数タグ、おすすめ度、登録日範囲、既読日範囲、並び替えは取得後にフロントエンド側の Pinia store で適用する
@@ -123,7 +154,7 @@
 ## 6. 拡張ポイント
 
 - URLからOGP取得はバックエンドで実装済み。今後は手動再取得や保存済み画像の扱いを拡張できる
-- ユーザー認証を追加してユーザースコープを分離。公開向けの登録 / ログイン / JWT / refresh token / user scoped repository の設計は `specification/authentication.md` に整理する
+- ユーザー認証を追加し、記事 / タグ API は user scoped repository で分離済み。`article_tags.user_id` と複合 FK による DB レベルの不一致防止は本番 migration 導入時のフォローとする
 - 画像アップロードは将来的な拡張として検討
 - AI要約やメタ情報抽出をバックエンドで行う
 

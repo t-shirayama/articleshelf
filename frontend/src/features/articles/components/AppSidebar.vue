@@ -6,6 +6,7 @@ import {
   Circle,
   Heart,
   Library,
+  LogOut,
 } from "lucide-vue-next";
 import MotivationCard from "./MotivationCard.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
@@ -23,6 +24,7 @@ defineProps<{
   isReadActive: boolean;
   isFavoriteActive: boolean;
   isCalendarActive: boolean;
+  userName: string;
 }>();
 
 const emit = defineEmits<{
@@ -30,6 +32,7 @@ const emit = defineEmits<{
   status: [status: ArticleStatus];
   favoriteOnly: [];
   calendar: [];
+  logout: [];
 }>();
 </script>
 
@@ -109,5 +112,20 @@ const emit = defineEmits<{
     </nav>
 
     <MotivationCard :card="currentMotivation" />
+
+    <div class="sidebar-account">
+      <span>{{ userName }}</span>
+      <VBtn
+        variant="text"
+        color="primary"
+        class="sidebar-logout-button"
+        @click="emit('logout')"
+      >
+        <template #prepend>
+          <LogOut :size="17" />
+        </template>
+        ログアウト
+      </VBtn>
+    </div>
   </aside>
 </template>

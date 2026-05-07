@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public class Article {
     private final UUID id;
+    private final UUID userId;
     private String url;
     private String title;
     private String summary;
@@ -23,6 +24,7 @@ public class Article {
 
     public Article(
             UUID id,
+            UUID userId,
             String url,
             String title,
             String summary,
@@ -37,6 +39,7 @@ public class Article {
             Instant updatedAt
     ) {
         this.id = id == null ? UUID.randomUUID() : id;
+        this.userId = userId;
         this.url = url;
         this.title = title;
         this.summary = summary == null ? "" : summary;
@@ -53,6 +56,10 @@ public class Article {
 
     public UUID getId() {
         return id;
+    }
+
+    public UUID getUserId() {
+        return userId;
     }
 
     public String getUrl() {

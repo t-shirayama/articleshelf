@@ -5,21 +5,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ArticleRepository {
-    List<Article> findAll();
+    List<Article> findAllByUserId(UUID userId);
 
-    Optional<Article> findById(UUID id);
+    Optional<Article> findByIdAndUserId(UUID id, UUID userId);
 
-    Optional<Article> findByUrl(String url);
+    Optional<Article> findByUrlAndUserId(String url, UUID userId);
 
-    boolean existsByUrl(String url);
+    boolean existsByUrlAndUserId(String url, UUID userId);
 
-    boolean existsByUrlAndIdNot(String url, UUID id);
+    boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id);
 
     Article save(Article article);
 
-    void deleteById(UUID id);
+    void deleteByIdAndUserId(UUID id, UUID userId);
 
-    List<Tag> findAllTags();
+    List<Tag> findAllTagsByUserId(UUID userId);
 
-    Tag saveTag(String name);
+    Tag saveTag(UUID userId, String name);
 }

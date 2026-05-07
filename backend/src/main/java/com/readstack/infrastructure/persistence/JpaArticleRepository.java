@@ -25,34 +25,36 @@ public class JpaArticleRepository implements ArticleRepository {
     }
 
     @Override
-    public List<Article> findAll() {
-        return articleJpaRepository.findAll().stream().map(this::toDomain).toList();
+    public List<Article> findAllByUserId(UUID userId) {
+        return articleJpaRepository.findAllByUserId(userId).stream().map(this::toDomain).toList();
     }
 
     @Override
-    public Optional<Article> findById(UUID id) {
-        return articleJpaRepository.findById(id).map(this::toDomain);
+    public Optional<Article> findByIdAndUserId(UUID id, UUID userId) {
+        return articleJpaRepository.findByIdAndUserId(id, userId).map(this::toDomain);
     }
 
     @Override
-    public Optional<Article> findByUrl(String url) {
-        return articleJpaRepository.findByUrl(url).map(this::toDomain);
+    public Optional<Article> findByUrlAndUserId(String url, UUID userId) {
+        return articleJpaRepository.findByUrlAndUserId(url, userId).map(this::toDomain);
     }
 
     @Override
-    public boolean existsByUrl(String url) {
-        return articleJpaRepository.existsByUrl(url);
+    public boolean existsByUrlAndUserId(String url, UUID userId) {
+        return articleJpaRepository.existsByUrlAndUserId(url, userId);
     }
 
     @Override
-    public boolean existsByUrlAndIdNot(String url, UUID id) {
-        return articleJpaRepository.existsByUrlAndIdNot(url, id);
+    public boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id) {
+        return articleJpaRepository.existsByUrlAndUserIdAndIdNot(url, userId, id);
     }
 
     @Override
     public Article save(Article article) {
-        ArticleEntity entity = articleJpaRepository.findById(article.getId()).orElseGet(ArticleEntity::new);
+        ArticleEntity entity = articleJpaRepository.findByIdAndUserId(article.getId(), article.getUserId())
+                .orElseGet(ArticleEntity::new);
         entity.setId(article.getId());
+        entity.setUserId(article.getUserId());
         entity.setUrl(article.getUrl());
         entity.setTitle(article.getTitle());
         entity.setSummary(article.getSummary());
@@ -62,38 +64,43 @@ public class JpaArticleRepository implements ArticleRepository {
         entity.setFavorite(article.isFavorite());
         entity.setRating(article.getRating());
         entity.setNotes(article.getNotes());
-        entity.setTags(resolveTagEntities(article.getTags()));
+        entity.setTags(resolveTagEntities(article.getUserId(), article.getTags()));
         return toDomain(articleJpaRepository.save(entity));
     }
 
     @Override
-    public void deleteById(UUID id) {
-        articleJpaRepository.deleteById(id);
+    public void deleteByIdAndUserId(UUID id, UUID userId) {
+        articleJpaRepository.findByIdAndUserId(id, userId).ifPresent(articleJpaRepository::delete);
     }
 
     @Override
-    public List<Tag> findAllTags() {
-        return tagJpaRepository.findAll().stream().map(this::toDomain).toList();
+    public List<Tag> findAllTagsByUserId(UUID userId) {
+        return tagJpaRepository.findAllByUserId(userId).stream().map(this::toDomain).toList();
     }
 
     @Override
-    public Tag saveTag(String name) {
+    public Tag saveTag(UUID userId, String name) {
         String normalized = name == null ? "" : name.trim();
-        TagEntity entity = tagJpaRepository.findByNameIgnoreCase(normalized)
+        TagEntity entity = tagJpaRepository.findByUserIdAndNameIgnoreCase(userId, normalized)
                 .orElseGet(() -> {
                     TagEntity tag = new TagEntity();
+                    tag.setUserId(userId);
                     tag.setName(normalized);
                     return tag;
                 });
         return toDomain(tagJpaRepository.save(entity));
     }
 
-    private Set<TagEntity> resolveTagEntities(Set<Tag> tags) {
+    private Set<TagEntity> resolveTagEntities(UUID userId, Set<Tag> tags) {
         Set<TagEntity> entities = new LinkedHashSet<>();
         for (Tag tag : tags) {
-            TagEntity entity = tagJpaRepository.findByNameIgnoreCase(tag.getName())
+            if (!userId.equals(tag.getUserId())) {
+                throw new IllegalStateException("article and tag user mismatch");
+            }
+            TagEntity entity = tagJpaRepository.findByUserIdAndNameIgnoreCase(userId, tag.getName())
                     .orElseGet(() -> {
                         TagEntity newTag = new TagEntity();
+                        newTag.setUserId(userId);
                         newTag.setName(tag.getName());
                         return newTag;
                     });
@@ -105,6 +112,7 @@ public class JpaArticleRepository implements ArticleRepository {
     private Article toDomain(ArticleEntity entity) {
         return new Article(
                 entity.getId(),
+                entity.getUserId(),
                 entity.getUrl(),
                 entity.getTitle(),
                 entity.getSummary(),
@@ -114,13 +122,15 @@ public class JpaArticleRepository implements ArticleRepository {
                 entity.isFavorite(),
                 entity.getRating() == null ? 0 : entity.getRating(),
                 entity.getNotes(),
-                entity.getTags().stream().map(this::toDomain).collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll),
+                entity.getTags().stream()
+                        .map(this::toDomain)
+                        .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
         );
     }
 
     private Tag toDomain(TagEntity entity) {
-        return new Tag(entity.getId(), entity.getName(), entity.getCreatedAt(), entity.getUpdatedAt());
+        return new Tag(entity.getId(), entity.getUserId(), entity.getName(), entity.getCreatedAt(), entity.getUpdatedAt());
     }
 }

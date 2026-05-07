@@ -168,6 +168,15 @@ export const useArticlesStore = defineStore('articles', {
     },
     setSort(sort: ArticleSort): void {
       this.filters.sort = sort
+    },
+    resetState(): void {
+      this.articles = []
+      this.allArticles = []
+      this.tags = []
+      this.selectedArticle = null
+      this.filters = createDefaultArticleFilters()
+      this.loading = false
+      this.error = ''
     }
   }
 })

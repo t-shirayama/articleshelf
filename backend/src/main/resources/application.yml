@@ -18,3 +18,13 @@ server:
 
 readstack:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
+  auth:
+    access-token-secret: ${JWT_ACCESS_SECRET:dev-readstack-access-secret-change-me-please-32bytes}
+    access-token-ttl-seconds: ${JWT_ACCESS_TOKEN_TTL_SECONDS:900}
+    refresh-token-hash-secret: ${AUTH_REFRESH_TOKEN_HASH_SECRET:dev-readstack-refresh-hash-secret-change-me}
+    refresh-token-ttl-days: ${AUTH_REFRESH_TOKEN_TTL_DAYS:30}
+    cookie-secure: ${AUTH_COOKIE_SECURE:false}
+    cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
+    csrf-enabled: ${AUTH_CSRF_ENABLED:false}
+    initial-user-email: ${READSTACK_INITIAL_USER_EMAIL:owner@example.com}
+    initial-user-password: ${READSTACK_INITIAL_USER_PASSWORD:password123}

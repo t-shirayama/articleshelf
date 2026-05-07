@@ -1,5 +1,6 @@
 package com.readstack.application.article;
 
+import com.readstack.application.auth.CurrentUser;
 import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleRepository;
@@ -28,11 +29,11 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public List<ArticleResponse> findArticles(ArticleStatus status, String tag, String search, Boolean favorite) {
+    public List<ArticleResponse> findArticles(CurrentUser user, ArticleStatus status, String tag, String search, Boolean favorite) {
         String normalizedTag = normalizeFilter(tag);
         String normalizedSearch = normalizeFilter(search);
 
-        return articleRepository.findAll().stream()
+        return articleRepository.findAllByUserId(user.id()).stream()
                 .filter(article -> status == null || article.getStatus() == status)
                 .filter(article -> favorite == null || article.isFavorite() == favorite)
                 .filter(article -> normalizedTag == null || article.getTags().stream()
@@ -44,15 +45,15 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public ArticleResponse findArticle(UUID id) {
-        return articleRepository.findById(id)
+    public ArticleResponse findArticle(CurrentUser user, UUID id) {
+        return articleRepository.findByIdAndUserId(id, user.id())
                 .map(ArticleResponse::from)
                 .orElseThrow(() -> new ArticleNotFoundException(id));
     }
 
     @Transactional
-    public ArticleResponse addArticle(AddArticleCommand command) {
-        articleRepository.findByUrl(command.url())
+    public ArticleResponse addArticle(CurrentUser user, AddArticleCommand command) {
+        articleRepository.findByUrlAndUserId(command.url(), user.id())
                 .ifPresent(article -> {
                     throw new DuplicateArticleUrlException(command.url(), article.getId());
                 });
@@ -63,6 +64,7 @@ public class ArticleService {
         }
         Article article = new Article(
                 null,
+                user.id(),
                 command.url(),
                 firstPresent(command.title(), metadata.title(), command.url()),
                 firstPresent(command.summary(), metadata.description(), ""),
@@ -72,7 +74,7 @@ public class ArticleService {
                 Boolean.TRUE.equals(command.favorite()),
                 command.rating() == null ? 0 : command.rating(),
                 command.notes(),
-                resolveTags(command.tags()),
+                resolveTags(user, command.tags()),
                 null,
                 null
         );
@@ -81,9 +83,9 @@ public class ArticleService {
     }
 
     @Transactional
-    public ArticleResponse updateArticle(UUID id, UpdateArticleCommand command) {
-        Article current = articleRepository.findById(id).orElseThrow(() -> new ArticleNotFoundException(id));
-        articleRepository.findByUrl(command.url())
+    public ArticleResponse updateArticle(CurrentUser user, UUID id, UpdateArticleCommand command) {
+        Article current = articleRepository.findByIdAndUserId(id, user.id()).orElseThrow(() -> new ArticleNotFoundException(id));
+        articleRepository.findByUrlAndUserId(command.url(), user.id())
                 .filter(article -> !article.getId().equals(id))
                 .ifPresent(article -> {
                     throw new DuplicateArticleUrlException(command.url(), article.getId());
@@ -96,6 +98,7 @@ public class ArticleService {
 
         Article updated = new Article(
                 current.getId(),
+                current.getUserId(),
                 command.url(),
                 firstPresent(command.title(), current.getTitle()),
                 command.summary(),
@@ -105,7 +108,7 @@ public class ArticleService {
                 command.favorite() == null ? current.isFavorite() : command.favorite(),
                 command.rating() == null ? current.getRating() : command.rating(),
                 command.notes(),
-                resolveTags(command.tags()),
+                resolveTags(user, command.tags()),
                 current.getCreatedAt(),
                 current.getUpdatedAt()
         );
@@ -114,27 +117,27 @@ public class ArticleService {
     }
 
     @Transactional
-    public void deleteArticle(UUID id) {
-        if (articleRepository.findById(id).isEmpty()) {
+    public void deleteArticle(CurrentUser user, UUID id) {
+        if (articleRepository.findByIdAndUserId(id, user.id()).isEmpty()) {
             throw new ArticleNotFoundException(id);
         }
-        articleRepository.deleteById(id);
+        articleRepository.deleteByIdAndUserId(id, user.id());
     }
 
     @Transactional(readOnly = true)
-    public List<TagResponse> findTags() {
-        return articleRepository.findAllTags().stream()
+    public List<TagResponse> findTags(CurrentUser user) {
+        return articleRepository.findAllTagsByUserId(user.id()).stream()
                 .map(TagResponse::from)
                 .sorted(Comparator.comparing(TagResponse::name))
                 .toList();
     }
 
     @Transactional
-    public TagResponse addTag(String name) {
-        return TagResponse.from(articleRepository.saveTag(name));
+    public TagResponse addTag(CurrentUser user, String name) {
+        return TagResponse.from(articleRepository.saveTag(user.id(), name));
     }
 
-    private Set<Tag> resolveTags(List<String> names) {
+    private Set<Tag> resolveTags(CurrentUser user, List<String> names) {
         if (names == null) {
             return new LinkedHashSet<>();
         }
@@ -144,7 +147,7 @@ public class ArticleService {
                 .map(this::normalizeName)
                 .filter(value -> !value.isBlank())
                 .distinct()
-                .forEach(name -> tags.add(articleRepository.saveTag(name)));
+                .forEach(name -> tags.add(articleRepository.saveTag(user.id(), name)));
         return tags;
     }
 

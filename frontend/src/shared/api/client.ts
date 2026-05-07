@@ -1,4 +1,5 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const CSRF_COOKIE = 'READSTACK_CSRF'
 
 interface ApiErrorPayload {
   messages?: string[]
@@ -17,23 +18,52 @@ export class ApiRequestError extends Error {
 
 type RequestOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>
+  skipAuthorization?: boolean
+  skipAuthRetry?: boolean
+}
+
+let accessToken = ''
+let refreshAccessToken: (() => Promise<string | null>) | null = null
+let refreshPromise: Promise<string | null> | null = null
+
+export function setAccessToken(token: string): void {
+  accessToken = token
+}
+
+export function configureAuthRefresh(callback: () => Promise<string | null>): void {
+  refreshAccessToken = callback
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return performRequest<T>(path, options, false)
+}
+
+async function performRequest<T>(path: string, options: RequestOptions, retried: boolean): Promise<T> {
+  const { skipAuthorization, skipAuthRetry, headers, ...fetchOptions } = options
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-        ...options.headers
+        ...authorizationHeader(skipAuthorization),
+        ...csrfHeader(fetchOptions.method),
+        ...headers
       },
-      ...options
+      ...fetchOptions
     })
   } catch (error: unknown) {
     if (error instanceof TypeError) {
       throw new Error('サーバーに接続できませんでした。バックエンドが起動しているか確認してください。')
     }
     throw error
+  }
+
+  if (response.status === 401 && !retried && !skipAuthRetry && refreshAccessToken) {
+    const refreshedToken = await refreshOnce()
+    if (refreshedToken) {
+      return performRequest<T>(path, options, true)
+    }
   }
 
   if (response.status === 204) {
@@ -50,4 +80,34 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new ApiRequestError(message, errorPayload?.existingArticleId)
   }
   return payload as T
+}
+
+async function refreshOnce(): Promise<string | null> {
+  if (!refreshAccessToken) return null
+  if (!refreshPromise) {
+    refreshPromise = refreshAccessToken().finally(() => {
+      refreshPromise = null
+    })
+  }
+  return refreshPromise
+}
+
+function authorizationHeader(skipAuthorization?: boolean): Record<string, string> {
+  if (skipAuthorization || !accessToken) return {}
+  return { Authorization: `Bearer ${accessToken}` }
+}
+
+function csrfHeader(method?: string): Record<string, string> {
+  const normalizedMethod = (method || 'GET').toUpperCase()
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(normalizedMethod)) return {}
+  const token = readCookie(CSRF_COOKIE)
+  return token ? { 'X-CSRF-Token': token } : {}
+}
+
+function readCookie(name: string): string {
+  return document.cookie
+    .split(';')
+    .map((value) => value.trim())
+    .find((value) => value.startsWith(`${name}=`))
+    ?.slice(name.length + 1) || ''
 }

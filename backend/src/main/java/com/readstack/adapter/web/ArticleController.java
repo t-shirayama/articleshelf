@@ -4,11 +4,13 @@ import com.readstack.application.article.AddArticleCommand;
 import com.readstack.application.article.ArticleResponse;
 import com.readstack.application.article.ArticleService;
 import com.readstack.application.article.UpdateArticleCommand;
+import com.readstack.application.auth.CurrentUser;
 import com.readstack.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,34 +37,39 @@ public class ArticleController {
 
     @GetMapping
     public List<ArticleResponse> findArticles(
+            @AuthenticationPrincipal CurrentUser user,
             @RequestParam(required = false) ArticleStatus status,
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean favorite
     ) {
-        return articleService.findArticles(status, tag, search, favorite);
+        return articleService.findArticles(user, status, tag, search, favorite);
     }
 
     @GetMapping("/{id}")
-    public ArticleResponse findArticle(@PathVariable UUID id) {
-        return articleService.findArticle(id);
+    public ArticleResponse findArticle(@AuthenticationPrincipal CurrentUser user, @PathVariable UUID id) {
+        return articleService.findArticle(user, id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ArticleResponse addArticle(@Valid @RequestBody ArticleRequest request) {
-        return articleService.addArticle(request.toAddCommand());
+    public ArticleResponse addArticle(@AuthenticationPrincipal CurrentUser user, @Valid @RequestBody ArticleRequest request) {
+        return articleService.addArticle(user, request.toAddCommand());
     }
 
     @PutMapping("/{id}")
-    public ArticleResponse updateArticle(@PathVariable UUID id, @Valid @RequestBody ArticleRequest request) {
-        return articleService.updateArticle(id, request.toUpdateCommand());
+    public ArticleResponse updateArticle(
+            @AuthenticationPrincipal CurrentUser user,
+            @PathVariable UUID id,
+            @Valid @RequestBody ArticleRequest request
+    ) {
+        return articleService.updateArticle(user, id, request.toUpdateCommand());
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteArticle(@PathVariable UUID id) {
-        articleService.deleteArticle(id);
+    public void deleteArticle(@AuthenticationPrincipal CurrentUser user, @PathVariable UUID id) {
+        articleService.deleteArticle(user, id);
     }
 
     public record ArticleRequest(

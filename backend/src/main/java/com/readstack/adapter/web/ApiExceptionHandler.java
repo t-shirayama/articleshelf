@@ -5,6 +5,10 @@ import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.readstack.adapter.web.AuthController.CsrfValidationException;
+import com.readstack.application.auth.AuthException;
+import com.readstack.application.auth.DuplicateEmailException;
+import com.readstack.domain.user.PasswordPolicyException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -36,6 +40,30 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ArticleUrlUnavailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleUnavailableUrl(ArticleUrlUnavailableException exception) {
+        return ErrorResponse.of(exception.getMessage());
+    }
+
+    @ExceptionHandler({AuthException.class})
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleAuth(RuntimeException exception) {
+        return ErrorResponse.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(CsrfValidationException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleCsrf(RuntimeException exception) {
+        return ErrorResponse.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicateEmail(DuplicateEmailException exception) {
+        return ErrorResponse.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(PasswordPolicyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handlePasswordPolicy(PasswordPolicyException exception) {
         return ErrorResponse.of(exception.getMessage());
     }
 

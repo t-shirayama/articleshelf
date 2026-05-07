@@ -125,6 +125,92 @@
   line-height: 1.45;
 }
 
+.sidebar-account {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(105, 112, 109, 0.18);
+}
+
+.sidebar-account span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-logout-button {
+  justify-content: flex-start;
+  min-height: 38px;
+}
+
+.auth-loading,
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 20px;
+}
+
+.auth-panel {
+  display: grid;
+  width: min(420px, 100%);
+  gap: 20px;
+  padding: 28px;
+  background: rgba(255, 253, 250, 0.92);
+  border: 1px solid rgba(222, 217, 206, 0.78);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.auth-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.auth-brand strong,
+.auth-brand span {
+  display: block;
+}
+
+.auth-brand span,
+.auth-heading p {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.auth-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-heading h1,
+.auth-heading p {
+  margin: 0;
+}
+
+.auth-heading h1 {
+  font-size: 1.42rem;
+  line-height: 1.35;
+}
+
+.auth-mode-toggle {
+  width: 100%;
+}
+
+.auth-mode-toggle .v-btn {
+  flex: 1 1 0;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
 .boost-illustration {
   width: min(104px, 76%);
   height: auto;
