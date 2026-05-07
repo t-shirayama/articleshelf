@@ -79,13 +79,11 @@ function submit(): void {
 function startEditing(): void {
   if (!props.article) return
   Object.assign(form, articleToDetailForm(props.article))
-  articleDetailsOpen.value = false
   isEditing.value = true
 }
 
 function cancelEditing(): void {
   Object.assign(form, props.article ? articleToDetailForm(props.article) : createEmptyArticleDetailForm())
-  articleDetailsOpen.value = false
   isEditing.value = false
 }
 
