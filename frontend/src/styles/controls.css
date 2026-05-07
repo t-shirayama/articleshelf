@@ -38,6 +38,7 @@
 }
 
 .search-filter-bar > .v-btn {
+  flex: 0 0 150px;
   height: var(--header-control-height);
   min-height: var(--header-control-height);
   padding-inline: 12px;
@@ -45,6 +46,8 @@
 }
 
 .article-add-button {
+  flex-basis: 168px;
+  width: 168px;
   min-width: 168px;
 }
 

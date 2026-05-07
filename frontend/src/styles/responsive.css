@@ -100,8 +100,19 @@
   }
 
   .search-filter-bar {
+    display: grid;
     justify-self: stretch;
     width: 100%;
+  }
+
+  .search-input {
+    max-width: none;
+  }
+
+  .sort-select,
+  .article-add-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .tag-management-row {

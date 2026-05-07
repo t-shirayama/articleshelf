@@ -295,7 +295,7 @@
 .page-header {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: minmax(180px, auto) minmax(360px, 1fr);
+  grid-template-columns: minmax(180px, auto) minmax(0, 1fr);
   gap: 18px;
   align-items: end;
   margin-bottom: 20px;
@@ -317,16 +317,19 @@
 
 .search-filter-bar {
   justify-self: end;
-  display: grid;
-  grid-template-columns: minmax(320px, 400px) 150px 150px 168px;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: stretch;
-  width: max-content;
+  justify-content: flex-end;
+  width: 100%;
   max-width: 100%;
 }
 
 .search-input {
+  flex: 1 1 320px;
   min-width: 0;
+  max-width: 400px;
 }
 
 .search-input .v-field,
@@ -351,13 +354,15 @@
 }
 
 .sort-select {
+  flex: 0 0 150px;
   width: 150px;
   min-width: 150px;
 }
 
 .article-add-button {
-  width: 150px;
-  min-width: 150px;
+  flex: 0 0 168px;
+  width: 168px;
+  min-width: 168px;
 }
 
 .filter-open-button {
