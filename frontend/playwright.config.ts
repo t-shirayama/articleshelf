@@ -17,10 +17,10 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: 'docker compose up --build -d',
+    command: 'docker compose up --build',
     cwd: '..',
     url: 'http://localhost:5173',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000
   }
 })
