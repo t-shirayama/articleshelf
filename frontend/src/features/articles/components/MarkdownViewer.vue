@@ -13,6 +13,10 @@ import markdownItMark from "markdown-it-mark";
 import markdownItSub from "markdown-it-sub";
 import markdownItSup from "markdown-it-sup";
 
+const ALLOWED_URI_PATTERN = /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i;
+const SAFE_LINK_PATTERN = /^(https?:|mailto:)/i;
+const SAFE_IMAGE_PATTERN = /^https?:/i;
+
 interface CodeBlockMeta {
   language: string;
   fileName: string;
@@ -39,12 +43,64 @@ const markdown = new MarkdownIt({
   .use(markdownItSub)
   .use(markdownItSup);
 
+markdown.validateLink = (url) => SAFE_LINK_PATTERN.test(url);
 markdown.renderer.rules.fence = (tokens, index) => {
   const token = tokens[index];
   return renderCodeBlock(token.content, parseCodeBlockMeta(token.info));
 };
 
-const renderedHtml = computed(() => DOMPurify.sanitize(markdown.render(props.source || "")));
+markdown.renderer.rules.link_open = (tokens, index, options, env, self) => {
+  tokens[index].attrSet("target", "_blank");
+  tokens[index].attrSet("rel", "noopener noreferrer nofollow");
+  return self.renderToken(tokens, index, options);
+};
+
+markdown.renderer.rules.image = (tokens, index, options, env, self) => {
+  const token = tokens[index];
+  const src = token.attrGet("src") || "";
+  if (!SAFE_IMAGE_PATTERN.test(src)) return "";
+
+  token.attrSet("loading", "lazy");
+  token.attrSet("referrerpolicy", "no-referrer");
+  return self.renderToken(tokens, index, options);
+};
+
+const renderedHtml = computed(() => DOMPurify.sanitize(markdown.render(props.source || ""), {
+  ADD_ATTR: [
+    "loading",
+    "referrerpolicy",
+    "rel",
+    "target",
+  ],
+  ALLOWED_URI_REGEXP: ALLOWED_URI_PATTERN,
+  FORBID_TAGS: [
+    "audio",
+    "button",
+    "canvas",
+    "embed",
+    "form",
+    "iframe",
+    "input",
+    "math",
+    "object",
+    "script",
+    "select",
+    "source",
+    "style",
+    "svg",
+    "textarea",
+    "track",
+    "video",
+  ],
+  FORBID_ATTR: [
+    "onerror",
+    "onload",
+    "onclick",
+    "onmouseover",
+    "onfocus",
+    "style",
+  ],
+}));
 
 function parseCodeBlockMeta(info = ""): CodeBlockMeta {
   const [language = "", ...metaParts] = info.trim().split(/\s+/);

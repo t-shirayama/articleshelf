@@ -111,14 +111,23 @@
 - OGP画像はDB上の `thumbnail_url` を直接表示せず、記事カードのサムネイル領域が表示範囲に近づいた時だけフロントエンドが取得し、IndexedDBに画像Blobとして保存したものを表示する
 - 画像取得に失敗したURLは一定時間再試行せず、外部サイトへのアクセス増加を避けてプレースホルダー表示に戻す
 
-## 5. 拡張ポイント
+## 5. Markdown 表示の安全境界
+
+- 詳細画面のメモ Markdown はフロントエンドだけで HTML に変換し、バックエンドには元のメモ本文を保存する
+- Markdown 変換では raw HTML を無効化し、ユーザー入力の `<script>` やイベント属性を Markdown として実行可能な HTML にしない
+- `v-html` に渡す HTML は必ず DOMPurify を通し、`script` / `iframe` / `object` / `embed` / `style` / フォーム系タグ / SVG / MathML / media 系タグを禁止する
+- リンクは `http` / `https` / `mailto` のみ許可し、外部リンクには `target="_blank"` と `rel="noopener noreferrer nofollow"` を付ける
+- 画像は `http` / `https` のみ許可し、`data:` や `javascript:` などのスキームは表示しない
+- コードブロックは文字列を highlight.js で静的に装飾するだけで、コード本文を評価・実行しない
+
+## 6. 拡張ポイント
 
 - URLからOGP取得はバックエンドで実装済み。今後は手動再取得や保存済み画像の扱いを拡張できる
 - ユーザー認証を追加してユーザースコープを分離
 - 画像アップロードは将来的な拡張として検討
 - AI要約やメタ情報抽出をバックエンドで行う
 
-## 6. 開発環境
+## 7. 開発環境
 
 - バックエンドは Docker コンテナでビルド・起動する
 - PostgreSQL は Docker Compose で起動し、バックエンドコンテナから接続する
@@ -127,7 +136,7 @@
 - バックエンドは Docker Compose 上の Spring Boot DevTools と Maven compile 監視により、Java / resources 変更時に自動再起動する
 - CORS 設定をバックエンドで許可
 
-### 6.1 Docker 開発方針
+### 7.1 Docker 開発方針
 
 - `backend` サービスに Spring Boot アプリを配置する
 - `backend` サービスは開発時に Maven ベースの `dev` ステージを使い、`backend` ディレクトリをコンテナへマウントする
