@@ -203,6 +203,8 @@ ReadStack では API、DB、JPA mapping、Spring 設定、CORS、認証、トラ
 公開前は、本番に近い PostgreSQL で検証できるよう Testcontainers の採用を推奨する。
 ただし Docker in Docker の CI 負荷が高い場合は、まず `docker compose run --rm backend mvn test` のように backend コンテナからテストを実行する方式に寄せる。
 現行 IT は H2 の PostgreSQL mode を使い、Spring Security / MockMvc / JPA / API 契約を軽量に検証する。
+Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、Flyway migration、DB 制約を変更した場合は、H2 だけでなく PostgreSQL 実体を使う persistence IT を実行する。
+特に `LIKE`、`concat`、`coalesce`、nullable parameter、enum、UUID、日付、JOIN を含む条件は DB 方言や型推論の差が出やすいため、該当条件を `JpaArticleRepositoryPostgresIntegrationTest` などに追加してから `docker compose run --rm backend mvn -Dtest=... test` で確認する。
 
 ### 4.5 IT ケース一覧
 
@@ -219,6 +221,7 @@ ReadStack では API、DB、JPA mapping、Spring 設定、CORS、認証、トラ
 | IT-API-009 | P1 | `GET /api/tags` | タグ一覧 | 名前昇順 |
 | IT-DB-001 | P0 | ArticleEntity | `Article` 保存 | UUID、日付、enum、tag 関連が保持される |
 | IT-DB-002 | P0 | unique URL | DB 制約 | 同一 URL が二重保存されない |
+| IT-DB-003 | P1 | Repository 検索 | PostgreSQL 実体で `LIKE`、nullable parameter、JOIN を含む複合条件 | SQL 型推論エラーを起こさず条件一致のみ返す |
 | IT-AUTH-001 | P0 | 認証追加後 | 未ログイン | 保護 API は `401` |
 | IT-AUTH-002 | P0 | 認証追加後 | ユーザー A の token でユーザー B の記事 ID | `404` または `403` |
 | IT-AUTH-003 | P0 | 認証追加後 | refresh token rotation | 旧 refresh token は再利用不可 |

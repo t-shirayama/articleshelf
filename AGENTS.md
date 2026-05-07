@@ -94,6 +94,7 @@
 - ただし、挙動変更を伴う修正では確認手順または確認結果を残す
 - コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI変更時は関連ドキュメント更新の注意喚起を行う
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
+- Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、Flyway migration、DB 制約を変更した場合は、H2 だけでなく PostgreSQL 実体を使う Docker 経由テストを実行する。特に `LIKE`、`concat`、`coalesce`、nullable parameter、enum、UUID、日付、JOIN を含む条件は PostgreSQL との型推論差が出やすいため、`JpaArticleRepositoryPostgresIntegrationTest` などの persistence IT を追加または更新して確認する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
 - Maven が必要な確認は `docker compose exec backend mvn ...` または `docker compose run --rm backend mvn ...` のように Docker 経由で行う
 
