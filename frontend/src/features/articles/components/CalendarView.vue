@@ -181,27 +181,33 @@ function startOfMonth(date: Date): Date {
       </div>
 
       <div class="calendar-month-controls">
-        <VBtn
-          class="action-button action-button-secondary calendar-month-button"
-          variant="outlined"
-          @click="moveMonth(-1)"
-        >
-          <template #prepend>
+        <VTooltip :text="t('calendar.previousMonth')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn
+              v-bind="tooltipProps"
+              class="action-button action-button-secondary calendar-month-button"
+              variant="outlined"
+              :aria-label="t('calendar.previousMonth')"
+              @click="moveMonth(-1)"
+            >
             <ChevronLeft :size="17" />
+            </VBtn>
           </template>
-          {{ t("calendar.previousMonth") }}
-        </VBtn>
+        </VTooltip>
         <strong class="calendar-month-label">{{ monthLabel }}</strong>
-        <VBtn
-          class="action-button action-button-secondary calendar-month-button"
-          variant="outlined"
-          @click="moveMonth(1)"
-        >
-          {{ t("calendar.nextMonth") }}
-          <template #append>
+        <VTooltip :text="t('calendar.nextMonth')" location="top">
+          <template #activator="{ props: tooltipProps }">
+            <VBtn
+              v-bind="tooltipProps"
+              class="action-button action-button-secondary calendar-month-button"
+              variant="outlined"
+              :aria-label="t('calendar.nextMonth')"
+              @click="moveMonth(1)"
+            >
             <ChevronRight :size="17" />
+            </VBtn>
           </template>
-        </VBtn>
+        </VTooltip>
       </div>
 
       <div class="calendar-summary">
