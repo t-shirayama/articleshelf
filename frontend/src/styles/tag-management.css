@@ -39,7 +39,7 @@
 .tag-management-toolbar {
   justify-self: end;
   display: grid;
-  grid-template-columns: 400px 150px 150px;
+  grid-template-columns: minmax(280px, 400px) minmax(190px, 220px) 150px;
   gap: 12px;
   align-items: stretch;
   width: max-content;
@@ -145,6 +145,12 @@
   white-space: nowrap;
 }
 
+.tag-management-sort .v-select__selection-text {
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
 .tag-management-rename-input {
   max-width: 360px;
 }
@@ -152,11 +158,20 @@
 .tag-management-dialog-body {
   display: grid;
   gap: 14px;
+  padding: 16px 24px;
 }
 
 .tag-management-dialog-body p {
   margin: 0;
   color: var(--text);
+}
+
+.tag-management-dialog .v-card-title {
+  padding: 20px 24px 4px;
+}
+
+.tag-management-dialog .v-card-actions {
+  padding: 0 24px 20px;
 }
 
 .tag-management-empty-filter {

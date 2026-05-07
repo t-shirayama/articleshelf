@@ -27,6 +27,16 @@ if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
     echo "WARNING: UI files changed without docs/design.md or docs/specification/ui.md."
     echo "         If the visual behavior changed, update the relevant UI docs before committing."
   fi
+  echo "UI design checklist:"
+  echo "  - Check proximity, alignment, repetition, and contrast."
+  echo "  - Check select values are not truncated and labels fit their containers."
+  echo "  - Check related input/button edges align and state changes do not shift layout."
+fi
+
+if has_changed '^(frontend/src/.*\.(vue|css)|docs/design\.md|docs/specification/ui\.md|docs/designs/.*)$'; then
+  echo "Design capture reminder:"
+  echo "  - If visual docs/screenshots are affected, run: cd frontend && npm run capture:designs"
+  echo "  - Archive replaced screenshots under docs/designs/archive/<YYYY-MM-DD>/."
 fi
 
 if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; then
