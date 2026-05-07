@@ -56,7 +56,7 @@ function changeLocale(value: unknown): void {
       <div class="brand-mark">
         <BookOpen :size="22" />
       </div>
-      <div>
+      <div class="brand-copy">
         <strong>{{ t("common.appName") }}</strong>
         <span>{{ t("common.appTagline") }}</span>
       </div>
