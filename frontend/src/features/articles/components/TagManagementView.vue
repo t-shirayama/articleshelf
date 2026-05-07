@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check, GitMerge, Pencil, Plus, Search, Trash2, X } from "lucide-vue-next";
 import { getCurrentLocale } from "../../../shared/i18n";
@@ -33,6 +33,8 @@ const mergeTargetId = ref("");
 const deleteCandidate = ref<Tag | null>(null);
 const searchQuery = ref<string | null>("");
 const sortMode = ref<TagSort>("COUNT_DESC");
+const sortMeasureEl = ref<HTMLElement | null>(null);
+const sortWidth = ref(252);
 
 const sortOptions = computed(() => [
   { title: t("tags.sortCountDesc"), value: "COUNT_DESC" },
@@ -40,13 +42,29 @@ const sortOptions = computed(() => [
   { title: t("tags.sortNameAsc"), value: "NAME_ASC" },
 ]);
 
-const sortWidthStyle = computed(() => {
-  const longestLength = sortOptions.value.reduce(
-    (maxLength, option) => Math.max(maxLength, Array.from(option.title).length),
-    0,
-  );
-  const textWidth = currentTextLocale() === "ja" ? `${longestLength}em` : `${longestLength}ch`;
-  return { "--tag-management-sort-width": `calc(${textWidth} + 104px)` };
+const longestSortTitle = computed(() =>
+  sortOptions.value.reduce(
+    (longest, option) => (option.title.length > longest.length ? option.title : longest),
+    "",
+  ),
+);
+
+const sortWidthStyle = computed(() => ({
+  "--tag-management-sort-width": `${sortWidth.value}px`,
+}));
+
+async function updateSortWidth(): Promise<void> {
+  await nextTick();
+  const measuredWidth = sortMeasureEl.value?.scrollWidth || 0;
+  sortWidth.value = Math.ceil(measuredWidth + 78);
+}
+
+watch(longestSortTitle, () => {
+  void updateSortWidth();
+});
+
+onMounted(() => {
+  void updateSortWidth();
 });
 
 const filteredTags = computed(() => {
@@ -163,6 +181,9 @@ function currentTextLocale(): string {
         </h1>
       </div>
       <div class="tag-management-toolbar">
+        <span ref="sortMeasureEl" class="tag-management-sort-measure" aria-hidden="true">
+          {{ longestSortTitle }}
+        </span>
         <VTextField
           v-model="searchQuery"
           class="search-input tag-management-search"

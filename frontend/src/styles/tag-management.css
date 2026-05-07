@@ -37,6 +37,7 @@
 }
 
 .tag-management-toolbar {
+  position: relative;
   justify-self: end;
   display: flex;
   flex-wrap: wrap;
@@ -45,6 +46,14 @@
   justify-content: flex-end;
   width: 100%;
   max-width: 100%;
+}
+
+.tag-management-sort-measure {
+  position: absolute;
+  pointer-events: none;
+  visibility: hidden;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .tag-management-search {
