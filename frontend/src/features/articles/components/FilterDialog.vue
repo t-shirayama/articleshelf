@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
 import { X } from 'lucide-vue-next'
+import DateField from '../../../shared/components/DateField.vue'
 import type { ArticleDateRange } from '../types'
 
 interface FilterDraft {
@@ -147,21 +148,15 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
             </VBtn>
           </div>
           <div class="filter-date-grid">
-            <VTextField
+            <DateField
               v-model="draft.createdRange.from"
-              class="readstack-select"
-              type="date"
-              hide-details
+              class="filter-date-field"
               label="開始日"
-              variant="outlined"
             />
-            <VTextField
+            <DateField
               v-model="draft.createdRange.to"
-              class="readstack-select"
-              type="date"
-              hide-details
+              class="filter-date-field"
               label="終了日"
-              variant="outlined"
             />
           </div>
         </div>
@@ -180,21 +175,15 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
             </VBtn>
           </div>
           <div class="filter-date-grid">
-            <VTextField
+            <DateField
               v-model="draft.readRange.from"
-              class="readstack-select"
-              type="date"
-              hide-details
+              class="filter-date-field"
               label="開始日"
-              variant="outlined"
             />
-            <VTextField
+            <DateField
               v-model="draft.readRange.to"
-              class="readstack-select"
-              type="date"
-              hide-details
+              class="filter-date-field"
               label="終了日"
-              variant="outlined"
             />
           </div>
         </div>

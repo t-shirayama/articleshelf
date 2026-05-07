@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
+import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import MarkdownViewer from './MarkdownViewer.vue'
 import TagEditor from './TagEditor.vue'
@@ -283,14 +284,11 @@ function confirmDelete(): void {
 
             <div class="detail-meta-block">
               <span class="detail-meta-label">既読日</span>
-              <VTextField
+              <DateField
                 v-model="form.readDate"
                 class="readstack-date-field detail-meta-control"
-                type="date"
                 density="comfortable"
                 :disabled="!isEditing"
-                hide-details
-                variant="outlined"
                 :clearable="isEditing"
               />
             </div>

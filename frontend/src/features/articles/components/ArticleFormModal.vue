@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, watch } from 'vue'
+import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
 import { createEmptyArticleCreateForm, createFormToArticleInput } from '../domain/articleForms'
@@ -140,14 +141,12 @@ function submit(): void {
               <small>チェック中は未読として保存します</small>
             </span>
           </label>
-          <VTextField
+          <DateField
             v-model="form.readDate"
             class="readstack-date-field"
             label="既読日"
-            type="date"
             :disabled="form.readLater"
             clearable
-            hide-details
           />
         </div>
 

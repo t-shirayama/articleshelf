@@ -175,6 +175,10 @@
   min-height: 64px;
 }
 
+.date-field-control {
+  min-width: 0;
+}
+
 .readstack-date-field .v-field {
   align-items: center;
 }
@@ -197,7 +201,49 @@
 }
 
 .readstack-date-field input[type="date"]::-webkit-calendar-picker-indicator {
-  margin-left: auto;
+  width: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.readstack-date-field .v-field__append-inner {
+  align-items: center;
+  padding-inline-start: 6px;
+}
+
+.date-picker-button {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--accent);
+  background: rgba(216, 239, 238, 0.58);
+  border: 1px solid rgba(24, 108, 116, 0.22);
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.date-picker-button:hover {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.date-picker-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(24, 108, 116, 0.22);
+}
+
+.date-picker-button:disabled {
+  color: rgba(105, 112, 109, 0.62);
+  background: rgba(105, 112, 109, 0.08);
+  border-color: rgba(105, 112, 109, 0.18);
+  cursor: not-allowed;
 }
 
 .read-later-check {
@@ -441,6 +487,13 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.filter-date-field,
+.filter-date-field .v-input__control,
+.filter-date-field .v-field,
+.filter-date-field .v-field__input {
+  min-height: 54px;
 }
 
 .filter-dialog-actions {
