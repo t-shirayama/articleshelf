@@ -37,6 +37,7 @@ if has_changed '^(frontend/src/.*\.(vue|css)|docs/design\.md|docs/specification/
   echo "Design capture reminder:"
   echo "  - If visual docs/screenshots are affected, run: cd frontend && npm run capture:designs"
   echo "  - Archive replaced screenshots under docs/designs/archive/<YYYY-MM-DD>/."
+  echo "  - Follow .codex/skills/readstack-design-capture/SKILL.md for deterministic capture data and login."
 fi
 
 if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; then
