@@ -48,6 +48,7 @@
   --scrollbar-thumb: rgba(105, 112, 109, 0.28);
   --scrollbar-thumb-hover: rgba(24, 108, 116, 0.38);
   --scrollbar-track: rgba(255, 253, 250, 0.32);
+  --stable-scrollbar-gutter-offset: 14px;
 }
 
 * {

@@ -142,6 +142,10 @@
     grid-template-columns: 1fr;
   }
 
+  .page-header {
+    padding-right: 0;
+  }
+
   .filter-dialog-header {
     grid-template-columns: 1fr;
   }

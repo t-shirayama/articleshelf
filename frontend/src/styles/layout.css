@@ -299,7 +299,7 @@
   gap: 18px;
   align-items: end;
   margin-bottom: 20px;
-  padding-right: 4px;
+  padding-right: var(--stable-scrollbar-gutter-offset);
 }
 
 .page-header h1,
