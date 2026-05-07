@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { Check, GitMerge, Pencil, Search, Trash2, X } from "lucide-vue-next";
+import { Check, GitMerge, Pencil, Plus, Search, Trash2, X } from "lucide-vue-next";
 import type { Tag } from "../types";
 
 type TagSort = "COUNT_DESC" | "COUNT_ASC" | "NAME_ASC";
@@ -13,14 +13,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
+  addTag: [name: string];
   renameTag: [id: string, name: string];
   mergeTag: [sourceId: string, targetId: string];
   deleteTag: [id: string];
   openTagArticles: [tagName: string];
-  addArticle: [];
   retry: [];
 }>();
 
+const addDialogOpen = ref(false);
+const addDraft = ref("");
 const renameTagId = ref("");
 const renameDraft = ref("");
 const mergeSource = ref<Tag | null>(null);
@@ -66,6 +68,25 @@ const mergeOptions = computed(() =>
       value: tag.id || "",
     })),
 );
+
+function openAddDialog(): void {
+  addDraft.value = "";
+  addDialogOpen.value = true;
+}
+
+function closeAddDialog(): void {
+  if (props.saving) return;
+  addDialogOpen.value = false;
+  addDraft.value = "";
+}
+
+function confirmAdd(): void {
+  const name = addDraft.value.trim();
+  if (!name) return;
+  emit("addTag", name);
+  addDraft.value = "";
+  addDialogOpen.value = false;
+}
 
 function startRename(tag: Tag): void {
   renameTagId.value = tag.id || "";
@@ -125,6 +146,42 @@ function deleteTooltip(tag: Tag): string {
           <span class="tag-management-title-count">{{ tags.length }}件</span>
         </h1>
       </div>
+      <div class="tag-management-toolbar">
+        <VTextField
+          v-model="searchQuery"
+          class="search-input tag-management-search"
+          type="text"
+          clearable
+          hide-details
+          placeholder="タグ名で検索"
+        >
+          <template #prepend-inner>
+            <Search :size="18" />
+          </template>
+        </VTextField>
+        <VSelect
+          v-model="sortMode"
+          class="readstack-select sort-select tag-management-sort"
+          :items="sortOptions"
+          item-title="title"
+          item-value="value"
+          hide-details
+          density="comfortable"
+          variant="outlined"
+          label="並び順"
+        />
+        <VBtn
+          class="action-button action-button-primary tag-management-add-button"
+          color="primary"
+          variant="flat"
+          @click="openAddDialog"
+        >
+          <template #prepend>
+            <Plus :size="18" />
+          </template>
+          タグを追加
+        </VBtn>
+      </div>
     </header>
 
     <div
@@ -153,43 +210,21 @@ function deleteTooltip(tag: Tag): string {
 
     <div v-else-if="tags.length === 0" class="empty-state">
       <h2>まだタグがありません</h2>
-      <p>記事を登録するときにタグを追加すると、ここで整理できます。</p>
+      <p>タグを先に用意しておくと、記事を登録するときに選びやすくなります。</p>
       <VBtn
         class="action-button action-button-primary"
         color="primary"
         variant="flat"
-        @click="emit('addArticle')"
+        @click="openAddDialog"
       >
-        記事を追加する
+        <template #prepend>
+          <Plus :size="18" />
+        </template>
+        最初のタグを追加
       </VBtn>
     </div>
 
     <div v-else class="tag-management-list" aria-live="polite">
-      <div class="tag-management-toolbar">
-        <VTextField
-          v-model="searchQuery"
-          class="tag-management-search"
-          density="compact"
-          hide-details
-          placeholder="タグ名で検索"
-          clearable
-        >
-          <template #prepend-inner>
-            <Search :size="17" />
-          </template>
-        </VTextField>
-        <VSelect
-          v-model="sortMode"
-          class="readstack-select tag-management-sort"
-          density="compact"
-          hide-details
-          :items="sortOptions"
-          item-title="title"
-          item-value="value"
-          aria-label="タグの並び順"
-        />
-      </div>
-
       <div class="tag-management-row tag-management-row-head">
         <span>タグ</span>
         <span>記事数</span>
@@ -329,6 +364,35 @@ function deleteTooltip(tag: Tag): string {
         タグ名の編集、統合、削除ができます。使用中のタグは削除できません。タグ名や記事数を選ぶと、そのタグの記事一覧へ移動します。
       </p>
     </div>
+
+    <VDialog :model-value="addDialogOpen" max-width="420" @update:model-value="!$event && closeAddDialog()">
+      <VCard class="tag-management-dialog">
+        <VCardTitle>タグを追加</VCardTitle>
+        <VCardText class="tag-management-dialog-body">
+          <VTextField
+            v-model="addDraft"
+            label="タグ名"
+            autofocus
+            :disabled="saving"
+            @keyup.enter="confirmAdd"
+          />
+        </VCardText>
+        <VCardActions>
+          <VSpacer />
+          <VBtn variant="text" :disabled="saving" @click="closeAddDialog">キャンセル</VBtn>
+          <VBtn
+            class="action-button action-button-primary"
+            color="primary"
+            variant="flat"
+            :loading="saving"
+            :disabled="saving || !addDraft.trim()"
+            @click="confirmAdd"
+          >
+            追加する
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
     <VDialog :model-value="Boolean(mergeSource)" max-width="460" @update:model-value="!$event && closeMerge()">
       <VCard class="tag-management-dialog">

@@ -6,7 +6,7 @@
 }
 
 .tag-management-header {
-  grid-template-columns: minmax(180px, 1fr);
+  grid-template-columns: minmax(180px, auto) minmax(360px, 1fr);
 }
 
 .tag-management-title-count {
@@ -37,21 +37,13 @@
 }
 
 .tag-management-toolbar {
+  justify-self: end;
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(176px, 220px);
+  grid-template-columns: 400px 150px 150px;
   gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.tag-management-search .v-field,
-.tag-management-sort .v-field {
-  min-height: 42px;
-}
-
-.tag-management-search .v-field__input,
-.tag-management-sort .v-field__input {
-  min-height: 42px;
+  align-items: stretch;
+  width: max-content;
+  max-width: 100%;
 }
 
 .tag-management-row {
@@ -146,6 +138,11 @@
 
 .tag-management-action .v-btn__prepend {
   margin-inline-end: 4px;
+}
+
+.tag-management-add-button {
+  min-height: var(--header-control-height);
+  white-space: nowrap;
 }
 
 .tag-management-rename-input {

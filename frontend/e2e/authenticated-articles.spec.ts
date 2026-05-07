@@ -177,6 +177,23 @@ test('user can search tags and open articles from tag management', async ({ page
   await expect(articleCard(page, nonMatchingTitle)).toHaveCount(0)
 })
 
+test('user can create a standalone tag from tag management', async ({ page }, testInfo) => {
+  const email = uniqueEmail('tag-create', testInfo)
+  const tagName = `Idea-${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await page.getByRole('button', { name: 'タグ管理' }).click()
+  await expect(page.getByRole('heading', { name: /タグ管理/ })).toBeVisible()
+  await page.getByRole('button', { name: '最初のタグを追加' }).click()
+
+  const dialog = page.getByRole('dialog')
+  await dialog.getByRole('textbox', { name: 'タグ名' }).fill(tagName)
+  await dialog.getByRole('button', { name: '追加する' }).click()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toBeVisible()
+})
+
 test('users cannot see each other articles', async ({ page }, testInfo) => {
   const firstEmail = uniqueEmail('first', testInfo)
   const secondEmail = uniqueEmail('second', testInfo)

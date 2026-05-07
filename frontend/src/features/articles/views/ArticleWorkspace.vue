@@ -283,6 +283,19 @@ async function renameTag(id: string, name: string): Promise<void> {
   }
 }
 
+async function addTag(name: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.createTag(name);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : "タグを追加できませんでした";
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
 async function mergeTag(sourceId: string, targetId: string): Promise<void> {
   if (isSavingTag.value) return;
   isSavingTag.value = true;
@@ -454,11 +467,11 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         :error="store.error"
         :loading="store.loading"
         :saving="isSavingTag"
+        @add-tag="addTag"
         @rename-tag="renameTag"
         @merge-tag="mergeTag"
         @delete-tag="deleteTag"
         @open-tag-articles="openTagArticles"
-        @add-article="openArticleModal"
         @retry="retryInitialLoad"
       />
     </main>

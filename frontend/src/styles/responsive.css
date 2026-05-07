@@ -104,10 +104,6 @@
     width: 100%;
   }
 
-  .tag-management-summary {
-    justify-items: start;
-  }
-
   .tag-management-row {
     align-items: start;
   }
@@ -117,7 +113,9 @@
   }
 
   .tag-management-toolbar {
+    justify-self: stretch;
     grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .filter-date-grid {
