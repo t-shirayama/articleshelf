@@ -252,6 +252,44 @@
   overflow: hidden;
 }
 
+.readstack-date-picker .v-date-picker-controls--variant-docked {
+  gap: 8px;
+}
+
+.readstack-date-picker .v-date-picker-controls__year {
+  order: 1;
+}
+
+.readstack-date-picker .v-spacer {
+  order: 2;
+}
+
+.readstack-date-picker .v-date-picker-controls__month {
+  order: 3;
+}
+
+.readstack-date-picker .v-date-picker-month__weekday:first-child {
+  color: #b33b2f;
+  font-weight: 700;
+}
+
+.readstack-date-picker .v-date-picker-month__weekday:nth-child(7) {
+  color: #2467a6;
+  font-weight: 700;
+}
+
+.readstack-date-picker
+  .v-date-picker-month__day--week-start:not(.v-date-picker-month__day--adjacent):not(.v-date-picker-month__day--selected)
+  .v-btn {
+  color: #b33b2f;
+}
+
+.readstack-date-picker
+  .v-date-picker-month__day--week-end:not(.v-date-picker-month__day--adjacent):not(.v-date-picker-month__day--selected)
+  .v-btn {
+  color: #2467a6;
+}
+
 .read-later-check {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);
