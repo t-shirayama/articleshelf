@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-if [ ! -d node_modules ] || [ ! -d node_modules/vuetify ]; then
+if [ ! -d node_modules ] || [ ! -d node_modules/vuetify ] || [ ! -d node_modules/vitest ]; then
   echo "Installing frontend dependencies..."
   npm install
 fi
