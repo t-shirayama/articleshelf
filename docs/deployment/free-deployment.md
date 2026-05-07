@@ -125,7 +125,7 @@ https://readstack-api.onrender.com/actuator/health
 | 優先度 | 改修 | 理由 |
 | --- | --- | --- |
 | P0 | `server.port: ${PORT:8080}` にする | PaaS が `PORT` を指定する場合に対応 |
-| P0 | Actuator または軽量 `/api/health` を追加 | Render health check / 外部監視に必要 |
+| P0 | Actuator health endpoint を本番運用向けに調整 | Render health check / 外部監視に必要 |
 | P0 | CORS を本番 frontend origin に限定 | 公開環境で安全に API 通信する |
 | P0 | DB SSL 接続の確認 | managed PostgreSQL が TLS を要求する場合に必要 |
 | P0 | `ddl-auto=update` から migration へ移行検討 | 本番 DB の予期せぬ schema 変更を避ける |
@@ -291,7 +291,7 @@ Environment variable:
 
 - [ ] DB 接続情報を環境変数に登録した
 - [ ] `FRONTEND_ORIGIN` を公開 URL に設定した
-- [ ] health check endpoint を用意した
+- [x] health check endpoint を用意した
 - [ ] Render health check path を設定した
 - [ ] 無料枠の期限、容量、休眠条件を確認した
 - [ ] backup / export 手順を確認した

@@ -21,6 +21,6 @@ export default defineConfig({
     cwd: '..',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 120_000
+    timeout: 180_000
   }
 })
