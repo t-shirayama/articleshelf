@@ -3,9 +3,11 @@
 ## 基本方針
 
 - フロントエンド: Vue.js 3 + TypeScript + Pinia（状態管理） + Vuetify
-- バックエンド: Spring Boot 3 + Spring Data JPA
+- バックエンド: Spring Boot 4 + Spring Data JPA
 - DB: PostgreSQL
 - フロントエンド、バックエンド、DBは Docker / Docker Compose で起動できる構成とする
+- Node.js は 22 LTS を基準にし、Docker / CI / lockfile 前提の `npm ci` で依存関係を揃える
+- Java は 21 LTS を基準にし、Docker の build / runtime も同じ系列に揃える
 - バリデーション: フロントエンドとバックエンド両方で実施
 - API形式: JSON
 - フロントエンドは Vite のホットリロードに対応する
