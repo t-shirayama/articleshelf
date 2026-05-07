@@ -94,7 +94,16 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
 
 <template>
   <VDialog :model-value="open" max-width="640" @update:model-value="value => { if (!value) emit('close') }">
-    <VCard class="filter-dialog" title="フィルタ">
+    <VCard class="filter-dialog">
+      <header class="article-modal-header filter-dialog-title-row">
+        <h2>フィルタ</h2>
+        <div class="article-modal-header-actions filter-dialog-title-actions">
+          <VBtn class="action-button action-button-secondary" variant="outlined" :disabled="!hasAnyDraft" @click="resetDraft">条件をクリア</VBtn>
+          <VBtn class="action-button action-button-secondary" variant="outlined" @click="emit('close')">閉じる</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" @click="applyFilters">適用する</VBtn>
+        </div>
+      </header>
+
       <VCardText class="filter-dialog-body">
         <div class="filter-dialog-section">
           <div class="filter-dialog-header">
@@ -188,13 +197,6 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
           </div>
         </div>
       </VCardText>
-
-      <VCardActions class="filter-dialog-actions">
-        <VBtn class="action-button action-button-secondary" variant="outlined" :disabled="!hasAnyDraft" @click="resetDraft">条件をクリア</VBtn>
-        <VSpacer />
-        <VBtn class="action-button action-button-secondary" variant="outlined" @click="emit('close')">閉じる</VBtn>
-        <VBtn class="action-button action-button-primary" color="primary" variant="flat" @click="applyFilters">適用する</VBtn>
-      </VCardActions>
     </VCard>
   </VDialog>
 </template>

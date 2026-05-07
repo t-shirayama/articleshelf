@@ -26,10 +26,7 @@ const emit = defineEmits<{
 
 const menuOpen = ref(false)
 
-const displayValue = computed({
-  get: () => props.modelValue || '',
-  set: (value: string) => emit('update:modelValue', value || null)
-})
+const displayValue = computed(() => formatDisplayValue(props.modelValue))
 
 const pickerValue = computed({
   get: () => parseDateValue(props.modelValue),
@@ -65,6 +62,10 @@ function formatDateValue(value: Date | string | null): string | null {
   const day = String(value.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
+
+function formatDisplayValue(value?: string | null): string {
+  return value ? value.replace(/-/g, '/') : ''
+}
 </script>
 
 <template>
@@ -79,7 +80,7 @@ function formatDateValue(value: Date | string | null): string | null {
       <template #activator="{ props: menuProps }">
         <VTextField
           v-bind="{ ...$attrs, ...menuProps }"
-          v-model="displayValue"
+          :model-value="displayValue"
           class="readstack-date-field"
           :label="label"
           :density="density"

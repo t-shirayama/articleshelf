@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { ja } from 'vuetify/locale'
 import 'vuetify/styles'
 import App from './App.vue'
 import './styles.css'
@@ -10,6 +11,11 @@ import './styles.css'
 const vuetify = createVuetify({
   components,
   directives,
+  locale: {
+    locale: 'ja',
+    fallback: 'ja',
+    messages: { ja }
+  },
   theme: {
     defaultTheme: 'readstack',
     themes: {
