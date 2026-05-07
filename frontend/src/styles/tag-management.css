@@ -6,7 +6,7 @@
 }
 
 .tag-management-header {
-  grid-template-columns: minmax(180px, auto) minmax(360px, 1fr);
+  grid-template-columns: minmax(180px, auto) minmax(0, 1fr);
 }
 
 .tag-management-title-count {
@@ -38,12 +38,24 @@
 
 .tag-management-toolbar {
   justify-self: end;
-  display: grid;
-  grid-template-columns: minmax(280px, 400px) minmax(190px, 220px) 150px;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: stretch;
-  width: max-content;
+  justify-content: flex-end;
+  width: 100%;
   max-width: 100%;
+}
+
+.tag-management-search {
+  flex: 1 1 280px;
+  max-width: 400px;
+}
+
+.tag-management-sort {
+  flex: 0 0 220px;
+  width: 220px;
+  min-width: 220px;
 }
 
 .tag-management-row {
@@ -141,6 +153,9 @@
 }
 
 .tag-management-add-button {
+  flex: 0 0 150px;
+  width: 150px;
+  min-width: 150px;
   min-height: var(--header-control-height);
   white-space: nowrap;
 }
