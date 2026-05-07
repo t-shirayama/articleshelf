@@ -67,7 +67,15 @@ function submit(): void {
 
 <template>
   <VDialog :model-value="props.open" max-width="640" @update:model-value="handleDialogUpdate">
-    <VCard class="article-modal" title="記事を追加">
+    <VCard class="article-modal">
+      <header class="article-modal-header">
+        <h2>記事を追加</h2>
+        <div class="article-modal-header-actions">
+          <VBtn class="action-button action-button-secondary" type="button" variant="outlined" @click.stop.prevent="cancel">閉じる</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" @click="submit">保存する</VBtn>
+        </div>
+      </header>
+
       <VCardText class="article-modal-body">
         <div v-if="props.error" class="form-error-banner" role="alert" aria-live="assertive">
           <span>{{ props.error }}</span>
@@ -154,12 +162,6 @@ function submit(): void {
           />
         </div>
       </VCardText>
-
-      <VCardActions>
-        <VSpacer />
-        <VBtn class="action-button action-button-secondary" type="button" variant="outlined" @click.stop.prevent="cancel">キャンセル</VBtn>
-        <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" @click="submit">保存する</VBtn>
-      </VCardActions>
     </VCard>
   </VDialog>
 </template>

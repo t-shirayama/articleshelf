@@ -1,7 +1,7 @@
 .article-modal-body {
   display: grid;
   gap: 0;
-  padding: 22px 24px 10px;
+  padding: 4px 24px 18px;
 }
 
 .modal-field {
@@ -328,7 +328,27 @@
   width: min(640px, 100%);
 }
 
-.article-modal .v-card-actions,
+.article-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 4px;
+}
+
+.article-modal-header h2 {
+  margin: 0;
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.article-modal-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
 .delete-confirm-dialog .v-card-actions {
   gap: 10px;
   padding: 14px 24px 22px;
