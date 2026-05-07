@@ -4,6 +4,7 @@ import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.Tag;
+import com.readstack.domain.article.TagUsage;
 import com.readstack.domain.user.UserStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -165,6 +166,110 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
         assertThat(result).singleElement()
                 .satisfies(article -> assertThat(article.getUrl()).isEqualTo("https://example.com/pinia"));
+    }
+
+    @Test
+    void postgresSearchTreatsPercentAndUnderscoreAsLiteralText() {
+        UUID userId = createUser("postgres-search-wildcards@example.com");
+
+        repository.save(new Article(
+                null,
+                userId,
+                "https://example.com/percent",
+                "100% coverage",
+                "",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                Set.of(),
+                Instant.now(),
+                Instant.now()
+        ));
+        repository.save(new Article(
+                null,
+                userId,
+                "https://example.com/wide-percent",
+                "100x coverage",
+                "",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                Set.of(),
+                Instant.now(),
+                Instant.now()
+        ));
+        repository.save(new Article(
+                null,
+                userId,
+                "https://example.com/underscore",
+                "foo_bar note",
+                "",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                Set.of(),
+                Instant.now(),
+                Instant.now()
+        ));
+        repository.save(new Article(
+                null,
+                userId,
+                "https://example.com/wide-underscore",
+                "fooXbar note",
+                "",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                Set.of(),
+                Instant.now(),
+                Instant.now()
+        ));
+
+        List<Article> percentResult = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(null, null, "100%", null)
+        );
+        List<Article> underscoreResult = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(null, null, "foo_bar", null)
+        );
+
+        assertThat(percentResult).extracting(Article::getUrl)
+                .containsExactly("https://example.com/percent");
+        assertThat(underscoreResult).extracting(Article::getUrl)
+                .containsExactly("https://example.com/underscore");
+    }
+
+    @Test
+    void postgresTagUsagesReturnCountsForAllTagsInOneRepositoryCall() {
+        UUID userId = createUser("postgres-tag-usages@example.com");
+        Tag used = tag(userId, "Used");
+        tag(userId, "Unused");
+        repository.save(article(userId, "https://example.com/used-tag", 3, null, Set.of(used)));
+
+        List<TagUsage> usages = repository.findAllTagUsagesByUserId(userId);
+
+        assertThat(usages).hasSize(2);
+        assertThat(usages).anySatisfy(usage -> {
+            assertThat(usage.tag().getName()).isEqualTo("Used");
+            assertThat(usage.articleCount()).isEqualTo(1);
+        });
+        assertThat(usages).anySatisfy(usage -> {
+            assertThat(usage.tag().getName()).isEqualTo("Unused");
+            assertThat(usage.articleCount()).isZero();
+        });
     }
 
     private UUID createUser(String email) {

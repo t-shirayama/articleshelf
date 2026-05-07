@@ -23,10 +23,10 @@ public interface SpringDataArticleJpaRepository extends JpaRepository<ArticleEnt
               and (:tag is null or lower(tag.name) = :tag)
               and (
                     :searchPattern is null
-                    or lower(article.title) like :searchPattern
-                    or lower(article.url) like :searchPattern
-                    or lower(coalesce(article.summary, '')) like :searchPattern
-                    or lower(coalesce(article.notes, '')) like :searchPattern
+                    or lower(article.title) like :searchPattern escape '!'
+                    or lower(article.url) like :searchPattern escape '!'
+                    or lower(coalesce(article.summary, '')) like :searchPattern escape '!'
+                    or lower(coalesce(article.notes, '')) like :searchPattern escape '!'
               )
             order by article.createdAt desc
             """)
