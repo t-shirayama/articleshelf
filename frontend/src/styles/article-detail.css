@@ -300,7 +300,7 @@
 }
 
 .detail-edit-field-row {
-  padding: 12px 0;
+  padding: 16px 0;
   border-top: 1px solid rgba(222, 217, 206, 0.72);
 }
 
@@ -311,6 +311,18 @@
 .detail-edit-field-row > .v-input,
 .detail-edit-field-row > .tag-editor {
   min-width: 0;
+}
+
+.detail-edit-tag-row {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-edit-subsection-heading {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
 }
 
 .detail-accordion-enter-active,

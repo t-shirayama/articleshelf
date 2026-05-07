@@ -181,7 +181,7 @@ function confirmDelete(): void {
             <section class="detail-section detail-edit-notes-section">
               <div class="detail-section-header detail-notes-header">
                 <h3>メモ</h3>
-                <span>内容が一覧でのプレビューや検索の対象になります</span>
+                <span>検索対象になります。Markdown 記法も使えます</span>
               </div>
               <VTextarea
                 v-model="form.notes"
@@ -218,7 +218,10 @@ function confirmDelete(): void {
                     <VTextarea v-model="form.summary" label="概要" rows="4" auto-grow hide-details variant="outlined" />
                   </div>
 
-                  <div class="detail-edit-field-row">
+                  <div class="detail-edit-field-row detail-edit-tag-row">
+                    <div class="detail-edit-subsection-heading">
+                      <span>タグ編集</span>
+                    </div>
                     <TagEditor
                       v-model="form.tags"
                       class="detail-edit-tag-editor"
