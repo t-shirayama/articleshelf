@@ -41,6 +41,11 @@
   height: var(--header-control-height);
   min-height: var(--header-control-height);
   padding-inline: 12px;
+  white-space: nowrap;
+}
+
+.article-add-button {
+  min-width: 168px;
 }
 
 .article-list {

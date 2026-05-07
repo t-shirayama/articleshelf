@@ -318,7 +318,7 @@
 .search-filter-bar {
   justify-self: end;
   display: grid;
-  grid-template-columns: 400px repeat(3, 150px);
+  grid-template-columns: minmax(320px, 400px) 150px 150px 168px;
   gap: 12px;
   align-items: stretch;
   width: max-content;
