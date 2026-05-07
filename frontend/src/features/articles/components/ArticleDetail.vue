@@ -2,6 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { ArrowLeft, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
 import StarRating from '../../../shared/components/StarRating.vue'
+import MarkdownViewer from './MarkdownViewer.vue'
 import TagEditor from './TagEditor.vue'
 import {
   articleToDetailForm,
@@ -215,9 +216,8 @@ function confirmDelete(): void {
               <div class="detail-section-header">
                 <h3>メモ</h3>
               </div>
-              <p class="detail-body-copy detail-notes-copy" :class="{ 'is-empty': !article.notes }">
-                {{ notesText }}
-              </p>
+              <MarkdownViewer v-if="article.notes" :source="article.notes" />
+              <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
             </section>
           </template>
         </section>
