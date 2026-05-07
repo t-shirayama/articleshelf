@@ -207,15 +207,15 @@ function confirmDelete(): void {
               <Transition name="detail-accordion">
                 <div v-if="articleDetailsOpen" class="detail-edit-fields">
                   <div class="detail-edit-field-row">
-                    <VTextField v-model="form.title" label="タイトル" required variant="outlined" />
+                    <VTextField v-model="form.title" label="タイトル" required hide-details variant="outlined" />
                   </div>
 
                   <div class="detail-edit-field-row">
-                    <VTextField v-model="form.url" label="URL" type="url" required variant="outlined" />
+                    <VTextField v-model="form.url" label="URL" type="url" required hide-details variant="outlined" />
                   </div>
 
                   <div class="detail-edit-field-row">
-                    <VTextarea v-model="form.summary" label="概要" rows="4" auto-grow variant="outlined" />
+                    <VTextarea v-model="form.summary" label="概要" rows="4" auto-grow hide-details variant="outlined" />
                   </div>
 
                   <div class="detail-edit-field-row">

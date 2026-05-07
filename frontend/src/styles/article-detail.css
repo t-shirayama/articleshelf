@@ -256,7 +256,7 @@
 .detail-edit-fields {
   display: grid;
   min-width: 0;
-  padding: 0 20px 18px;
+  padding: 0px 20px;
 }
 
 .detail-edit-fields > .v-input,
@@ -300,7 +300,7 @@
 }
 
 .detail-edit-field-row {
-  padding: 14px 0;
+  padding: 12px 0;
   border-top: 1px solid rgba(222, 217, 206, 0.72);
 }
 
@@ -437,4 +437,3 @@
 .field-row.stacked {
   grid-template-columns: 1fr;
 }
-
