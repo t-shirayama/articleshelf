@@ -42,9 +42,5 @@ public interface SpringDataArticleJpaRepository extends JpaRepository<ArticleEnt
 
     Optional<ArticleEntity> findByUrlAndUserId(String url, UUID userId);
 
-    boolean existsByUrlAndUserId(String url, UUID userId);
-
-    boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id);
-
     List<ArticleEntity> findAllByUserIdIsNull();
 }

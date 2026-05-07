@@ -1,5 +1,6 @@
 package com.readstack.infrastructure.security;
 
+import com.readstack.application.auth.RefreshTokenSecretService;
 import com.readstack.config.AuthProperties;
 import org.springframework.stereotype.Service;
 
@@ -10,7 +11,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 @Service
-public class RefreshTokenHashService {
+public class RefreshTokenHashService implements RefreshTokenSecretService {
     private final AuthProperties properties;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -18,12 +19,14 @@ public class RefreshTokenHashService {
         this.properties = properties;
     }
 
+    @Override
     public String generateRawToken() {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
+    @Override
     public String hash(String rawToken) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");

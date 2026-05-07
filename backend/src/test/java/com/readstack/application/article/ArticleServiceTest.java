@@ -10,6 +10,7 @@ import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.Tag;
 import com.readstack.domain.article.TagNotFoundException;
+import com.readstack.domain.article.TagRepository;
 import com.readstack.domain.article.TagUsage;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ArticleServiceTest {
     private final InMemoryArticleRepository repository = new InMemoryArticleRepository();
     private final StubMetadataProvider metadataProvider = new StubMetadataProvider();
-    private final ArticleService service = new ArticleService(repository, metadataProvider);
+    private final ArticleService service = new ArticleService(repository, repository, metadataProvider);
     private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user@example.com", "User", List.of("USER"));
 
     @Test
@@ -261,7 +262,7 @@ class ArticleServiceTest {
         }
     }
 
-    private static class InMemoryArticleRepository implements ArticleRepository {
+    private static class InMemoryArticleRepository implements ArticleRepository, TagRepository {
         private final Map<UUID, Article> articles = new LinkedHashMap<>();
         private final Map<UUID, Tag> tags = new LinkedHashMap<>();
 
@@ -296,18 +297,6 @@ class ArticleServiceTest {
                     .filter(article -> article.getUserId().equals(userId))
                     .filter(article -> article.getUrl().equals(url))
                     .findFirst();
-        }
-
-        @Override
-        public boolean existsByUrlAndUserId(String url, UUID userId) {
-            return findByUrlAndUserId(url, userId).isPresent();
-        }
-
-        @Override
-        public boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id) {
-            return findByUrlAndUserId(url, userId)
-                    .filter(article -> !article.getId().equals(id))
-                    .isPresent();
         }
 
         @Override

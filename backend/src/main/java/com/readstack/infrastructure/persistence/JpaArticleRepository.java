@@ -5,6 +5,7 @@ import com.readstack.domain.article.ArticleRepository;
 import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.Tag;
 import com.readstack.domain.article.TagNotFoundException;
+import com.readstack.domain.article.TagRepository;
 import com.readstack.domain.article.TagUsage;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public class JpaArticleRepository implements ArticleRepository {
+public class JpaArticleRepository implements ArticleRepository, TagRepository {
     private final SpringDataArticleJpaRepository articleJpaRepository;
     private final SpringDataTagJpaRepository tagJpaRepository;
     private final SpringDataArticleTagJpaRepository articleTagJpaRepository;
@@ -54,16 +55,6 @@ public class JpaArticleRepository implements ArticleRepository {
     @Override
     public Optional<Article> findByUrlAndUserId(String url, UUID userId) {
         return articleJpaRepository.findByUrlAndUserId(url, userId).map(this::toDomain);
-    }
-
-    @Override
-    public boolean existsByUrlAndUserId(String url, UUID userId) {
-        return articleJpaRepository.existsByUrlAndUserId(url, userId);
-    }
-
-    @Override
-    public boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id) {
-        return articleJpaRepository.existsByUrlAndUserIdAndIdNot(url, userId, id);
     }
 
     @Override

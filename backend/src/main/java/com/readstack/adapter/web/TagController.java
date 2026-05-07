@@ -1,7 +1,7 @@
 package com.readstack.adapter.web;
 
-import com.readstack.application.article.ArticleService;
 import com.readstack.application.article.TagResponse;
+import com.readstack.application.article.TagService;
 import com.readstack.application.auth.CurrentUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -24,21 +24,21 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/tags")
 public class TagController {
-    private final ArticleService articleService;
+    private final TagService tagService;
 
-    public TagController(ArticleService articleService) {
-        this.articleService = articleService;
+    public TagController(TagService tagService) {
+        this.tagService = tagService;
     }
 
     @GetMapping
     public List<TagResponse> findTags(@AuthenticationPrincipal CurrentUser user) {
-        return articleService.findTags(user);
+        return tagService.findTags(user);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public TagResponse addTag(@AuthenticationPrincipal CurrentUser user, @Valid @RequestBody TagRequest request) {
-        return articleService.addTag(user, request.name());
+        return tagService.addTag(user, request.name());
     }
 
     @PatchMapping("/{id}")
@@ -47,7 +47,7 @@ public class TagController {
             @PathVariable UUID id,
             @Valid @RequestBody TagRequest request
     ) {
-        return articleService.renameTag(user, id, request.name());
+        return tagService.renameTag(user, id, request.name());
     }
 
     @PostMapping("/{sourceId}/merge")
@@ -57,13 +57,13 @@ public class TagController {
             @PathVariable UUID sourceId,
             @Valid @RequestBody TagMergeRequest request
     ) {
-        articleService.mergeTags(user, sourceId, request.targetTagId());
+        tagService.mergeTags(user, sourceId, request.targetTagId());
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUnusedTag(@AuthenticationPrincipal CurrentUser user, @PathVariable UUID id) {
-        articleService.deleteUnusedTag(user, id);
+        tagService.deleteUnusedTag(user, id);
     }
 
     public record TagRequest(@NotBlank String name) {
