@@ -1,0 +1,107 @@
+.tag-management-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.tag-management-header {
+  grid-template-columns: minmax(180px, 1fr) auto;
+}
+
+.tag-management-summary {
+  display: grid;
+  min-width: 112px;
+  min-height: var(--header-control-height);
+  align-content: center;
+  justify-items: end;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(24, 108, 116, 0.18);
+  border-radius: 8px;
+}
+
+.tag-management-summary span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.tag-management-summary strong {
+  color: var(--accent-strong);
+  font-size: 1.1rem;
+}
+
+.tag-management-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.tag-management-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 96px 148px;
+  gap: 14px;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px 14px;
+  background: rgba(255, 253, 250, 0.82);
+  border-bottom: 1px solid rgba(105, 112, 109, 0.14);
+}
+
+.tag-management-row:first-child {
+  border-top: 1px solid rgba(105, 112, 109, 0.14);
+}
+
+.tag-management-row-head {
+  min-height: 40px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: rgba(238, 245, 242, 0.9);
+}
+
+.tag-management-name-cell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag-management-name-cell .v-chip {
+  max-width: 100%;
+}
+
+.tag-management-count-cell strong {
+  display: inline-grid;
+  min-width: 42px;
+  height: 28px;
+  place-items: center;
+  color: var(--accent-strong);
+  background: rgba(216, 239, 238, 0.72);
+  border-radius: 999px;
+}
+
+.tag-management-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.tag-management-rename-input {
+  max-width: 360px;
+}
+
+.tag-management-dialog-body {
+  display: grid;
+  gap: 14px;
+}
+
+.tag-management-dialog-body p {
+  margin: 0;
+  color: var(--text);
+}

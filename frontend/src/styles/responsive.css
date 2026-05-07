@@ -40,6 +40,8 @@
   }
 
   .page-header,
+  .tag-management-header,
+  .tag-management-row,
   .search-filter-bar,
   .calendar-toolbar,
   .detail-layout,
@@ -100,6 +102,18 @@
   .search-filter-bar {
     justify-self: stretch;
     width: 100%;
+  }
+
+  .tag-management-summary {
+    justify-items: start;
+  }
+
+  .tag-management-row {
+    align-items: start;
+  }
+
+  .tag-management-actions {
+    justify-content: flex-start;
   }
 
   .filter-date-grid {

@@ -10,6 +10,7 @@ import CalendarView from "../components/CalendarView.vue";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog.vue";
 import FilterDialog from "../components/FilterDialog.vue";
 import StatusUndoSnackbar from "../components/StatusUndoSnackbar.vue";
+import TagManagementView from "../components/TagManagementView.vue";
 import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
@@ -22,7 +23,7 @@ import type {
 } from "../types";
 
 type PersistedArticleStatus = Exclude<ArticleStatus, "ALL">;
-type ViewMode = "list" | "calendar" | "detail";
+type ViewMode = "list" | "calendar" | "detail" | "tags";
 
 interface StatusUndoState {
   articleId: string;
@@ -49,6 +50,7 @@ const pendingNavigation = ref<(() => void) | null>(null);
 const isCreatingArticle = ref(false);
 const isSavingDetail = ref(false);
 const isDeletingArticle = ref(false);
+const isSavingTag = ref(false);
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
@@ -76,6 +78,7 @@ const isFavoriteActive = computed(
   () => isListMode.value && store.filters.favorite,
 );
 const isCalendarActive = computed(() => viewMode.value === "calendar");
+const isTagsActive = computed(() => viewMode.value === "tags");
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer);
@@ -214,6 +217,10 @@ function showCalendar(): void {
   requestNavigation(navigateToCalendar);
 }
 
+function showTags(): void {
+  requestNavigation(navigateToTags);
+}
+
 function setStatus(status: ArticleStatus): void {
   requestNavigation(() => {
     navigateToList();
@@ -261,6 +268,45 @@ async function loadInitialData(): Promise<void> {
 
 async function retryInitialLoad(): Promise<void> {
   await loadInitialData();
+}
+
+async function renameTag(id: string, name: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.renameTag(id, name);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : "タグ名を変更できませんでした";
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
+async function mergeTag(sourceId: string, targetId: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.mergeTag(sourceId, targetId);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : "タグを統合できませんでした";
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
+async function deleteTag(id: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.deleteTag(id);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : "タグを削除できませんでした";
+  } finally {
+    isSavingTag.value = false;
+  }
 }
 
 function applyAdvancedFilters(filters: {
@@ -318,6 +364,11 @@ function navigateToCalendar(): void {
   viewMode.value = "calendar";
 }
 
+function navigateToTags(): void {
+  if (viewMode.value !== "tags") rotateMotivation();
+  viewMode.value = "tags";
+}
+
 function cancelPendingNavigation(): void {
   pendingNavigation.value = null;
   unsavedChangesDialogOpen.value = false;
@@ -348,11 +399,13 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       :is-read-active="isReadActive"
       :is-favorite-active="isFavoriteActive"
       :is-calendar-active="isCalendarActive"
+      :is-tags-active="isTagsActive"
       :user-name="authStore.user?.displayName || authStore.user?.email || ''"
       @all-articles="setAllArticles"
       @status="setStatus"
       @favorite-only="setFavoriteOnly"
       @calendar="showCalendar"
+      @tags="showTags"
       @logout="logout"
     />
 
@@ -380,9 +433,21 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       />
 
       <CalendarView
-        v-else
+        v-else-if="viewMode === 'calendar'"
         :articles="store.articles"
         @open-article="openArticle"
+      />
+
+      <TagManagementView
+        v-else
+        :tags="store.tags"
+        :error="store.error"
+        :loading="store.loading"
+        :saving="isSavingTag"
+        @rename-tag="renameTag"
+        @merge-tag="mergeTag"
+        @delete-tag="deleteTag"
+        @retry="retryInitialLoad"
       />
     </main>
   </div>

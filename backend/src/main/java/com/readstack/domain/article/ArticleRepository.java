@@ -21,7 +21,19 @@ public interface ArticleRepository {
 
     void deleteByIdAndUserId(UUID id, UUID userId);
 
-    List<Tag> findAllTagsByUserId(UUID userId);
+    List<TagUsage> findAllTagUsagesByUserId(UUID userId);
 
     Tag saveTag(UUID userId, String name);
+
+    Optional<Tag> findTagByIdAndUserId(UUID id, UUID userId);
+
+    Optional<Tag> findTagByNameAndUserId(String name, UUID userId);
+
+    long countArticlesByTagIdAndUserId(UUID tagId, UUID userId);
+
+    Tag renameTag(UUID userId, UUID tagId, String name);
+
+    void mergeTags(UUID userId, UUID sourceTagId, UUID targetTagId);
+
+    void deleteTagByIdAndUserId(UUID tagId, UUID userId);
 }

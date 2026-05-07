@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
@@ -160,6 +161,69 @@ class AuthAndArticleIntegrationTest {
     }
 
     @Test
+    void usersCanManageTheirOwnTags() throws Exception {
+        when(metadataProvider.fetch(anyString()))
+                .thenReturn(new ArticleMetadata("", "", "", true));
+        AuthSession session = register("tags-" + UUID.randomUUID() + "@example.com");
+
+        String unusedTagId = createTag(session, "Unused");
+        mockMvc.perform(patch("/api/tags/{id}", unusedTagId)
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Archive\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Archive"))
+                .andExpect(jsonPath("$.articleCount").value(0));
+
+        mockMvc.perform(delete("/api/tags/{id}", unusedTagId)
+                        .header("Authorization", session.bearer()))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/tag-merge-%s",
+                                  "title": "Tagged article",
+                                  "summary": "",
+                                  "status": "UNREAD",
+                                  "favorite": false,
+                                  "rating": 0,
+                                  "notes": "",
+                                  "tags": ["Vue", "Frontend"]
+                                }
+                                """.formatted(UUID.randomUUID())))
+                .andExpect(status().isCreated());
+
+        JsonNode tags = objectMapper.readTree(mockMvc.perform(get("/api/tags")
+                        .header("Authorization", session.bearer()))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        String sourceId = tagIdByName(tags, "Frontend");
+        String targetId = tagIdByName(tags, "Vue");
+
+        mockMvc.perform(post("/api/tags/{sourceId}/merge", sourceId)
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"targetTagId\":\"%s\"}".formatted(targetId)))
+                .andExpect(status().isNoContent());
+
+        JsonNode mergedTags = objectMapper.readTree(mockMvc.perform(get("/api/tags")
+                        .header("Authorization", session.bearer()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.name == 'Frontend')]").isEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+        assertThat(mergedTags).hasSize(1);
+        assertThat(mergedTags.get(0).get("name").asText()).isEqualTo("Vue");
+        assertThat(mergedTags.get(0).get("articleCount").asInt()).isEqualTo(1);
+    }
+
+    @Test
     void otherUsersCannotUpdateOrDeletePrivateArticles() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("Fetched title", "Fetched summary", "", true));
@@ -231,6 +295,25 @@ class AuthAndArticleIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJson(url, title)))
                 .andExpect(status().isCreated());
+    }
+
+    private String createTag(AuthSession session, String name) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/tags")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"%s\"}".formatted(name)))
+                .andExpect(status().isCreated())
+                .andReturn();
+        return objectMapper.readTree(result.getResponse().getContentAsString()).get("id").asText();
+    }
+
+    private String tagIdByName(JsonNode tags, String name) {
+        for (JsonNode tag : tags) {
+            if (name.equals(tag.get("name").asText())) {
+                return tag.get("id").asText();
+            }
+        }
+        throw new IllegalArgumentException("tag not found: " + name);
     }
 
     private String articleJson(String url, String title) {

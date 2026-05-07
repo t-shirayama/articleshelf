@@ -61,6 +61,21 @@ export const useArticlesStore = defineStore('articles', {
         this.error = error instanceof Error ? error.message : 'タグの取得に失敗しました'
       }
     },
+    async renameTag(id: string, name: string): Promise<void> {
+      await articlesApi.renameTag(id, name)
+      await this.fetchTags()
+      await this.fetchArticles()
+    },
+    async mergeTag(sourceId: string, targetTagId: string): Promise<void> {
+      await articlesApi.mergeTag(sourceId, targetTagId)
+      await this.fetchTags()
+      await this.fetchArticles()
+    },
+    async deleteTag(id: string): Promise<void> {
+      await articlesApi.deleteTag(id)
+      await this.fetchTags()
+      await this.fetchArticles()
+    },
     async selectArticle(article: Article): Promise<void> {
       this.selectedArticle = await articlesApi.findArticle(article.id)
     },

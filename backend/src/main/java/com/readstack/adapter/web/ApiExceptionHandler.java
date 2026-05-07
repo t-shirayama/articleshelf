@@ -4,6 +4,9 @@ import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
+import com.readstack.domain.article.DuplicateTagNameException;
+import com.readstack.domain.article.TagInUseException;
+import com.readstack.domain.article.TagNotFoundException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.readstack.adapter.web.AuthController.CsrfValidationException;
 import com.readstack.application.auth.AuthException;
@@ -35,6 +38,24 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleConflict(DuplicateArticleUrlException exception) {
         return ErrorResponse.ofDuplicateArticle(exception.getMessage(), exception.getExistingArticleId());
+    }
+
+    @ExceptionHandler(DuplicateTagNameException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicateTagName(DuplicateTagNameException exception) {
+        return ErrorResponse.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(TagInUseException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleTagInUse(TagInUseException exception) {
+        return ErrorResponse.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(TagNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleTagNotFound(TagNotFoundException exception) {
+        return ErrorResponse.of(exception.getMessage());
     }
 
     @ExceptionHandler(ArticleUrlUnavailableException.class)

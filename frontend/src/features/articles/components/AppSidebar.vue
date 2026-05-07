@@ -7,6 +7,7 @@ import {
   Heart,
   Library,
   LogOut,
+  Tags,
 } from "lucide-vue-next";
 import MotivationCard from "./MotivationCard.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
@@ -24,6 +25,7 @@ defineProps<{
   isReadActive: boolean;
   isFavoriteActive: boolean;
   isCalendarActive: boolean;
+  isTagsActive: boolean;
   userName: string;
 }>();
 
@@ -32,6 +34,7 @@ const emit = defineEmits<{
   status: [status: ArticleStatus];
   favoriteOnly: [];
   calendar: [];
+  tags: [];
   logout: [];
 }>();
 </script>
@@ -108,6 +111,17 @@ const emit = defineEmits<{
           <CalendarDays :size="18" />
         </template>
         <span>カレンダー</span>
+      </VBtn>
+      <VBtn
+        block
+        variant="text"
+        :color="isTagsActive ? 'primary' : undefined"
+        @click="emit('tags')"
+      >
+        <template #prepend>
+          <Tags :size="18" />
+        </template>
+        <span>タグ管理</span>
       </VBtn>
     </nav>
 
