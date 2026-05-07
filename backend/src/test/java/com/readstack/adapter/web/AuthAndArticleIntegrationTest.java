@@ -117,12 +117,68 @@ class AuthAndArticleIntegrationTest {
 
         mockMvc.perform(post("/api/articles")
                         .header("Authorization", userA.bearer())
+                        .header("Accept-Language", "en")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(articleJson(url, "Duplicate")))
                 .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.messages[0]").value("This URL is already registered."))
                 .andExpect(jsonPath("$.existingArticleId").isNotEmpty());
 
         createArticle(userB, url, "Other user");
+    }
+
+    @Test
+    void apiErrorsFollowAcceptLanguageAndFallbackToEnglish() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .header("Accept-Language", "ja")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "not-an-email",
+                                  "password": "password123",
+                                  "displayName": "Test User"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("メールアドレスの形式が正しくありません。"));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "not-an-email",
+                                  "password": "password123",
+                                  "displayName": "Test User"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Email address must be a valid email address."));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .header("Accept-Language", "fr")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "not-an-email",
+                                  "password": "password123",
+                                  "displayName": "Test User"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Email address must be a valid email address."));
+
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "not-an-email",
+                                  "password": "password123",
+                                  "displayName": "Test User"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Email address must be a valid email address."));
     }
 
     @Test

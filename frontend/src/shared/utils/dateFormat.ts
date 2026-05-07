@@ -1,31 +1,41 @@
-const dateFormatter = new Intl.DateTimeFormat('ja-JP', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit'
-})
+import { getCurrentLocale, translate } from "../i18n";
 
-const dateTimeFormatter = new Intl.DateTimeFormat('ja-JP', {
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-  hour: '2-digit',
-  minute: '2-digit'
-})
-
-export function formatDate(value?: string | null, fallback = '未設定'): string {
+export function formatDate(value?: string | null, fallback = translate("common.unset")): string {
   if (!value) return fallback
 
   const parsed = parseDate(value)
   if (!parsed) return value
-  return dateFormatter.format(parsed)
+  return createDateFormatter().format(parsed)
 }
 
-export function formatDateTime(value?: string | null, fallback = '未設定'): string {
+export function formatDateTime(value?: string | null, fallback = translate("common.unset")): string {
   if (!value) return fallback
 
   const parsed = parseDate(value)
   if (!parsed) return value
-  return dateTimeFormatter.format(parsed)
+  return createDateTimeFormatter().format(parsed)
+}
+
+function createDateFormatter(): Intl.DateTimeFormat {
+  return new Intl.DateTimeFormat(currentIntlLocale(), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })
+}
+
+function createDateTimeFormatter(): Intl.DateTimeFormat {
+  return new Intl.DateTimeFormat(currentIntlLocale(), {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
+function currentIntlLocale(): string {
+  return getCurrentLocale() === 'ja' ? 'ja-JP' : 'en-US'
 }
 
 function parseDate(value: string): Date | null {

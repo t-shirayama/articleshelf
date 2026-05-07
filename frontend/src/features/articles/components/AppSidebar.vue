@@ -9,6 +9,10 @@ import {
   LogOut,
   Tags,
 } from "lucide-vue-next";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
+import type { SupportedLocale } from "../../../shared/i18n/locales";
 import MotivationCard from "./MotivationCard.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
 
@@ -37,6 +41,18 @@ const emit = defineEmits<{
   tags: [];
   logout: [];
 }>();
+
+const { t, locale } = useI18n({ useScope: "global" });
+const languageOptions = computed(() => [
+  { title: t("locale.ja"), value: "ja" },
+  { title: t("locale.en"), value: "en" },
+]);
+
+function changeLocale(value: unknown): void {
+  const nextLocale: SupportedLocale = value === "ja" ? "ja" : "en";
+  setCurrentLocale(nextLocale);
+  locale.value = getCurrentLocale();
+}
 </script>
 
 <template>
@@ -46,8 +62,8 @@ const emit = defineEmits<{
         <BookOpen :size="22" />
       </div>
       <div>
-        <strong>ReadStack</strong>
-        <span>学びを蓄える記事棚</span>
+        <strong>{{ t("common.appName") }}</strong>
+        <span>{{ t("common.appTagline") }}</span>
       </div>
     </div>
 
@@ -63,7 +79,7 @@ const emit = defineEmits<{
         <template #prepend>
           <Library :size="18" />
         </template>
-        <span>すべての記事</span>
+        <span>{{ t("nav.allArticles") }}</span>
         <strong>{{ counts.all }}</strong>
       </VBtn>
       <VBtn
@@ -77,7 +93,7 @@ const emit = defineEmits<{
         <template #prepend>
           <Circle :size="18" />
         </template>
-        <span>未読</span>
+        <span>{{ t("nav.unread") }}</span>
         <strong>{{ counts.unread }}</strong>
       </VBtn>
       <VBtn
@@ -91,7 +107,7 @@ const emit = defineEmits<{
         <template #prepend>
           <CheckCircle2 :size="18" />
         </template>
-        <span>既読</span>
+        <span>{{ t("nav.read") }}</span>
         <strong>{{ counts.read }}</strong>
       </VBtn>
       <div class="side-nav-divider" aria-hidden="true" />
@@ -106,7 +122,7 @@ const emit = defineEmits<{
         <template #prepend>
           <Heart :size="18" />
         </template>
-        <span>お気に入り</span>
+        <span>{{ t("nav.favorite") }}</span>
       </VBtn>
       <div class="side-nav-divider" aria-hidden="true" />
       <VBtn
@@ -120,7 +136,7 @@ const emit = defineEmits<{
         <template #prepend>
           <CalendarDays :size="18" />
         </template>
-        <span>カレンダー</span>
+        <span>{{ t("nav.calendar") }}</span>
       </VBtn>
       <div class="side-nav-divider" aria-hidden="true" />
       <VBtn
@@ -134,13 +150,25 @@ const emit = defineEmits<{
         <template #prepend>
           <Tags :size="18" />
         </template>
-        <span>タグ管理</span>
+        <span>{{ t("nav.tagManagement") }}</span>
       </VBtn>
     </nav>
 
     <MotivationCard :card="currentMotivation" />
 
     <div class="sidebar-account">
+      <VSelect
+        class="sidebar-language-select"
+        :model-value="getCurrentLocale()"
+        :items="languageOptions"
+        item-title="title"
+        item-value="value"
+        density="compact"
+        variant="outlined"
+        hide-details
+        :label="t('locale.label')"
+        @update:model-value="changeLocale"
+      />
       <span>{{ userName }}</span>
       <VBtn
         block
@@ -152,7 +180,7 @@ const emit = defineEmits<{
         <template #prepend>
           <LogOut :size="17" />
         </template>
-        ログアウト
+        {{ t("nav.logout") }}
       </VBtn>
     </div>
   </aside>

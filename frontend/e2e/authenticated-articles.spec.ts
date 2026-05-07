@@ -188,10 +188,33 @@ test('user can create a standalone tag from tag management', async ({ page }, te
 
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox', { name: 'タグ名' }).fill(tagName)
-  await dialog.getByRole('button', { name: '追加する' }).click()
+  await dialog.getByRole('button', { name: '追加', exact: true }).click()
 
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toBeVisible()
+})
+
+test('user can switch to English and the choice persists', async ({ page }, testInfo) => {
+  const email = uniqueEmail('english', testInfo)
+
+  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'en'))
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Sign up', exact: true }).click()
+  await page.getByLabel('Email address').fill(email)
+  await page.getByLabel('Display name').fill('E2E User')
+  await page.getByLabel('Password').fill('password123')
+  await page.getByRole('button', { name: 'Sign up and start' }).click()
+
+  await expect(page.getByRole('heading', { name: 'All articles' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Tag management' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Log out/ })).toBeVisible()
+
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'All articles' })).toBeVisible()
+
+  await page.getByRole('combobox', { name: 'Language' }).press('ArrowDown')
+  await page.getByRole('option', { name: '日本語' }).click()
+  await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
 })
 
 test('users cannot see each other articles', async ({ page }, testInfo) => {
@@ -250,6 +273,7 @@ test('user separation also blocks update and delete through the API', async ({ r
 })
 
 async function register(page: Page, email: string): Promise<void> {
+  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'ja'))
   await page.goto('/')
   await page.getByRole('button', { name: '登録', exact: true }).click()
   await page.getByLabel('メールアドレス').fill(email)

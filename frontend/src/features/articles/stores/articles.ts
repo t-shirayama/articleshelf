@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { translate } from '../../../shared/i18n'
 import { articlesApi } from '../api/articlesApi'
 import { createDefaultArticleFilters, filterArticles, sortArticles } from '../domain/articleFilters'
 import { replaceArticle, toArticleInput } from '../domain/articleMappers'
@@ -49,7 +50,7 @@ export const useArticlesStore = defineStore('articles', {
           this.selectedArticle = this.articles.find((article) => article.id === selectedId) || null
         }
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : '記事の取得に失敗しました'
+        this.error = error instanceof Error ? error.message : translate('articles.fetchError')
       } finally {
         this.loading = false
       }
@@ -58,7 +59,7 @@ export const useArticlesStore = defineStore('articles', {
       try {
         this.tags = await articlesApi.findTags()
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : 'タグの取得に失敗しました'
+        this.error = error instanceof Error ? error.message : translate('tags.fetchError')
       }
     },
     async createTag(name: string): Promise<void> {
@@ -93,7 +94,7 @@ export const useArticlesStore = defineStore('articles', {
       this.selectedArticle = created
     },
     async updateArticle(article: ArticleInput): Promise<void> {
-      if (!article.id) throw new Error('更新対象の記事IDがありません')
+      if (!article.id) throw new Error(translate('articles.missingUpdateTarget'))
       const updated = await articlesApi.updateArticle(article.id, article)
       await this.fetchTags()
       await this.fetchArticles()
@@ -114,7 +115,7 @@ export const useArticlesStore = defineStore('articles', {
         this.articles = previousArticles
         this.allArticles = previousAllArticles
         this.selectedArticle = previousSelectedArticle
-        this.error = error instanceof Error ? error.message : 'お気に入りの更新に失敗しました'
+        this.error = error instanceof Error ? error.message : translate('articles.favoriteError')
       }
     },
     async updateArticleStatus(article: Article, status: Exclude<ArticleStatus, 'ALL'>, readDate: string | null): Promise<Article | null> {
@@ -133,7 +134,7 @@ export const useArticlesStore = defineStore('articles', {
         this.articles = previousArticles
         this.allArticles = previousAllArticles
         this.selectedArticle = previousSelectedArticle
-        this.error = error instanceof Error ? error.message : 'ステータスの更新に失敗しました'
+        this.error = error instanceof Error ? error.message : translate('articles.statusError')
         return null
       }
     },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Plus, Tag, X } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string[]]
 }>()
 
+const { t } = useI18n()
 const selectedExistingTag = ref('')
 const existingTagSearch = ref('')
 const newTag = ref('')
@@ -58,7 +60,7 @@ function normalizeTags(tags: string[]): string[] {
 <template>
   <div class="tag-editor">
     <div class="tag-editor-selected">
-      <span class="tag-editor-label">選択済みタグ</span>
+      <span class="tag-editor-label">{{ t('articleForm.selectedTags') }}</span>
       <div v-if="selectedTags.length > 0" class="tag-editor-chip-list">
         <VChip
           v-for="tag in selectedTags"
@@ -79,7 +81,7 @@ function normalizeTags(tags: string[]): string[] {
           </template>
         </VChip>
       </div>
-      <p v-else class="tag-editor-empty">タグはまだ選択されていません</p>
+      <p v-else class="tag-editor-empty">{{ t('articleForm.noSelectedTags') }}</p>
     </div>
 
     <div class="tag-editor-controls">
@@ -92,7 +94,7 @@ function normalizeTags(tags: string[]): string[] {
         clearable
         density="comfortable"
         hide-details
-        label="既存タグから追加"
+        :label="t('articleForm.existingTag')"
         variant="outlined"
         @update:model-value="addExistingTag(String($event || ''))"
       />
@@ -103,8 +105,8 @@ function normalizeTags(tags: string[]): string[] {
           class="tag-editor-new-input"
           density="comfortable"
           hide-details
-          label="新しいタグ"
-          placeholder="例: Vue"
+          :label="t('articleForm.newTag')"
+          :placeholder="t('articleForm.newTagPlaceholder')"
           variant="outlined"
           @keydown.enter.prevent="addNewTag"
         />
@@ -118,7 +120,7 @@ function normalizeTags(tags: string[]): string[] {
           <template #prepend>
             <Plus :size="16" />
           </template>
-          追加
+          {{ t('common.add') }}
         </VBtn>
       </div>
     </div>

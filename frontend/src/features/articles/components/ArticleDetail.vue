@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
 import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
@@ -36,6 +37,7 @@ const emit = defineEmits<{
   'update:dirty': [value: boolean]
 }>()
 
+const { t } = useI18n()
 const form = reactive(createEmptyArticleDetailForm())
 const deleteDialogOpen = ref(false)
 const isEditing = ref(false)
@@ -55,18 +57,18 @@ const detailMode = computed<'view' | 'edit'>({
   }
 })
 const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
-const statusOptions = [
-  { label: '未読', value: 'UNREAD' },
-  { label: '既読', value: 'READ' }
-] satisfies Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>
-const summaryText = computed(() => props.article?.summary?.trim() || '概要はまだありません')
+const statusOptions = computed<Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>>(() => [
+  { label: t('articles.statusUnread'), value: 'UNREAD' },
+  { label: t('articles.statusRead'), value: 'READ' }
+])
+const summaryText = computed(() => props.article?.summary?.trim() || t('detail.emptySummary'))
 const notesText = computed(() => props.article?.notes?.trim() || '')
 const hasUnsavedChanges = computed(() => Boolean(
   props.article && isEditing.value && hasArticleDetailFormChanges(form, props.article)
 ))
-const urlError = computed(() => (form.url.trim() ? '' : 'URLは必須です'))
-const titleError = computed(() => (form.title.trim() ? '' : 'タイトルを入力してください'))
-const readDateError = computed(() => (form.status === 'READ' && !form.readDate ? '既読にする場合は既読日を入力してください' : ''))
+const urlError = computed(() => (form.url.trim() ? '' : t('articleForm.validation.urlRequired')))
+const titleError = computed(() => (form.title.trim() ? '' : t('detail.titleRequired')))
+const readDateError = computed(() => (form.status === 'READ' && !form.readDate ? t('detail.readDateRequired') : ''))
 const formValid = computed(() => !urlError.value && !titleError.value && !readDateError.value)
 
 watch(
@@ -124,7 +126,7 @@ function confirmDelete(): void {
 <template>
   <main class="detail-page" :class="{ 'is-editing': isEditing }">
     <div v-if="!article" class="empty-detail">
-      <span>記事を選択すると詳細を編集できます。</span>
+      <span>{{ t('detail.emptySelection') }}</span>
     </div>
 
     <VForm v-else class="detail-form" @submit.prevent="submit">
@@ -133,12 +135,12 @@ function confirmDelete(): void {
           <template #prepend>
             <ArrowLeft :size="17" />
           </template>
-          戻る
+          {{ t('common.back') }}
         </VBtn>
 
         <VBtnToggle v-model="detailMode" class="mode-toggle detail-mode-toggle" mandatory>
-          <VBtn value="view">閲覧</VBtn>
-          <VBtn value="edit">編集</VBtn>
+          <VBtn value="view">{{ t('detail.view') }}</VBtn>
+          <VBtn value="edit">{{ t('detail.edit') }}</VBtn>
         </VBtnToggle>
 
         <div class="detail-topbar-actions">
@@ -146,7 +148,7 @@ function confirmDelete(): void {
             class="favorite-button detail-favorite-button"
             :class="{ 'is-active': isEditing ? form.favorite : article.favorite }"
             icon
-            title="お気に入り"
+            :title="t('common.favorite')"
             variant="text"
             @click="toggleFavorite"
           >
@@ -160,8 +162,8 @@ function confirmDelete(): void {
             class="detail-action-icon-button detail-save-button"
             :disabled="!isEditing || props.saving"
             :loading="props.saving"
-            title="保存"
-            aria-label="保存"
+            :title="t('common.save')"
+            :aria-label="t('common.save')"
           >
             <Save :size="18" />
           </VBtn>
@@ -169,8 +171,8 @@ function confirmDelete(): void {
             class="detail-action-icon-button detail-delete-button"
             color="error"
             icon
-            title="削除"
-            aria-label="削除"
+            :title="t('common.delete')"
+            :aria-label="t('common.delete')"
             variant="outlined"
             :loading="props.deleting"
             :disabled="props.deleting"
@@ -189,8 +191,8 @@ function confirmDelete(): void {
             <span class="detail-link-text">{{ article.url }}</span>
           </a>
           <div class="detail-timestamps">
-            <span>登録日時 {{ formatDateTime(article.createdAt) }}</span>
-            <span>更新日時 {{ formatDateTime(article.updatedAt) }}</span>
+            <span>{{ t('common.createdAt') }} {{ formatDateTime(article.createdAt) }}</span>
+            <span>{{ t('common.updatedAt') }} {{ formatDateTime(article.updatedAt) }}</span>
           </div>
         </div>
       </div>
@@ -208,14 +210,14 @@ function confirmDelete(): void {
           <template v-if="isEditing">
             <section class="detail-section detail-edit-notes-section">
               <div class="detail-section-header detail-notes-header">
-                <h3>メモ</h3>
-                <span>検索対象になります。Markdown 記法も使えます</span>
+                <h3>{{ t('common.notes') }}</h3>
+                <span>{{ t('detail.notesHelp') }}</span>
               </div>
               <VTextarea
                 v-model="form.notes"
                 class="detail-edit-notes-field"
                 counter="2000"
-                label="メモ"
+                :label="t('common.notes')"
                 rows="13"
                 variant="outlined"
               />
@@ -228,7 +230,7 @@ function confirmDelete(): void {
                 :aria-expanded="articleDetailsOpen"
                 @click="articleDetailsOpen = !articleDetailsOpen"
               >
-                <span>記事の詳細</span>
+                <span>{{ t('detail.articleDetails') }}</span>
                 <ChevronDown :size="18" aria-hidden="true" />
               </button>
 
@@ -237,7 +239,7 @@ function confirmDelete(): void {
                   <div class="detail-edit-field-row">
                     <VTextField
                       v-model="form.title"
-                      label="タイトル"
+                      :label="t('common.title')"
                       required
                       variant="outlined"
                       :error-messages="submitted && titleError ? [titleError] : []"
@@ -247,7 +249,7 @@ function confirmDelete(): void {
                   <div class="detail-edit-field-row">
                     <VTextField
                       v-model="form.url"
-                      label="URL"
+                      :label="t('common.url')"
                       type="url"
                       required
                       variant="outlined"
@@ -256,12 +258,12 @@ function confirmDelete(): void {
                   </div>
 
                   <div class="detail-edit-field-row">
-                    <VTextarea v-model="form.summary" label="概要" rows="4" auto-grow hide-details variant="outlined" />
+                    <VTextarea v-model="form.summary" :label="t('common.summary')" rows="4" auto-grow hide-details variant="outlined" />
                   </div>
 
                   <div class="detail-edit-field-row detail-edit-tag-row">
                     <div class="detail-edit-subsection-heading">
-                      <span>タグ編集</span>
+                      <span>{{ t('detail.tagEdit') }}</span>
                     </div>
                     <TagEditor
                       v-model="form.tags"
@@ -276,7 +278,7 @@ function confirmDelete(): void {
           <template v-else>
             <section class="detail-section">
               <div class="detail-section-header">
-                <h3>概要</h3>
+                <h3>{{ t('common.summary') }}</h3>
               </div>
               <p class="detail-body-copy" :class="{ 'is-empty': !article.summary }">
                 {{ summaryText }}
@@ -285,19 +287,19 @@ function confirmDelete(): void {
 
             <section class="detail-section">
               <div class="detail-section-header">
-                <h3>タグ</h3>
+                <h3>{{ t('common.tags') }}</h3>
               </div>
               <div v-if="article.tags.length > 0" class="tag-list detail-tag-list">
                 <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" color="secondary" variant="flat">
                   {{ tag.name }}
                 </VChip>
               </div>
-              <p v-else class="detail-body-copy is-empty">タグはまだありません</p>
+              <p v-else class="detail-body-copy is-empty">{{ t('detail.emptyTags') }}</p>
             </section>
 
             <section class="detail-section">
               <div class="detail-section-header">
-                <h3>メモ</h3>
+                <h3>{{ t('common.notes') }}</h3>
               </div>
               <MarkdownViewer v-if="article.notes" :source="article.notes" />
               <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
@@ -308,7 +310,7 @@ function confirmDelete(): void {
         <VCard class="detail-meta" variant="flat">
           <VCardText class="detail-meta-content">
             <div class="detail-meta-block">
-              <span class="detail-meta-label">ステータス</span>
+              <span class="detail-meta-label">{{ t('common.status') }}</span>
               <VSelect
                 v-model="form.status"
                 class="readstack-select detail-meta-control"
@@ -323,7 +325,7 @@ function confirmDelete(): void {
             </div>
 
             <div class="detail-meta-block">
-              <span class="detail-meta-label">既読日</span>
+              <span class="detail-meta-label">{{ t('common.readDate') }}</span>
               <DateField
                 v-model="form.readDate"
                 class="readstack-date-field detail-meta-control"
@@ -335,7 +337,7 @@ function confirmDelete(): void {
             </div>
 
             <div class="detail-meta-block">
-              <span class="detail-meta-label">おすすめ度</span>
+              <span class="detail-meta-label">{{ t('common.rating') }}</span>
               <div class="rating-field detail-rating-field">
                 <template v-if="isEditing">
                   <StarRating v-model="form.rating" :size="20" />
@@ -350,16 +352,16 @@ function confirmDelete(): void {
       </div>
 
       <VDialog v-model="deleteDialogOpen" max-width="420">
-        <VCard class="delete-confirm-dialog" title="記事を削除しますか？">
+        <VCard class="delete-confirm-dialog" :title="t('dialogs.deleteArticleTitle')">
           <VCardText>
             <p>
-              「{{ article.title }}」を削除します。この操作は取り消せません。
+              {{ t('dialogs.deleteArticleBody', { title: article.title }) }}
             </p>
           </VCardText>
           <VCardActions>
             <VSpacer />
-            <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteDialogOpen = false">キャンセル</VBtn>
-            <VBtn class="action-button action-button-danger" color="error" variant="flat" :loading="props.deleting" :disabled="props.deleting" @click="confirmDelete">削除する</VBtn>
+            <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteDialogOpen = false">{{ t('common.cancel') }}</VBtn>
+            <VBtn class="action-button action-button-danger" color="error" variant="flat" :loading="props.deleting" :disabled="props.deleting" @click="confirmDelete">{{ t('common.deleteAction') }}</VBtn>
           </VCardActions>
         </VCard>
       </VDialog>

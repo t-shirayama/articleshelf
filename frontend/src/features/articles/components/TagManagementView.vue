@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { Check, GitMerge, Pencil, Plus, Search, Trash2, X } from "lucide-vue-next";
+import { getCurrentLocale } from "../../../shared/i18n";
 import type { Tag } from "../types";
 
 type TagSort = "COUNT_DESC" | "COUNT_ASC" | "NAME_ASC";
@@ -21,6 +23,7 @@ const emit = defineEmits<{
   retry: [];
 }>();
 
+const { t } = useI18n();
 const addDialogOpen = ref(false);
 const addDraft = ref("");
 const renameTagId = ref("");
@@ -31,17 +34,17 @@ const deleteCandidate = ref<Tag | null>(null);
 const searchQuery = ref<string | null>("");
 const sortMode = ref<TagSort>("COUNT_DESC");
 
-const sortOptions = [
-  { title: "記事数が多い順", value: "COUNT_DESC" },
-  { title: "記事数が少ない順", value: "COUNT_ASC" },
-  { title: "名前順", value: "NAME_ASC" },
-];
+const sortOptions = computed(() => [
+  { title: t("tags.sortCountDesc"), value: "COUNT_DESC" },
+  { title: t("tags.sortCountAsc"), value: "COUNT_ASC" },
+  { title: t("tags.sortNameAsc"), value: "NAME_ASC" },
+]);
 
 const filteredTags = computed(() => {
-  const keyword = (searchQuery.value || "").trim().toLocaleLowerCase("ja");
+  const keyword = (searchQuery.value || "").trim().toLocaleLowerCase(currentTextLocale());
   if (!keyword) return props.tags;
   return props.tags.filter((tag) =>
-    tag.name.toLocaleLowerCase("ja").includes(keyword),
+    tag.name.toLocaleLowerCase(currentTextLocale()).includes(keyword),
   );
 });
 
@@ -133,7 +136,11 @@ function confirmDelete(): void {
 }
 
 function deleteTooltip(tag: Tag): string {
-  return (tag.articleCount || 0) > 0 ? "使用中のタグは削除できません" : "削除";
+  return (tag.articleCount || 0) > 0 ? t("tags.deleteDisabledTooltip") : t("tags.deleteTooltip");
+}
+
+function currentTextLocale(): string {
+  return getCurrentLocale() === "ja" ? "ja" : "en";
 }
 </script>
 
@@ -142,8 +149,8 @@ function deleteTooltip(tag: Tag): string {
     <header class="page-header tag-management-header">
       <div>
         <h1>
-          タグ管理
-          <span class="tag-management-title-count">{{ tags.length }}件</span>
+          {{ t("tags.title") }}
+          <span class="tag-management-title-count">{{ t("tags.count", { count: tags.length }) }}</span>
         </h1>
       </div>
       <div class="tag-management-toolbar">
@@ -153,7 +160,7 @@ function deleteTooltip(tag: Tag): string {
           type="text"
           clearable
           hide-details
-          placeholder="タグ名で検索"
+          :placeholder="t('tags.searchPlaceholder')"
         >
           <template #prepend-inner>
             <Search :size="18" />
@@ -168,7 +175,7 @@ function deleteTooltip(tag: Tag): string {
           hide-details
           density="comfortable"
           variant="outlined"
-          label="並び順"
+          :label="t('tags.sortLabel')"
         />
         <VBtn
           class="action-button action-button-primary tag-management-add-button"
@@ -179,7 +186,7 @@ function deleteTooltip(tag: Tag): string {
           <template #prepend>
             <Plus :size="18" />
           </template>
-          タグを追加
+          {{ t("tags.add") }}
         </VBtn>
       </div>
     </header>
@@ -190,7 +197,7 @@ function deleteTooltip(tag: Tag): string {
       role="alert"
       aria-live="assertive"
     >
-      <strong>タグ操作を完了できませんでした</strong>
+      <strong>{{ t("tags.operationErrorTitle") }}</strong>
       <span>{{ error }}</span>
       <div class="error-banner-actions">
         <VBtn
@@ -199,7 +206,7 @@ function deleteTooltip(tag: Tag): string {
           size="small"
           @click="emit('retry')"
         >
-          再試行
+          {{ t("common.retry") }}
         </VBtn>
       </div>
     </div>
@@ -209,8 +216,8 @@ function deleteTooltip(tag: Tag): string {
     </div>
 
     <div v-else-if="tags.length === 0" class="empty-state">
-      <h2>まだタグがありません</h2>
-      <p>タグを先に用意しておくと、記事を登録するときに選びやすくなります。</p>
+      <h2>{{ t("tags.emptyTitle") }}</h2>
+      <p>{{ t("tags.emptyBody") }}</p>
       <VBtn
         class="action-button action-button-primary"
         color="primary"
@@ -220,15 +227,15 @@ function deleteTooltip(tag: Tag): string {
         <template #prepend>
           <Plus :size="18" />
         </template>
-        最初のタグを追加
+        {{ t("tags.addFirst") }}
       </VBtn>
     </div>
 
     <div v-else class="tag-management-list" aria-live="polite">
       <div class="tag-management-row tag-management-row-head">
-        <span>タグ</span>
-        <span>記事数</span>
-        <span>操作</span>
+        <span>{{ t("tags.name") }}</span>
+        <span>{{ t("tags.articles") }}</span>
+        <span>{{ t("tags.actions") }}</span>
       </div>
 
       <div
@@ -254,7 +261,7 @@ function deleteTooltip(tag: Tag): string {
               color="primary"
               :loading="saving"
               :disabled="saving || !renameDraft.trim()"
-              aria-label="タグ名を保存"
+              :aria-label="t('tags.saveName')"
               @click="confirmRename"
             >
               <Check :size="18" />
@@ -263,7 +270,7 @@ function deleteTooltip(tag: Tag): string {
               icon
               size="small"
               variant="text"
-              aria-label="リネームをキャンセル"
+              :aria-label="t('tags.cancelRename')"
               @click="cancelRename"
             >
               <X :size="18" />
@@ -284,7 +291,7 @@ function deleteTooltip(tag: Tag): string {
           <button
             class="tag-management-count-button"
             type="button"
-            :aria-label="`${tag.name} の記事一覧を開く`"
+            :aria-label="t('tags.openArticles', { name: tag.name })"
             @click="emit('openTagArticles', tag.name)"
           >
             {{ tag.articleCount || 0 }}
@@ -292,7 +299,7 @@ function deleteTooltip(tag: Tag): string {
         </div>
 
         <div class="tag-management-actions">
-          <VTooltip text="編集" location="top">
+          <VTooltip :text="t('tags.rename')" location="top">
             <template #activator="{ props: tooltipProps }">
               <span v-bind="tooltipProps">
                 <VBtn
@@ -301,18 +308,18 @@ function deleteTooltip(tag: Tag): string {
                   variant="text"
                   color="primary"
                   :disabled="saving"
-                  aria-label="編集"
+                  :aria-label="t('tags.rename')"
                   @click="startRename(tag)"
                 >
                   <template #prepend>
                     <Pencil :size="16" />
                   </template>
-                  編集
+                  {{ t("tags.rename") }}
                 </VBtn>
               </span>
             </template>
           </VTooltip>
-          <VTooltip text="タグを統合" location="top">
+          <VTooltip :text="t('tags.merge')" location="top">
             <template #activator="{ props: tooltipProps }">
               <span v-bind="tooltipProps">
                 <VBtn
@@ -321,13 +328,13 @@ function deleteTooltip(tag: Tag): string {
                   variant="text"
                   color="primary"
                   :disabled="saving || tags.length < 2"
-                  aria-label="タグを統合"
+                  :aria-label="t('tags.merge')"
                   @click="openMerge(tag)"
                 >
                   <template #prepend>
                     <GitMerge :size="16" />
                   </template>
-                  統合
+                  {{ t("tags.merge") }}
                 </VBtn>
               </span>
             </template>
@@ -341,13 +348,13 @@ function deleteTooltip(tag: Tag): string {
                   variant="text"
                   color="error"
                   :disabled="saving || (tag.articleCount || 0) > 0"
-                  aria-label="削除"
+                  :aria-label="t('tags.deleteTooltip')"
                   @click="requestDelete(tag)"
                 >
                   <template #prepend>
                     <Trash2 :size="16" />
                   </template>
-                  削除
+                  {{ t("tags.deleteTooltip") }}
                 </VBtn>
               </span>
             </template>
@@ -356,22 +363,22 @@ function deleteTooltip(tag: Tag): string {
       </div>
 
       <div v-if="sortedTags.length === 0" class="tag-management-empty-filter">
-        <strong>条件に一致するタグがありません</strong>
-        <span>検索語を変えると、別のタグが見つかるかもしれません。</span>
+        <strong>{{ t("tags.filterEmptyTitle") }}</strong>
+        <span>{{ t("tags.filterEmptyBody") }}</span>
       </div>
 
       <p class="tag-management-help">
-        タグ名の編集、統合、削除ができます。使用中のタグは削除できません。タグ名や記事数を選ぶと、そのタグの記事一覧へ移動します。
+        {{ t("tags.help") }}
       </p>
     </div>
 
     <VDialog :model-value="addDialogOpen" max-width="420" @update:model-value="!$event && closeAddDialog()">
       <VCard class="tag-management-dialog">
-        <VCardTitle>タグを追加</VCardTitle>
+        <VCardTitle>{{ t("tags.addTitle") }}</VCardTitle>
         <VCardText class="tag-management-dialog-body">
           <VTextField
             v-model="addDraft"
-            label="タグ名"
+            :label="t('tags.name')"
             autofocus
             :disabled="saving"
             @keyup.enter="confirmAdd"
@@ -379,7 +386,7 @@ function deleteTooltip(tag: Tag): string {
         </VCardText>
         <VCardActions>
           <VSpacer />
-          <VBtn variant="text" :disabled="saving" @click="closeAddDialog">キャンセル</VBtn>
+          <VBtn variant="text" :disabled="saving" @click="closeAddDialog">{{ t("common.cancel") }}</VBtn>
           <VBtn
             class="action-button action-button-primary"
             color="primary"
@@ -388,7 +395,7 @@ function deleteTooltip(tag: Tag): string {
             :disabled="saving || !addDraft.trim()"
             @click="confirmAdd"
           >
-            追加する
+            {{ t("common.add") }}
           </VBtn>
         </VCardActions>
       </VCard>
@@ -396,16 +403,16 @@ function deleteTooltip(tag: Tag): string {
 
     <VDialog :model-value="Boolean(mergeSource)" max-width="460" @update:model-value="!$event && closeMerge()">
       <VCard class="tag-management-dialog">
-        <VCardTitle>タグを統合</VCardTitle>
+        <VCardTitle>{{ t("tags.mergeTitle") }}</VCardTitle>
         <VCardText class="tag-management-dialog-body">
           <p>
             <strong>{{ mergeSource?.name }}</strong>
-            を選択したタグへ統合します。
+            {{ t("tags.mergeBody", { name: mergeSource?.name || '' }) }}
           </p>
           <VSelect
             v-model="mergeTargetId"
             class="readstack-select"
-            label="統合先"
+            :label="t('tags.mergeTarget')"
             :items="mergeOptions"
             item-title="title"
             item-value="value"
@@ -413,7 +420,7 @@ function deleteTooltip(tag: Tag): string {
         </VCardText>
         <VCardActions>
           <VSpacer />
-          <VBtn variant="text" @click="closeMerge">キャンセル</VBtn>
+          <VBtn variant="text" @click="closeMerge">{{ t("common.cancel") }}</VBtn>
           <VBtn
             class="action-button action-button-primary"
             color="primary"
@@ -422,7 +429,7 @@ function deleteTooltip(tag: Tag): string {
             :disabled="saving || !mergeTargetId"
             @click="confirmMerge"
           >
-            統合する
+            {{ t("tags.mergeConfirm") }}
           </VBtn>
         </VCardActions>
       </VCard>
@@ -430,15 +437,13 @@ function deleteTooltip(tag: Tag): string {
 
     <VDialog :model-value="Boolean(deleteCandidate)" max-width="420" @update:model-value="!$event && (deleteCandidate = null)">
       <VCard class="tag-management-dialog">
-        <VCardTitle>未使用タグを削除</VCardTitle>
+        <VCardTitle>{{ t("tags.deleteUnusedTitle") }}</VCardTitle>
         <VCardText>
-          未使用の
-          <strong>「{{ deleteCandidate?.name }}」</strong>
-          タグを削除します。このタグは記事に紐づいていません。記事自体は削除されません。
+          {{ t("tags.deleteUnusedBody", { name: deleteCandidate?.name || '' }) }}
         </VCardText>
         <VCardActions>
           <VSpacer />
-          <VBtn variant="text" @click="deleteCandidate = null">キャンセル</VBtn>
+          <VBtn variant="text" @click="deleteCandidate = null">{{ t("common.cancel") }}</VBtn>
           <VBtn
             class="action-button action-button-danger"
             color="error"
@@ -447,7 +452,7 @@ function deleteTooltip(tag: Tag): string {
             :disabled="saving"
             @click="confirmDelete"
           >
-            削除する
+            {{ t("common.deleteAction") }}
           </VBtn>
         </VCardActions>
       </VCard>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { ApiRequestError } from "../../../shared/api/client";
 import { useAuthStore } from "../../auth/stores/auth";
 import ArticleDetail from "../components/ArticleDetail.vue";
@@ -33,6 +34,7 @@ interface StatusUndoState {
 
 const authStore = useAuthStore();
 const store = useArticlesStore();
+const { t } = useI18n();
 const modalOpen = ref(false);
 const filterDialogOpen = ref(false);
 const articleFormError = ref("");
@@ -108,7 +110,7 @@ async function createArticle(article: ArticleInput): Promise<void> {
     viewMode.value = "list";
   } catch (error: unknown) {
     articleFormError.value =
-      error instanceof Error ? error.message : "記事を保存できませんでした";
+      error instanceof Error ? error.message : t("articles.saveError");
     duplicateArticleId.value =
       error instanceof ApiRequestError ? error.existingArticleId || "" : "";
   } finally {
@@ -124,7 +126,7 @@ async function saveArticle(article: ArticleInput): Promise<void> {
     await store.updateArticle(article);
   } catch (error: unknown) {
     detailFormError.value =
-      error instanceof Error ? error.message : "記事を保存できませんでした";
+      error instanceof Error ? error.message : t("articles.saveError");
   } finally {
     isSavingDetail.value = false;
   }
@@ -147,7 +149,7 @@ async function deleteArticle(articleId: string): Promise<void> {
     navigateToList();
   } catch (error: unknown) {
     detailFormError.value =
-      error instanceof Error ? error.message : "記事を削除できませんでした";
+      error instanceof Error ? error.message : t("articles.deleteError");
   } finally {
     isDeletingArticle.value = false;
   }
@@ -194,7 +196,7 @@ async function toggleArticleStatus(article: Article): Promise<void> {
     readDate: previousReadDate,
   };
   statusSnackbarMessage.value =
-    nextStatus === "READ" ? "既読にしました" : "未読に戻しました";
+    nextStatus === "READ" ? t("articles.statusReadDone") : t("articles.statusUnreadDone");
   statusSnackbarOpen.value = true;
 }
 
@@ -277,7 +279,7 @@ async function renameTag(id: string, name: string): Promise<void> {
   try {
     await store.renameTag(id, name);
   } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : "タグ名を変更できませんでした";
+    store.error = error instanceof Error ? error.message : t("tags.renameError");
   } finally {
     isSavingTag.value = false;
   }
@@ -290,7 +292,7 @@ async function addTag(name: string): Promise<void> {
   try {
     await store.createTag(name);
   } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : "タグを追加できませんでした";
+    store.error = error instanceof Error ? error.message : t("tags.addError");
   } finally {
     isSavingTag.value = false;
   }
@@ -303,7 +305,7 @@ async function mergeTag(sourceId: string, targetId: string): Promise<void> {
   try {
     await store.mergeTag(sourceId, targetId);
   } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : "タグを統合できませんでした";
+    store.error = error instanceof Error ? error.message : t("tags.mergeError");
   } finally {
     isSavingTag.value = false;
   }
@@ -316,7 +318,7 @@ async function deleteTag(id: string): Promise<void> {
   try {
     await store.deleteTag(id);
   } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : "タグを削除できませんでした";
+    store.error = error instanceof Error ? error.message : t("tags.deleteError");
   } finally {
     isSavingTag.value = false;
   }

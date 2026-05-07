@@ -14,6 +14,8 @@ import com.readstack.application.auth.DuplicateEmailException;
 import com.readstack.domain.user.PasswordPolicyException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,68 +26,84 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    private final MessageSource messageSource;
+
+    public ApiExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
     @ExceptionHandler(ArticleNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(RuntimeException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        return ErrorResponse.of(message("error.article.notFound"));
     }
 
     @ExceptionHandler(DuplicateArticleUrlException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleConflict(DuplicateArticleUrlException exception) {
-        return ErrorResponse.ofDuplicateArticle(exception.getMessage(), exception.getExistingArticleId());
+        return ErrorResponse.ofDuplicateArticle(message("error.article.duplicateUrl"), exception.getExistingArticleId());
     }
 
     @ExceptionHandler(DuplicateTagNameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateTagName(DuplicateTagNameException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        if (exception.getMessage().contains("merge target")) {
+            return ErrorResponse.of(message("error.tag.mergeSame"));
+        }
+        return ErrorResponse.of(message("error.tag.duplicate"));
     }
 
     @ExceptionHandler(TagInUseException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleTagInUse(TagInUseException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        return ErrorResponse.of(message("error.tag.inUse"));
     }
 
     @ExceptionHandler(TagNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleTagNotFound(TagNotFoundException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        return ErrorResponse.of(message("error.tag.notFound"));
     }
 
     @ExceptionHandler(ArticleUrlUnavailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleUnavailableUrl(ArticleUrlUnavailableException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        return ErrorResponse.of(message("error.article.urlUnavailable"));
     }
 
     @ExceptionHandler({AuthException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleAuth(RuntimeException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        if (exception.getMessage().contains("refresh token")) {
+            return ErrorResponse.of(message("error.auth.refreshInvalid"));
+        }
+        return ErrorResponse.of(message("error.auth.invalidCredentials"));
     }
 
     @ExceptionHandler(CsrfValidationException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleCsrf(RuntimeException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        return ErrorResponse.of(message("error.auth.csrf"));
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateEmail(DuplicateEmailException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        return ErrorResponse.of(message("error.auth.duplicateEmail"));
     }
 
     @ExceptionHandler(PasswordPolicyException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlePasswordPolicy(PasswordPolicyException exception) {
-        return ErrorResponse.of(exception.getMessage());
+        if (exception.getMessage().contains("同じ")) {
+            return ErrorResponse.of(message("error.auth.passwordSameAsEmail"));
+        }
+        return ErrorResponse.of(message("error.auth.passwordSize"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -115,30 +133,51 @@ public class ApiExceptionHandler {
                     .orElse("request");
             return ErrorResponse.of(formatTypeMismatch(field, invalidFormatException.getTargetType()));
         }
-        return ErrorResponse.of("request body is invalid");
+        return ErrorResponse.of(message("error.request.invalidBody"));
     }
 
     private String formatFieldError(FieldError error) {
-        return error.getField() + " " + error.getDefaultMessage();
+        String field = message("field." + error.getField());
+        String code = error.getCode();
+        if ("NotBlank".equals(code)) {
+            return message("error.validation.required", field);
+        }
+        if ("Email".equals(code)) {
+            return message("error.validation.email", field);
+        }
+        if ("Size".equals(code)) {
+            return message("error.validation.size", field);
+        }
+        return message("error.validation.invalid", field);
     }
 
     private String formatTypeMismatch(String field, Class<?> requiredType) {
+        String fieldName = message("field." + field);
         if (requiredType == null) {
-            return field + " is invalid";
+            return message("error.validation.invalid", fieldName);
         }
         if (requiredType.isEnum() && requiredType == ArticleStatus.class) {
-            return field + " must be one of: UNREAD, READ";
+            return message("error.type.status", fieldName);
         }
         if (requiredType == UUID.class) {
-            return field + " must be a valid UUID";
+            return message("error.type.uuid", fieldName);
         }
         if (requiredType == LocalDate.class) {
-            return field + " must be a valid date in yyyy-MM-dd format";
+            return message("error.type.date", fieldName);
         }
         if (requiredType == Boolean.class || requiredType == boolean.class) {
-            return field + " must be true or false";
+            return message("error.type.boolean", fieldName);
         }
-        return field + " is invalid";
+        return message("error.validation.invalid", fieldName);
+    }
+
+    private String message(String key, Object... args) {
+        return messageSource.getMessage(key, args, key, currentLocale());
+    }
+
+    private Locale currentLocale() {
+        Locale locale = LocaleContextHolder.getLocale();
+        return Locale.JAPANESE.getLanguage().equals(locale.getLanguage()) ? Locale.JAPANESE : Locale.ENGLISH;
     }
 
     public record ErrorResponse(Instant timestamp, List<String> messages, UUID existingArticleId) {
