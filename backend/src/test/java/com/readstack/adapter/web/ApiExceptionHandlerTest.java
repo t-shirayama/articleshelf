@@ -10,6 +10,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.validation.FieldError;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -85,6 +87,16 @@ class ApiExceptionHandlerTest {
     }
 
     @Test
+    void validationMessagesHandleUrlMinAndMaxSpecifically() {
+        assertThat(formatFieldError("url", "URL", null))
+                .isEqualTo("URL must be a valid URL.");
+        assertThat(formatFieldError("rating", "Min", 0))
+                .isEqualTo("Rating must be at least 0.");
+        assertThat(formatFieldError("rating", "Max", 5))
+                .isEqualTo("Rating must be at most 5.");
+    }
+
+    @Test
     void passwordPolicyResponsesUseReasonCodeInsteadOfExceptionMessage() {
         ApiExceptionHandler.ErrorResponse invalidSize = handler.handlePasswordPolicy(
                 new PasswordPolicyException(PasswordPolicyException.Reason.SIZE, "too short")
@@ -105,5 +117,11 @@ class ApiExceptionHandlerTest {
 
         assertThat(response.messages()).containsExactly("An unexpected error occurred.");
         assertThat(response.messages().get(0)).doesNotContain("internal implementation detail");
+    }
+
+    private String formatFieldError(String field, String code, Object constraintValue) {
+        Object[] arguments = constraintValue == null ? null : new Object[]{field, constraintValue};
+        FieldError error = new FieldError("request", field, null, false, new String[]{code}, arguments, null);
+        return ReflectionTestUtils.invokeMethod(handler, "formatFieldError", error);
     }
 }

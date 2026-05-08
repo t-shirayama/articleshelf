@@ -134,7 +134,7 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-BE-012 | P0 | UsernamePolicy | username 正規化 / 形式 | 3〜32文字、許可文字、小文字正規化を検証する |
 | UT-BE-013 | P1 | AuthRateLimiter | 登録 / ログイン試行制限 | login は `IP + username`、register は IP 単位で超過時に拒否し、window 後に再許可する |
 | UT-BE-014 | P0 | OgpRequestGuard | SSRF 対策 | scheme、localhost、loopback、private、link-local、multicast、metadata endpoint、IPv6 unique local を拒否する |
-| IT-BE-006 | P1 | Auth rate limit API | 429 応答 | `X-Forwarded-For` の IP を使い、register / login の超過時に統一 JSON エラーを返す |
+| IT-BE-006 | P1 | Auth rate limit API | 429 応答 | Spring が確定した client IP を使い、register / login の超過時に統一 JSON エラーを返す |
 | IT-API-010 | P1 | ArticleRequest validation | API 境界の入力制約 | `rating` 範囲外や長すぎる `title` を 400 で拒否する |
 | UT-FE-001 | P0 | API adapter | Article response 変換 | UI が必要な型に変換される |
 | UT-FE-002 | P0 | store | お気に入り楽観更新成功 | 一覧全体 reload なしで状態維持 |

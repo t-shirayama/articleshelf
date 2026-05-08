@@ -245,7 +245,26 @@ class AuthAndArticleIntegrationTest {
                                 }
                                 """.formatted(UUID.randomUUID())))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages[0]").value("Rating is invalid."));
+                .andExpect(jsonPath("$.messages[0]").value("Rating must be at most 5."));
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "not-a-url",
+                                  "title": "Article",
+                                  "summary": "",
+                                  "status": "UNREAD",
+                                  "favorite": false,
+                                  "rating": 0,
+                                  "notes": "",
+                                  "tags": []
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("URL must be a valid URL."));
 
         mockMvc.perform(post("/api/articles")
                         .header("Authorization", session.bearer())

@@ -180,7 +180,24 @@ public class ApiExceptionHandler {
         if ("Pattern".equals(code)) {
             return message("error.validation.pattern", field);
         }
+        if ("URL".equals(code)) {
+            return message("error.validation.url", field);
+        }
+        if ("Min".equals(code)) {
+            return message("error.validation.min", field, constraintValue(error));
+        }
+        if ("Max".equals(code)) {
+            return message("error.validation.max", field, constraintValue(error));
+        }
         return message("error.validation.invalid", field);
+    }
+
+    private Object constraintValue(FieldError error) {
+        Object[] arguments = error.getArguments();
+        if (arguments == null || arguments.length < 2) {
+            return "";
+        }
+        return arguments[1];
     }
 
     private String formatTypeMismatch(String field, Class<?> requiredType) {

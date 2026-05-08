@@ -28,8 +28,9 @@
 
 ## 認証レート制限
 
-- `/api/auth/login` は `X-Forwarded-For` の先頭 IP と正規化 username の組み合わせで in-memory レート制限する
-- `/api/auth/register` は `X-Forwarded-For` の先頭 IP で in-memory レート制限する
+- `/api/auth/login` は Spring が確定した client IP と正規化 username の組み合わせで in-memory レート制限する
+- `/api/auth/register` は Spring が確定した client IP で in-memory レート制限する
+- application code では `X-Forwarded-For` を直接読まず、forwarded header の解釈は Spring / servlet container 側へ寄せる
 - 既定値は login が `5回 / 60秒`、register が `3回 / 600秒` とし、環境変数で調整できる
 - Render 無料枠の単一 backend インスタンスを前提にした簡易防御であり、再起動やスリープ復帰でカウンタはリセットされる
-- 複数インスタンス構成では制限が分散するため、Redis などの共有ストアまたは proxy 側 rate limit を別途検討する
+- 複数インスタンス構成では制限が分散するため、Redis などの共有ストア、proxy、WAF 側 rate limit を別途検討する

@@ -133,11 +133,16 @@ https://readstack-api.onrender.com/actuator/health
 | P1 | 本番 profile の logging 調整 | SQL や secret を出しすぎない |
 | P1 | graceful shutdown | deploy 時の中断を減らす |
 
+認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う。
+backend へ外部から直接到達させず、Render の公開 HTTPS 経路を通す構成を前提にする。
+複数インスタンスへ拡張する場合は、backend in-memory ではなく Redis、proxy、WAF 側の rate limit へ移す。
+
 `application.yml` の変更案:
 
 ```yaml
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 management:
   endpoints:

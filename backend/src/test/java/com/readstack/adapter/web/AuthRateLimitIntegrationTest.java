@@ -47,13 +47,13 @@ class AuthRateLimitIntegrationTest {
     @Test
     void registerReturnsTooManyRequestsWhenIpLimitIsExceeded() throws Exception {
         mockMvc.perform(post("/api/auth/register")
-                        .header("X-Forwarded-For", "203.0.113.20, 10.0.0.1")
+                        .with(remoteAddress("203.0.113.20"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerJson(uniqueUsername("first"))))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/auth/register")
-                        .header("X-Forwarded-For", "203.0.113.20")
+                        .with(remoteAddress("203.0.113.20"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerJson(uniqueUsername("second"))))
                 .andExpect(status().isTooManyRequests())
@@ -64,19 +64,19 @@ class AuthRateLimitIntegrationTest {
     void loginReturnsTooManyRequestsWhenIpAndUsernameLimitIsExceeded() throws Exception {
         String username = uniqueUsername("login");
         mockMvc.perform(post("/api/auth/register")
-                        .header("X-Forwarded-For", "203.0.113.21")
+                        .with(remoteAddress("203.0.113.21"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registerJson(username)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/auth/login")
-                        .header("X-Forwarded-For", "203.0.113.22")
+                        .with(remoteAddress("203.0.113.22"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson(username, "wrong-password123")))
                 .andExpect(status().isUnauthorized());
 
         mockMvc.perform(post("/api/auth/login")
-                        .header("X-Forwarded-For", "203.0.113.22")
+                        .with(remoteAddress("203.0.113.22"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson(username.toUpperCase(), "wrong-password123")))
                 .andExpect(status().isTooManyRequests())
@@ -93,6 +93,13 @@ class AuthRateLimitIntegrationTest {
 
     private String uniqueUsername(String prefix) {
         return (prefix + "-" + UUID.randomUUID().toString().replace("-", "")).substring(0, 24);
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor remoteAddress(String address) {
+        return request -> {
+            request.setRemoteAddr(address);
+            return request;
+        };
     }
 
     private record RegisterPayload(String username, String password, String displayName) {

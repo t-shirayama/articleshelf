@@ -146,7 +146,7 @@ npm run seed:sample
 
 - 認証関連の主な環境変数は `JWT_ACCESS_SECRET`, `AUTH_REFRESH_TOKEN_HASH_SECRET`, `AUTH_COOKIE_SAME_SITE`, `AUTH_COOKIE_SECURE`, `AUTH_CSRF_ENABLED`, `READSTACK_INITIAL_USER_ENABLED`, `READSTACK_INITIAL_USERNAME`, `READSTACK_INITIAL_USER_PASSWORD`, `READSTACK_AUTH_RATE_LIMIT_ENABLED`, `READSTACK_LOGIN_RATE_LIMIT_CAPACITY`, `READSTACK_LOGIN_RATE_LIMIT_WINDOW_SECONDS`, `READSTACK_REGISTER_RATE_LIMIT_CAPACITY`, `READSTACK_REGISTER_RATE_LIMIT_WINDOW_SECONDS`
 - 初期管理者ユーザーは通常作成しない。管理者パスワードリセット検証などで必要な場合のみ `READSTACK_INITIAL_USER_ENABLED=true` を指定し、`READSTACK_INITIAL_USERNAME`, `READSTACK_INITIAL_USER_PASSWORD` で初期値を与える
-- 登録 / ログインの公開 API は backend の in-memory レート制限で保護する。Render 無料枠の単一インスタンス運用を前提とした簡易制限で、複数インスタンス化する場合は Redis や proxy 側の制限を別途検討する
+- 登録 / ログインの公開 API は backend の in-memory レート制限で保護する。Render 無料枠の単一インスタンス運用を前提とした簡易制限で、複数インスタンス化する場合は Redis、proxy、WAF 側の制限を別途検討する
 - 本番相当では `SPRING_PROFILES_ACTIVE=prod` と `FRONTEND_ORIGIN`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` を必須で与える
 - managed PostgreSQL を使う場合は `SPRING_DATASOURCE_URL=jdbc:postgresql://.../readstack?sslmode=require` のように JDBC URL 側で TLS を有効化する
 - 本番では refresh / logout が cookie 認証ベースになるため、`AUTH_CSRF_ENABLED=true` を必須にする。`prod` profile では `false` を指定すると起動エラーになる
