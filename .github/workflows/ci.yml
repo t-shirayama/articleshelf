@@ -97,7 +97,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Run backend unit tests with coverage
-        run: docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest'
+        run: docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest,ApiExceptionHandlerTest'
       - name: Print backend unit coverage summary
         run: |
           awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7; lm+=$8; lc+=$9} END {

@@ -53,7 +53,7 @@ public class TagService {
     @Transactional
     public void mergeTags(CurrentUser user, UUID sourceId, UUID targetId) {
         if (sourceId.equals(targetId)) {
-            throw new DuplicateTagNameException("merge target must be different");
+            throw DuplicateTagNameException.mergeTargetSame();
         }
         tagRepository.findTagByIdAndUserId(sourceId, user.id())
                 .orElseThrow(() -> new TagNotFoundException(sourceId));

@@ -182,6 +182,47 @@ class AuthAndArticleIntegrationTest {
     }
 
     @Test
+    void apiErrorsCoverMalformedInputAndTypeMismatch() throws Exception {
+        AuthSession session = register("bad-request-" + UUID.randomUUID() + "@example.com");
+
+        mockMvc.perform(get("/api/articles/not-a-uuid")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("ID must be a valid UUID."));
+
+        mockMvc.perform(get("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .param("status", "DONE"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Status must be one of: UNREAD, READ."));
+
+        mockMvc.perform(get("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .param("favorite", "maybe"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Favorite must be true or false."));
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Request body is invalid."));
+
+        mockMvc.perform(post("/api/tags")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Name is required."));
+    }
+
+    @Test
     void articleListAppliesRepositoryBackedFilters() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));
@@ -277,6 +318,71 @@ class AuthAndArticleIntegrationTest {
         assertThat(mergedTags).hasSize(1);
         assertThat(mergedTags.get(0).get("name").asText()).isEqualTo("Vue");
         assertThat(mergedTags.get(0).get("articleCount").asInt()).isEqualTo(1);
+    }
+
+    @Test
+    void tagConflictResponsesCoverDuplicateMergeAndDeleteFailures() throws Exception {
+        when(metadataProvider.fetch(anyString()))
+                .thenReturn(new ArticleMetadata("", "", "", true));
+        AuthSession session = register("tag-errors-" + UUID.randomUUID() + "@example.com");
+
+        String sourceId = createTag(session, "Source");
+        String targetId = createTag(session, "Target");
+
+        mockMvc.perform(patch("/api/tags/{id}", sourceId)
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Target\"}"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.messages[0]").value("Tag already exists."));
+
+        mockMvc.perform(post("/api/tags/{sourceId}/merge", targetId)
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"targetTagId\":\"%s\"}".formatted(targetId)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.messages[0]").value("Choose a different tag to merge into."));
+
+        mockMvc.perform(patch("/api/tags/{id}", UUID.randomUUID())
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Missing\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.messages[0]").value("Tag was not found."));
+
+        mockMvc.perform(post("/api/tags/{sourceId}/merge", sourceId)
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Target tag ID is required."));
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/tag-in-use-%s",
+                                  "title": "Tagged article",
+                                  "summary": "",
+                                  "status": "UNREAD",
+                                  "favorite": false,
+                                  "rating": 0,
+                                  "notes": "",
+                                  "tags": ["Target"]
+                                }
+                                """.formatted(UUID.randomUUID())))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(delete("/api/tags/{id}", targetId)
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.messages[0]").value("Tags in use cannot be deleted."));
     }
 
     @Test

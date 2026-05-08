@@ -47,7 +47,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - バックエンド: Java 21 + Spring Boot + Spring Data JPA
 - DB: PostgreSQL
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
-- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest'`
+- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest,ApiExceptionHandlerTest'`
 - 既存 CI: `.github/workflows/ci.yml` でフロントエンド UT / build、バックエンド UT / IT、E2E を実行する
 
 ## 3. UT: Unit Test
@@ -128,6 +128,7 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-BE-006 | P1 | ArticleService.findArticles | `status`, `tag`, `search`, `favorite` の組み合わせ | 条件一致のみ返す |
 | UT-BE-007 | P1 | Tag 正規化 | 空白、重複、空文字 | 空文字除外、重複統合 |
 | UT-BE-008 | P1 | ErrorResponse | 重複 URL | `existingArticleId` を含む |
+| UT-BE-009 | P1 | ApiExceptionHandler | 認証、タグ、パスワード、想定外例外 | 例外 reason に応じた文言と汎用 500 を返す |
 | UT-FE-001 | P0 | API adapter | Article response 変換 | UI が必要な型に変換される |
 | UT-FE-002 | P0 | store | お気に入り楽観更新成功 | 一覧全体 reload なしで状態維持 |
 | UT-FE-003 | P0 | store | お気に入り保存失敗 | 元状態へ戻しエラー表示 |
@@ -154,6 +155,10 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
   - アクセス不可 URL の保存拒否
   - status / tag / search / favorite の一覧絞り込み
   - 削除の user scope
+- `ApiExceptionHandlerTest`
+  - 重複 URL の `existingArticleId` 付きエラー応答
+  - 認証、タグ、パスワードポリシー例外の reason code 別メッセージ
+  - 想定外例外で内部メッセージを漏らさない汎用 500 応答
 
 #### フロントエンド
 
@@ -239,6 +244,8 @@ Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、
   - 登録ユーザーが記事を作成できる
   - ユーザー B の一覧・詳細からユーザー A の記事が見えない
   - URL 重複判定が user scoped で動く
+  - malformed JSON、UUID / enum / boolean 型不正を `400` の統一エラー形式で返す
+  - タグ名重複、同一タグ統合、存在しないタグ、使用中タグ削除のエラー応答
   - refresh token rotation 後、旧 refresh token の再利用が `401` になる
 
 ## 5. E2E: End-to-End Test

@@ -1,5 +1,9 @@
 package com.readstack.adapter.web;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.readstack.adapter.web.AuthController.CsrfValidationException;
+import com.readstack.application.auth.AuthException;
+import com.readstack.application.auth.DuplicateEmailException;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
@@ -7,21 +11,19 @@ import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.DuplicateTagNameException;
 import com.readstack.domain.article.TagInUseException;
 import com.readstack.domain.article.TagNotFoundException;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.readstack.adapter.web.AuthController.CsrfValidationException;
-import com.readstack.application.auth.AuthException;
-import com.readstack.application.auth.DuplicateEmailException;
 import com.readstack.domain.user.PasswordPolicyException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,6 +33,8 @@ import java.util.UUID;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
+
     private final MessageSource messageSource;
 
     public ApiExceptionHandler(MessageSource messageSource) {
@@ -52,7 +56,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(DuplicateTagNameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateTagName(DuplicateTagNameException exception) {
-        if (exception.getMessage().contains("merge target")) {
+        if (exception.getReason() == DuplicateTagNameException.Reason.MERGE_TARGET_SAME) {
             return ErrorResponse.of(message("error.tag.mergeSame"));
         }
         return ErrorResponse.of(message("error.tag.duplicate"));
@@ -76,10 +80,10 @@ public class ApiExceptionHandler {
         return ErrorResponse.of(message("error.article.urlUnavailable"));
     }
 
-    @ExceptionHandler({AuthException.class})
+    @ExceptionHandler(AuthException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ErrorResponse handleAuth(RuntimeException exception) {
-        if (exception.getMessage().contains("refresh token")) {
+    public ErrorResponse handleAuth(AuthException exception) {
+        if (exception.getReason() == AuthException.Reason.INVALID_REFRESH_TOKEN) {
             return ErrorResponse.of(message("error.auth.refreshInvalid"));
         }
         return ErrorResponse.of(message("error.auth.invalidCredentials"));
@@ -100,7 +104,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(PasswordPolicyException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlePasswordPolicy(PasswordPolicyException exception) {
-        if (exception.getMessage().contains("同じ")) {
+        if (exception.getReason() == PasswordPolicyException.Reason.SAME_AS_EMAIL) {
             return ErrorResponse.of(message("error.auth.passwordSameAsEmail"));
         }
         return ErrorResponse.of(message("error.auth.passwordSize"));
@@ -136,10 +140,17 @@ public class ApiExceptionHandler {
         return ErrorResponse.of(message("error.request.invalidBody"));
     }
 
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleUnexpected(Exception exception) {
+        log.error("Unhandled API exception", exception);
+        return ErrorResponse.of(message("error.request.internal"));
+    }
+
     private String formatFieldError(FieldError error) {
         String field = message("field." + error.getField());
         String code = error.getCode();
-        if ("NotBlank".equals(code)) {
+        if ("NotBlank".equals(code) || "NotNull".equals(code)) {
             return message("error.validation.required", field);
         }
         if ("Email".equals(code)) {

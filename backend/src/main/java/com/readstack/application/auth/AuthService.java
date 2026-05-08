@@ -65,7 +65,10 @@ public class AuthService {
         AuthUser user = userRepository.findByEmail(normalizeEmail(email))
                 .filter(candidate -> candidate.status() == UserStatus.ACTIVE)
                 .filter(candidate -> passwordHasher.matches(password == null ? "" : password, candidate.passwordHash()))
-                .orElseThrow(() -> new AuthException("メールアドレスまたはパスワードが正しくありません"));
+                .orElseThrow(() -> new AuthException(
+                        AuthException.Reason.INVALID_CREDENTIALS,
+                        "email address or password is incorrect"
+                ));
         user = userRepository.save(new AuthUser(
                 user.id(),
                 user.email(),
@@ -81,18 +84,18 @@ public class AuthService {
     @Transactional
     public AuthResult refresh(String rawRefreshToken, String userAgent, String ipAddress) {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
-            throw new AuthException("refresh token is missing");
+            throw AuthException.invalidRefreshToken("refresh token is missing");
         }
         Instant now = Instant.now();
         RefreshTokenRecord current = refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
-                .orElseThrow(() -> new AuthException("refresh token is invalid"));
+                .orElseThrow(() -> AuthException.invalidRefreshToken("refresh token is invalid"));
         AuthUser user = current.user();
         if (user.status() != UserStatus.ACTIVE || current.expiresAt().isBefore(now)) {
-            throw new AuthException("refresh token is invalid");
+            throw AuthException.invalidRefreshToken("refresh token is invalid");
         }
         if (current.revokedAt() != null) {
             refreshTokenRepository.revokeFamily(user.id(), current.familyId(), now);
-            throw new AuthException("refresh token is invalid");
+            throw AuthException.invalidRefreshToken("refresh token is invalid");
         }
 
         CreatedRefreshToken replacement = createRefreshToken(user, current.familyId(), userAgent, ipAddress);
@@ -118,7 +121,7 @@ public class AuthService {
         return userRepository.findById(currentUser.id())
                 .filter(user -> user.status() == UserStatus.ACTIVE)
                 .map(UserResponse::from)
-                .orElseThrow(() -> new AuthException("user is not active"));
+                .orElseThrow(() -> new AuthException(AuthException.Reason.USER_INACTIVE, "user is not active"));
     }
 
     @Transactional
