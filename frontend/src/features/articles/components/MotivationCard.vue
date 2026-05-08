@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { MotivationCardData } from '../types'
 
 defineProps<{
   card: MotivationCardData
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
   <section
     class="learning-boost-card"
-    aria-label="学習継続のメッセージ"
+    :aria-label="t('articles.motivationLabel')"
     :style="{
       '--boost-bg': card.background,
       '--boost-accent': card.accent,
@@ -21,7 +24,7 @@ defineProps<{
       <span>{{ card.note }}</span>
     </div>
 
-    <svg class="boost-illustration" viewBox="0 0 132 112" role="img" :aria-label="`${card.title}のイラスト`">
+    <svg class="boost-illustration" viewBox="0 0 132 112" role="img" :aria-label="t('articles.motivationIllustrationAlt', { title: card.title })">
       <rect x="18" y="80" width="74" height="13" rx="4" fill="var(--boost-bg)" />
       <rect x="28" y="92" width="74" height="12" rx="4" fill="var(--boost-accent)" opacity="0.34" />
 

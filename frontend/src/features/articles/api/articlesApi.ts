@@ -38,5 +38,22 @@ export const articlesApi = {
       method: 'POST',
       body: JSON.stringify({ name })
     })
+  },
+  renameTag(id: string, name: string): Promise<Tag> {
+    return request<Tag>(`/api/tags/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name })
+    })
+  },
+  mergeTag(sourceId: string, targetTagId: string): Promise<null> {
+    return request<null>(`/api/tags/${sourceId}/merge`, {
+      method: 'POST',
+      body: JSON.stringify({ targetTagId })
+    })
+  },
+  deleteTag(id: string): Promise<null> {
+    return request<null>(`/api/tags/${id}`, {
+      method: 'DELETE'
+    })
   }
 }

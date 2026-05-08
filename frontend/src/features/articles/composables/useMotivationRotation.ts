@@ -1,12 +1,15 @@
 import { computed, ref } from 'vue'
-import { motivationCards } from '../data/motivationCards'
+import { useI18n } from 'vue-i18n'
+import { getMotivationCards } from '../data/motivationCards'
 
 export function useMotivationRotation() {
+  const { locale } = useI18n()
+  const motivationCards = computed(() => getMotivationCards(locale.value))
   const motivationIndex = ref(randomMotivationIndex())
-  const currentMotivation = computed(() => motivationCards[motivationIndex.value])
+  const currentMotivation = computed(() => motivationCards.value[motivationIndex.value % motivationCards.value.length])
 
   function rotateMotivation(): void {
-    motivationIndex.value = randomMotivationIndex(motivationIndex.value)
+    motivationIndex.value = randomMotivationIndex(motivationCards.value.length, motivationIndex.value)
   }
 
   return {
@@ -15,12 +18,12 @@ export function useMotivationRotation() {
   }
 }
 
-function randomMotivationIndex(currentIndex = -1): number {
-  if (motivationCards.length <= 1) return 0
+function randomMotivationIndex(length = 1, currentIndex = -1): number {
+  if (length <= 1) return 0
 
   let nextIndex = currentIndex
   while (nextIndex === currentIndex) {
-    nextIndex = Math.floor(Math.random() * motivationCards.length)
+    nextIndex = Math.floor(Math.random() * length)
   }
   return nextIndex
 }

@@ -42,6 +42,10 @@ public class ArticleTagEntity {
         return id;
     }
 
+    public ArticleEntity getArticle() {
+        return article;
+    }
+
     public TagEntity getTag() {
         return tag;
     }

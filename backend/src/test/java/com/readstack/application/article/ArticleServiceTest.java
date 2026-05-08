@@ -4,18 +4,24 @@ import com.readstack.application.auth.CurrentUser;
 import com.readstack.domain.article.Article;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleRepository;
+import com.readstack.domain.article.ArticleSearchCriteria;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.Tag;
+import com.readstack.domain.article.TagNotFoundException;
+import com.readstack.domain.article.TagRepository;
+import com.readstack.domain.article.TagUsage;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -27,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class ArticleServiceTest {
     private final InMemoryArticleRepository repository = new InMemoryArticleRepository();
     private final StubMetadataProvider metadataProvider = new StubMetadataProvider();
-    private final ArticleService service = new ArticleService(repository, metadataProvider);
+    private final ArticleService service = new ArticleService(repository, repository, metadataProvider);
     private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user@example.com", "User", List.of("USER"));
 
     @Test
@@ -121,20 +127,142 @@ class ArticleServiceTest {
         assertThat(repository.findAllByUserId(user.id())).isEmpty();
     }
 
+    @Test
+    void updateArticleDoesNotRefetchMetadataWhenUrlDoesNotChange() {
+        metadataProvider.next = new ArticleMetadata("Original", "Summary", "https://example.com/thumb.png", true);
+        ArticleResponse response = service.addArticle(user, command("https://example.com/original", "Original"));
+        metadataProvider.fetchCount = 0;
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                "https://example.com/original",
+                "Updated title",
+                "Updated summary",
+                ArticleStatus.UNREAD,
+                null,
+                true,
+                2,
+                "Updated notes",
+                List.of("Java")
+        ));
+
+        assertThat(metadataProvider.fetchCount).isZero();
+        assertThat(updated.title()).isEqualTo("Updated title");
+        assertThat(updated.favorite()).isTrue();
+    }
+
+    @Test
+    void updateArticleRejectsDuplicateUrlWithinSameUserOnly() {
+        ArticleResponse first = service.addArticle(user, command("https://example.com/first", "First"));
+        service.addArticle(user, command("https://example.com/second", "Second"));
+
+        assertThatThrownBy(() -> service.updateArticle(user, first.id(), new UpdateArticleCommand(
+                "https://example.com/second",
+                "First",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                List.of()
+        ))).isInstanceOf(DuplicateArticleUrlException.class);
+
+        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other@example.com", "Other", List.of("USER"));
+        service.addArticle(anotherUser, command("https://example.com/shared", "Other"));
+        ArticleResponse ownArticle = service.addArticle(user, command("https://example.com/user-owned", "Mine"));
+
+        ArticleResponse updated = service.updateArticle(user, ownArticle.id(), new UpdateArticleCommand(
+                "https://example.com/shared",
+                "Mine updated",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                0,
+                "",
+                List.of()
+        ));
+
+        assertThat(updated.url()).isEqualTo("https://example.com/shared");
+    }
+
+    @Test
+    void updateArticleClearsReadDateWhenMovedBackToUnread() {
+        ArticleResponse response = service.addArticle(user, new AddArticleCommand(
+                "https://example.com/read",
+                "Read article",
+                "",
+                ArticleStatus.READ,
+                LocalDate.parse("2026-05-07"),
+                false,
+                1,
+                "",
+                List.of()
+        ));
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.url(),
+                response.title(),
+                response.summary(),
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                1,
+                "",
+                List.of()
+        ));
+
+        assertThat(updated.status()).isEqualTo(ArticleStatus.UNREAD);
+        assertThat(updated.readDate()).isNull();
+    }
+
+    @Test
+    void updateArticleClampsRatingAndReplacesTags() {
+        ArticleResponse response = service.addArticle(user, new AddArticleCommand(
+                "https://example.com/tags",
+                "Tag article",
+                "",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                3,
+                "",
+                List.of("Java", "Spring")
+        ));
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.url(),
+                response.title(),
+                response.summary(),
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                -1,
+                "",
+                List.of("Vue")
+        ));
+
+        assertThat(updated.rating()).isZero();
+        assertThat(updated.tags()).extracting(TagResponse::name).containsExactly("Vue");
+        assertThat(updated.tags()).extracting(TagResponse::name).doesNotContain("Java", "Spring");
+    }
+
     private AddArticleCommand command(String url, String title) {
         return new AddArticleCommand(url, title, "", ArticleStatus.UNREAD, null, false, 0, "", List.of());
     }
 
     private static class StubMetadataProvider implements ArticleMetadataProvider {
         private ArticleMetadata next = new ArticleMetadata("", "", "", true);
+        private int fetchCount = 0;
 
         @Override
         public ArticleMetadata fetch(String url) {
+            fetchCount += 1;
             return next;
         }
     }
 
-    private static class InMemoryArticleRepository implements ArticleRepository {
+    private static class InMemoryArticleRepository implements ArticleRepository, TagRepository {
         private final Map<UUID, Article> articles = new LinkedHashMap<>();
         private final Map<UUID, Tag> tags = new LinkedHashMap<>();
 
@@ -142,6 +270,18 @@ class ArticleServiceTest {
         public List<Article> findAllByUserId(UUID userId) {
             return articles.values().stream()
                     .filter(article -> article.getUserId().equals(userId))
+                    .toList();
+        }
+
+        @Override
+        public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
+            return findAllByUserId(userId).stream()
+                    .filter(article -> criteria.status() == null || article.getStatus() == criteria.status())
+                    .filter(article -> criteria.favorite() == null || article.isFavorite() == criteria.favorite())
+                    .filter(article -> criteria.tag() == null || article.getTags().stream()
+                            .anyMatch(tag -> tag.getName().equalsIgnoreCase(criteria.tag())))
+                    .filter(article -> criteria.search() == null || matchesSearch(article, criteria.search()))
+                    .sorted(Comparator.comparing(Article::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                     .toList();
         }
 
@@ -157,18 +297,6 @@ class ArticleServiceTest {
                     .filter(article -> article.getUserId().equals(userId))
                     .filter(article -> article.getUrl().equals(url))
                     .findFirst();
-        }
-
-        @Override
-        public boolean existsByUrlAndUserId(String url, UUID userId) {
-            return findByUrlAndUserId(url, userId).isPresent();
-        }
-
-        @Override
-        public boolean existsByUrlAndUserIdAndIdNot(String url, UUID userId, UUID id) {
-            return findByUrlAndUserId(url, userId)
-                    .filter(article -> !article.getId().equals(id))
-                    .isPresent();
         }
 
         @Override
@@ -198,10 +326,16 @@ class ArticleServiceTest {
             findByIdAndUserId(id, userId).ifPresent(article -> articles.remove(article.getId()));
         }
 
-        @Override
         public List<Tag> findAllTagsByUserId(UUID userId) {
             return tags.values().stream()
                     .filter(tag -> tag.getUserId().equals(userId))
+                    .toList();
+        }
+
+        @Override
+        public List<TagUsage> findAllTagUsagesByUserId(UUID userId) {
+            return findAllTagsByUserId(userId).stream()
+                    .map(tag -> new TagUsage(tag, countArticlesByTagIdAndUserId(tag.getId(), userId)))
                     .toList();
         }
 
@@ -217,6 +351,97 @@ class ArticleServiceTest {
                         tags.put(tag.getId(), tag);
                         return tag;
                     });
+        }
+
+        @Override
+        public Optional<Tag> findTagByIdAndUserId(UUID id, UUID userId) {
+            return Optional.ofNullable(tags.get(id))
+                    .filter(tag -> tag.getUserId().equals(userId));
+        }
+
+        @Override
+        public Optional<Tag> findTagByNameAndUserId(String name, UUID userId) {
+            String normalized = name == null ? "" : name.trim();
+            return tags.values().stream()
+                    .filter(tag -> tag.getUserId().equals(userId))
+                    .filter(tag -> tag.getName().equalsIgnoreCase(normalized))
+                    .findFirst();
+        }
+
+        @Override
+        public long countArticlesByTagIdAndUserId(UUID tagId, UUID userId) {
+            return articles.values().stream()
+                    .filter(article -> article.getUserId().equals(userId))
+                    .filter(article -> article.getTags().stream().anyMatch(tag -> tag.getId().equals(tagId)))
+                    .count();
+        }
+
+        @Override
+        public Tag renameTag(UUID userId, UUID tagId, String name) {
+            Tag current = findTagByIdAndUserId(tagId, userId).orElseThrow(() -> new TagNotFoundException(tagId));
+            Tag renamed = new Tag(current.getId(), current.getUserId(), name, current.getCreatedAt(), Instant.now());
+            tags.put(renamed.getId(), renamed);
+            articles.replaceAll((id, article) -> {
+                Set<Tag> updatedTags = article.getTags().stream()
+                        .map(tag -> tag.getId().equals(tagId) ? renamed : tag)
+                        .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
+                return copyArticle(article, updatedTags);
+            });
+            return renamed;
+        }
+
+        @Override
+        public void mergeTags(UUID userId, UUID sourceTagId, UUID targetTagId) {
+            Tag target = findTagByIdAndUserId(targetTagId, userId).orElseThrow(() -> new TagNotFoundException(targetTagId));
+            findTagByIdAndUserId(sourceTagId, userId).orElseThrow(() -> new TagNotFoundException(sourceTagId));
+            articles.replaceAll((id, article) -> {
+                if (!article.getUserId().equals(userId)) {
+                    return article;
+                }
+                Set<Tag> updatedTags = article.getTags().stream()
+                        .map(tag -> tag.getId().equals(sourceTagId) ? target : tag)
+                        .collect(LinkedHashSet::new, LinkedHashSet::add, LinkedHashSet::addAll);
+                return copyArticle(article, updatedTags);
+            });
+            tags.remove(sourceTagId);
+        }
+
+        @Override
+        public void deleteTagByIdAndUserId(UUID tagId, UUID userId) {
+            findTagByIdAndUserId(tagId, userId).ifPresent(tag -> tags.remove(tag.getId()));
+        }
+
+        private boolean matchesSearch(Article article, String search) {
+            String haystack = String.join(" ",
+                    nullToEmpty(article.getTitle()),
+                    nullToEmpty(article.getUrl()),
+                    nullToEmpty(article.getSummary()),
+                    nullToEmpty(article.getNotes())
+            ).toLowerCase(Locale.ROOT);
+            return haystack.contains(search);
+        }
+
+        private String nullToEmpty(String value) {
+            return value == null ? "" : value;
+        }
+
+        private Article copyArticle(Article article, Set<Tag> tags) {
+            return new Article(
+                    article.getId(),
+                    article.getUserId(),
+                    article.getUrl(),
+                    article.getTitle(),
+                    article.getSummary(),
+                    article.getThumbnailUrl(),
+                    article.getStatus(),
+                    article.getReadDate(),
+                    article.isFavorite(),
+                    article.getRating(),
+                    article.getNotes(),
+                    tags,
+                    article.getCreatedAt(),
+                    Instant.now()
+            );
         }
     }
 }

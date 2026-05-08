@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import ArticleCard from "./ArticleCard.vue";
 import SearchFilterBar from "./SearchFilterBar.vue";
 import type { Article, ArticleSort } from "../types";
@@ -26,6 +27,8 @@ const emit = defineEmits<{
   toggleFavorite: [article: Article];
   retry: [];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -51,7 +54,7 @@ const emit = defineEmits<{
       role="alert"
       aria-live="assertive"
     >
-      <strong>データを読み込めませんでした</strong>
+      <strong>{{ t("articles.loadErrorTitle") }}</strong>
       <span>{{ error }}</span>
       <div class="error-banner-actions">
         <VBtn
@@ -60,7 +63,7 @@ const emit = defineEmits<{
           size="small"
           @click="emit('retry')"
         >
-          再試行
+          {{ t("common.retry") }}
         </VBtn>
       </div>
     </div>
@@ -70,14 +73,14 @@ const emit = defineEmits<{
         <VProgressCircular indeterminate color="primary" size="42" />
       </div>
       <div v-else-if="articles.length === 0" class="empty-state">
-        <h2>まだ記事がありません</h2>
-        <p>URL を貼り付けて、学びの断片をここに積み上げていきましょう。</p>
+        <h2>{{ t("articles.emptyTitle") }}</h2>
+        <p>{{ t("articles.emptyBody") }}</p>
         <VBtn
           class="action-button action-button-primary"
           color="primary"
           variant="flat"
           @click="emit('add')"
-          >最初の記事を追加</VBtn
+          >{{ t("articles.firstAdd") }}</VBtn
         >
       </div>
       <template v-else>

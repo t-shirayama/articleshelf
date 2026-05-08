@@ -3,18 +3,19 @@ import { createPinia } from 'pinia'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { ja } from 'vuetify/locale'
+import { en, ja } from 'vuetify/locale'
 import 'vuetify/styles'
 import App from './App.vue'
+import { getCurrentLocale, i18n } from './shared/i18n'
 import './styles.css'
 
 const vuetify = createVuetify({
   components,
   directives,
   locale: {
-    locale: 'ja',
-    fallback: 'ja',
-    messages: { ja }
+    locale: getCurrentLocale(),
+    fallback: 'en',
+    messages: { ja, en }
   },
   theme: {
     defaultTheme: 'readstack',
@@ -55,4 +56,4 @@ const vuetify = createVuetify({
   }
 })
 
-createApp(App).use(createPinia()).use(vuetify).mount('#app')
+createApp(App).use(createPinia()).use(i18n).use(vuetify).mount('#app')

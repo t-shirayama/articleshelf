@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { ApiRequestError } from "../../../shared/api/client";
 import { useAuthStore } from "../../auth/stores/auth";
 import ArticleDetail from "../components/ArticleDetail.vue";
@@ -10,6 +11,7 @@ import CalendarView from "../components/CalendarView.vue";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog.vue";
 import FilterDialog from "../components/FilterDialog.vue";
 import StatusUndoSnackbar from "../components/StatusUndoSnackbar.vue";
+import TagManagementView from "../components/TagManagementView.vue";
 import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
@@ -22,7 +24,7 @@ import type {
 } from "../types";
 
 type PersistedArticleStatus = Exclude<ArticleStatus, "ALL">;
-type ViewMode = "list" | "calendar" | "detail";
+type ViewMode = "list" | "calendar" | "detail" | "tags";
 
 interface StatusUndoState {
   articleId: string;
@@ -32,6 +34,7 @@ interface StatusUndoState {
 
 const authStore = useAuthStore();
 const store = useArticlesStore();
+const { t } = useI18n();
 const modalOpen = ref(false);
 const filterDialogOpen = ref(false);
 const articleFormError = ref("");
@@ -49,6 +52,7 @@ const pendingNavigation = ref<(() => void) | null>(null);
 const isCreatingArticle = ref(false);
 const isSavingDetail = ref(false);
 const isDeletingArticle = ref(false);
+const isSavingTag = ref(false);
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
@@ -76,6 +80,7 @@ const isFavoriteActive = computed(
   () => isListMode.value && store.filters.favorite,
 );
 const isCalendarActive = computed(() => viewMode.value === "calendar");
+const isTagsActive = computed(() => viewMode.value === "tags");
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer);
@@ -105,7 +110,7 @@ async function createArticle(article: ArticleInput): Promise<void> {
     viewMode.value = "list";
   } catch (error: unknown) {
     articleFormError.value =
-      error instanceof Error ? error.message : "記事を保存できませんでした";
+      error instanceof Error ? error.message : t("articles.saveError");
     duplicateArticleId.value =
       error instanceof ApiRequestError ? error.existingArticleId || "" : "";
   } finally {
@@ -121,7 +126,7 @@ async function saveArticle(article: ArticleInput): Promise<void> {
     await store.updateArticle(article);
   } catch (error: unknown) {
     detailFormError.value =
-      error instanceof Error ? error.message : "記事を保存できませんでした";
+      error instanceof Error ? error.message : t("articles.saveError");
   } finally {
     isSavingDetail.value = false;
   }
@@ -144,7 +149,7 @@ async function deleteArticle(articleId: string): Promise<void> {
     navigateToList();
   } catch (error: unknown) {
     detailFormError.value =
-      error instanceof Error ? error.message : "記事を削除できませんでした";
+      error instanceof Error ? error.message : t("articles.deleteError");
   } finally {
     isDeletingArticle.value = false;
   }
@@ -191,7 +196,7 @@ async function toggleArticleStatus(article: Article): Promise<void> {
     readDate: previousReadDate,
   };
   statusSnackbarMessage.value =
-    nextStatus === "READ" ? "既読にしました" : "未読に戻しました";
+    nextStatus === "READ" ? t("articles.statusReadDone") : t("articles.statusUnreadDone");
   statusSnackbarOpen.value = true;
 }
 
@@ -212,6 +217,10 @@ function showList(): void {
 
 function showCalendar(): void {
   requestNavigation(navigateToCalendar);
+}
+
+function showTags(): void {
+  requestNavigation(navigateToTags);
 }
 
 function setStatus(status: ArticleStatus): void {
@@ -261,6 +270,68 @@ async function loadInitialData(): Promise<void> {
 
 async function retryInitialLoad(): Promise<void> {
   await loadInitialData();
+}
+
+async function renameTag(id: string, name: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.renameTag(id, name);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : t("tags.renameError");
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
+async function addTag(name: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.createTag(name);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : t("tags.addError");
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
+async function mergeTag(sourceId: string, targetId: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.mergeTag(sourceId, targetId);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : t("tags.mergeError");
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
+async function deleteTag(id: string): Promise<void> {
+  if (isSavingTag.value) return;
+  isSavingTag.value = true;
+  store.error = "";
+  try {
+    await store.deleteTag(id);
+  } catch (error: unknown) {
+    store.error = error instanceof Error ? error.message : t("tags.deleteError");
+  } finally {
+    isSavingTag.value = false;
+  }
+}
+
+function openTagArticles(tagName: string): void {
+  requestNavigation(() => {
+    navigateToList();
+    searchDraft.value = "";
+    store.setSearch("");
+    void store.setAllArticles();
+    store.setTags([tagName]);
+  });
 }
 
 function applyAdvancedFilters(filters: {
@@ -318,6 +389,11 @@ function navigateToCalendar(): void {
   viewMode.value = "calendar";
 }
 
+function navigateToTags(): void {
+  if (viewMode.value !== "tags") rotateMotivation();
+  viewMode.value = "tags";
+}
+
 function cancelPendingNavigation(): void {
   pendingNavigation.value = null;
   unsavedChangesDialogOpen.value = false;
@@ -348,11 +424,13 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       :is-read-active="isReadActive"
       :is-favorite-active="isFavoriteActive"
       :is-calendar-active="isCalendarActive"
+      :is-tags-active="isTagsActive"
       :user-name="authStore.user?.displayName || authStore.user?.email || ''"
       @all-articles="setAllArticles"
       @status="setStatus"
       @favorite-only="setFavoriteOnly"
       @calendar="showCalendar"
+      @tags="showTags"
       @logout="logout"
     />
 
@@ -364,10 +442,10 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         :sort="store.filters.sort"
         :filter-summary="activeFilterSummary"
         :active-filter-count="activeFilterCount"
-      :error="store.error"
-      :loading="store.loading"
-      :articles="store.sortedArticles"
-      :selected-article-id="store.selectedArticle?.id"
+        :error="store.error"
+        :loading="store.loading"
+        :articles="store.sortedArticles"
+        :selected-article-id="store.selectedArticle?.id"
         @update:search="searchDraft = $event"
         @update:sort="setSort"
         @open-filters="filterDialogOpen = true"
@@ -380,9 +458,23 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       />
 
       <CalendarView
-        v-else
+        v-else-if="viewMode === 'calendar'"
         :articles="store.articles"
         @open-article="openArticle"
+      />
+
+      <TagManagementView
+        v-else
+        :tags="store.tags"
+        :error="store.error"
+        :loading="store.loading"
+        :saving="isSavingTag"
+        @add-tag="addTag"
+        @rename-tag="renameTag"
+        @merge-tag="mergeTag"
+        @delete-tag="deleteTag"
+        @open-tag-articles="openTagArticles"
+        @retry="retryInitialLoad"
       />
     </main>
   </div>

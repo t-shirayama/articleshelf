@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Plus, Search, SlidersHorizontal } from 'lucide-vue-next'
 import type { ArticleSort } from '../types'
 
@@ -21,14 +23,15 @@ const emit = defineEmits<{
   add: []
 }>()
 
-const sortOptions = [
-  { title: '新しい順', value: 'CREATED_DESC' },
-  { title: '古い順', value: 'CREATED_ASC' },
-  { title: '更新順', value: 'UPDATED_DESC' },
-  { title: '既読日順', value: 'READ_DATE_DESC' },
-  { title: 'タイトル順', value: 'TITLE_ASC' },
-  { title: 'おすすめ順', value: 'RATING_DESC' }
-] satisfies Array<{ title: string, value: ArticleSort }>
+const { t } = useI18n()
+const sortOptions = computed<Array<{ title: string, value: ArticleSort }>>(() => [
+  { title: t('articles.sort.createdDesc'), value: 'CREATED_DESC' },
+  { title: t('articles.sort.createdAsc'), value: 'CREATED_ASC' },
+  { title: t('articles.sort.updatedDesc'), value: 'UPDATED_DESC' },
+  { title: t('articles.sort.readDateDesc'), value: 'READ_DATE_DESC' },
+  { title: t('articles.sort.titleAsc'), value: 'TITLE_ASC' },
+  { title: t('articles.sort.ratingDesc'), value: 'RATING_DESC' }
+])
 </script>
 
 <template>
@@ -39,7 +42,7 @@ const sortOptions = [
       type="text"
       clearable
       hide-details
-      placeholder="タイトル・URL・メモで検索"
+      :placeholder="t('articles.searchPlaceholder')"
       @update:model-value="emit('update:search', String($event || ''))"
     >
       <template #prepend-inner>
@@ -56,7 +59,7 @@ const sortOptions = [
       hide-details
       density="comfortable"
       variant="outlined"
-      label="並び順"
+      :label="t('articles.sortLabel')"
       @update:model-value="emit('update:sort', $event as ArticleSort)"
     />
 
@@ -64,7 +67,7 @@ const sortOptions = [
       <template #prepend>
         <SlidersHorizontal :size="18" />
       </template>
-      フィルタ
+      {{ t('common.filter') }}
       <span v-if="activeFilterCount > 0" class="filter-open-badge">{{ activeFilterCount }}</span>
     </VBtn>
 
@@ -72,12 +75,12 @@ const sortOptions = [
       <template #prepend>
         <Plus :size="18" />
       </template>
-      記事を追加
+      {{ t('articles.add') }}
     </VBtn>
   </div>
 
   <div v-if="filterSummary.length > 0" class="filter-summary-row" aria-live="polite">
-    <span class="filter-summary-label">適用中</span>
+    <span class="filter-summary-label">{{ t('common.active') }}</span>
     <VChip v-for="item in filterSummary" :key="item" class="filter-summary-chip" size="small" variant="tonal">
       {{ item }}
     </VChip>

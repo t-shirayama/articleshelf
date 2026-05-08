@@ -19,6 +19,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install frontend dependencies
         run: npm ci
+      - name: Run frontend typecheck
+        run: npm run typecheck
       - name: Run frontend unit tests
         run: npm run test:unit
       - name: Build frontend
@@ -28,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Run backend static analysis
+        run: docker compose run --rm backend mvn clean compile spotbugs:check
       - name: Run backend tests
         run: docker compose run --rm backend mvn test
       - name: Show db logs on failure
@@ -53,3 +57,16 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run E2E tests
         run: npm run test:e2e
+      - name: Show compose logs on E2E failure
+        if: failure()
+        working-directory: .
+        run: docker compose -p readstack-e2e -f docker-compose.e2e.yml logs --tail 300
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            frontend/playwright-report
+            frontend/test-results
+          if-no-files-found: ignore

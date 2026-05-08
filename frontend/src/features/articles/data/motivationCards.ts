@@ -149,7 +149,27 @@ const messages = [
   ['学びは集めた分だけ味方になる', '少しずつ、頼れる棚に育っています。']
 ]
 
-export const motivationCards: MotivationCardData[] = messages.map(([title, note], index) => {
+const englishMessages = [
+  ['Store one learning today', 'Small notes become useful later.'],
+  ['Leave a memo for future you', 'Today’s insight can shorten tomorrow’s path.'],
+  ['Keep the spark from the article', 'One line of notes helps the idea last.'],
+  ['Give your reading queue a home', 'Saved articles are easier to return to.'],
+  ['Put today’s discovery on the shelf', 'Learning grows when it has a place.'],
+  ['Turn reading into an asset', 'Save the URL and the thought that mattered.'],
+  ['Tags are a map of learning', 'A small label makes the path easier to find.'],
+  ['Short notes are enough', 'A small trace is better than a perfect draft.'],
+  ['Make one article easier to reuse', 'Tags and notes make knowledge searchable.'],
+  ['Keep curiosity within reach', 'Save it now, read it when the timing is right.']
+]
+
+export const motivationCards: MotivationCardData[] = toCards(messages)
+
+export function getMotivationCards(locale: string): MotivationCardData[] {
+  return locale === 'ja' ? motivationCards : toCards(englishMessages)
+}
+
+function toCards(source: string[][]): MotivationCardData[] {
+  return source.map(([title, note], index) => {
   const [background, accent, ink] = palettes[index % palettes.length]
   return {
     id: index + 1,
@@ -161,3 +181,4 @@ export const motivationCards: MotivationCardData[] = messages.map(([title, note]
     ink
   }
 })
+}
