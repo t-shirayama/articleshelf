@@ -42,10 +42,12 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド: Vue 3 + TypeScript + Pinia + Vuetify
 - フロントエンド確認: `npm run build`
 - フロントエンド UT: `npm run test:unit`
+- フロントエンド UT coverage: `npm run test:unit:coverage`
 - ブラウザ E2E: `npm run test:e2e`
 - バックエンド: Java 21 + Spring Boot + Spring Data JPA
 - DB: PostgreSQL
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
+- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest'`
 - 既存 CI: `.github/workflows/ci.yml` でフロントエンド UT / build、バックエンド UT / IT、E2E を実行する
 
 ## 3. UT: Unit Test
@@ -110,7 +112,9 @@ UT は、外部 I/O に依存しない小さな単位で仕様を固定する。
 | TypeScript 型 | `vue-tsc --noEmit` |
 
 現行実装では `frontend/package.json` に `vitest` と `jsdom` を追加し、`npm run test:unit` で実行する。
+coverage 確認は `npm run test:unit:coverage` で実行し、text summary と `frontend/coverage/` の HTML / lcov report を確認する。
 バックエンドは `spring-boot-starter-test`, `spring-security-test`, `h2` を追加し、`docker compose run --rm backend mvn test` で実行する。
+Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`backend/target/site/jacoco/` に report を出力する。
 
 ### 3.5 UT ケース一覧
 
@@ -356,7 +360,9 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
   - backend は `docker compose run --rm backend mvn clean compile spotbugs:check` と `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest` でコンパイル、SpotBugs、依存方向を確認する
   - frontend は `npm run typecheck` と `npm run build` で型チェックと Vite ビルドを確認する
 - Step 2: `backend-unit` / `frontend-unit`
-  - backend の domain / application UT と frontend の Vitest UT を実行する
+  - backend の domain / application UT と frontend の Vitest UT を coverage 付きで実行する
+  - backend は JaCoCo CSV から instruction / branch / line coverage summary を出力する
+  - frontend は Vitest coverage-v8 の text summary を出力する
 - Step 3: `backend-integration` / `frontend-integration`
   - backend の Spring Boot / PostgreSQL IT と frontend の `*.integration.test.ts` を分けて実行する
 - Step 4: `e2e`

@@ -96,8 +96,15 @@ jobs:
       }}
     steps:
       - uses: actions/checkout@v6
-      - name: Run backend unit tests
-        run: docker compose run --rm backend mvn test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest'
+      - name: Run backend unit tests with coverage
+        run: docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest'
+      - name: Print backend unit coverage summary
+        run: |
+          awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7; lm+=$8; lc+=$9} END {
+            printf "Instruction coverage: %.2f%% (%d/%d)\n", 100*ic/(ic+im), ic, ic+im;
+            printf "Branch coverage: %.2f%% (%d/%d)\n", 100*bc/(bc+bm), bc, bc+bm;
+            printf "Line coverage: %.2f%% (%d/%d)\n", 100*lc/(lc+lm), lc, lc+lm;
+          }' backend/target/site/jacoco/jacoco.csv
       - name: Show db logs on failure
         if: failure()
         run: docker compose logs --tail 200 db
@@ -128,8 +135,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install frontend dependencies
         run: npm ci
-      - name: Run frontend unit tests
-        run: npm run test:unit -- --exclude '**/*.integration.test.ts'
+      - name: Run frontend unit tests with coverage
+        run: npm run test:unit:coverage
 
   backend-integration:
     name: Backend integration tests
