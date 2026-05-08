@@ -16,4 +16,4 @@
 - フロントエンドの確認は `npm run test:unit` と `npm run build` で UT、型チェック、Vite ビルドを行う
 - ブラウザ E2E は `@playwright/test` を使い、`npm run test:e2e` で実行する
 - バックエンド確認は `docker compose run --rm backend mvn test` で UT / IT を行う
-- テスト: P0 中心の単体テスト / 結合テスト / E2Eテストを整備済み。拡張方針は `docs/testing.md` に従う
+- テスト: P0 中心の単体テスト / 結合テスト / E2Eテストを整備済み。拡張方針は `docs/testing/README.md` に従う

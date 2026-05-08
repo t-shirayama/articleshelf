@@ -3,7 +3,7 @@
 最終更新: 2026-05-07
 
 このドキュメントは、ReadStack の残タスクを優先度ごとに追うための一覧です。  
-実装済み機能の棚卸しや仕様との差分は `docs/project-status.md` を参照し、このファイルでは「次に何を進めるか」を見やすく整理します。
+実装済み機能の棚卸しや仕様との差分は `docs/status/project-status.md` を参照し、このファイルでは「次に何を進めるか」を見やすく整理します。
 
 ## 1. 優先度高
 
@@ -57,6 +57,6 @@
 
 ## 4. 運用メモ
 
-- 実装済み機能、既知差分、技術的注意点は `docs/project-status.md` を正とする
+- 実装済み機能、既知差分、技術的注意点は `docs/status/project-status.md` を正とする
 - 構想段階でまだ優先度を上げない案は `docs/requirements/future-considerations.md` に置き、具体化したらこの backlog へ移す
 - UI の具体タスクは `docs/design/mobile-responsive.md`、公開構成の具体タスクは `docs/deployment/free-deployment.md` も併せて参照する

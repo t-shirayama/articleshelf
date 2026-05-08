@@ -1,6 +1,6 @@
 ---
 name: readstack-design-capture
-description: Archive old files under `docs/designs/` and refresh them with screenshots from the current ReadStack implementation. Use when UI changes make design images stale, when `docs/design.md` or `docs/designs/README.md` need to match the live app, or when a user asks to replace mock images with current implementation screenshots.
+description: Archive old files under `docs/designs/` and refresh them with screenshots from the current ReadStack implementation. Use when UI changes make design images stale, when `docs/design/README.md` or `docs/designs/README.md` need to match the live app, or when a user asks to replace mock images with current implementation screenshots.
 ---
 
 # ReadStack Design Capture
@@ -28,8 +28,8 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 
 4. Verify that the captures still represent the current product accurately.
    Check that the desktop list, detail view, add modal, and mobile list all render successfully.
-   If the current implementation differs from the design docs, update `docs/design.md` and `docs/designs/README.md` in the same task.
-   If there are meaningful UI gaps that should not silently replace the intended design, record them in `docs/project-status.md`.
+   If the current implementation differs from the design docs, update `docs/design/README.md` and `docs/designs/README.md` in the same task.
+   If there are meaningful UI gaps that should not silently replace the intended design, record them in `docs/status/project-status.md`.
 
 5. Run verification appropriate to the touched files.
    When only the screenshot script or docs change, run `npm run build` in `frontend/` after script edits.
@@ -48,7 +48,7 @@ Use this sequence for authenticated screenshot capture:
 
 This keeps screenshots independent from the developer's current browser state, existing local data, and Playwright API cookie behavior.
 
-If the script captures new screens or dialogs, add the filenames to `docs/designs/README.md`, update `docs/design.md`, and include user-facing README images when appropriate.
+If the script captures new screens or dialogs, add the filenames to `docs/designs/README.md`, update `docs/design/README.md`, and include user-facing README images when appropriate.
 
 ## Notes
 
@@ -62,6 +62,6 @@ If the script captures new screens or dialogs, add the filenames to `docs/design
 - `docs/designs/*.png`
 - `docs/designs/archive/`
 - `docs/designs/README.md`
-- `docs/design.md`
-- `docs/project-status.md` when there is an intentional mismatch or follow-up
+- `docs/design/README.md`
+- `docs/status/project-status.md` when there is an intentional mismatch or follow-up
 - `frontend/scripts/capture-design-screenshots.mjs` when capture steps or selectors need to change

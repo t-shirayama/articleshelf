@@ -5,12 +5,12 @@ description: Apply ReadStack-specific UI design rules when changing Vue componen
 
 # ReadStack UI Polish
 
-Use this skill to keep ReadStack UI changes intentional instead of one-off. Always read `docs/design.md` before changing user-facing UI.
+Use this skill to keep ReadStack UI changes intentional instead of one-off. Always read `docs/design/README.md` before changing user-facing UI.
 
 ## Workflow
 
 1. Identify the affected surface: article list, article detail, add modal, sidebar, search/sort controls, common buttons, forms, cards, or responsive layout.
-2. Check `docs/design.md` for the current design rule and update it if the intended UI behavior changes.
+2. Check `docs/design/README.md` for the current design rule and update it if the intended UI behavior changes.
 3. Apply the four design principles:
    - Proximity: keep helper text close to the field it explains; separate unrelated groups with clear spacing or dividers.
    - Alignment: preserve shared left edges, fixed slots, and consistent control widths.

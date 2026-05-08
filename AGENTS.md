@@ -71,20 +71,20 @@
 - コードを変更した場合は、その変更に影響するドキュメントも同じ作業内で更新する
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
 - 今後追加したい機能や構想段階のアイデアは、まず `docs/requirements/future-considerations.md` に整理する
-- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification.md` または `docs/specification/` 配下へ反映する
+- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
-  - 要件や目的の変更: `docs/requirements.md`
+  - 要件や目的の変更: `docs/requirements/README.md`
   - 構想段階の追加候補や将来案: `docs/requirements/future-considerations.md`
-  - 機能仕様や API 契約の変更: `docs/specification.md`
-  - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture.md`
-  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/design.md`
-  - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/project-status.md`
+  - 機能仕様や API 契約の変更: `docs/specification/README.md`
+  - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md`
+  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/design/README.md`
+  - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/status/project-status.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
 
 ### 3. 実装とドキュメントの差分ルール
 
 - 実装とドキュメントに差分を見つけた場合は、どちらを正とするかを確認する
-- その場で確認できない場合は、差分を放置せず、少なくとも `docs/project-status.md` などに現状との差分を明記する
+- その場で確認できない場合は、差分を放置せず、少なくとも `docs/status/project-status.md` などに現状との差分を明記する
 - 仕様書や設計書に未反映の実装を追加した場合は、後続タスク扱いにせず、可能な限り同一作業で同期する
 
 ### 4. テストと確認
@@ -101,10 +101,10 @@
 
 ### 5. 変更種別ごとの追加ルール
 
-- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification.md` に反映する
-- データモデルや永続化方針を変更した場合は、`docs/architecture.md` と必要に応じて `docs/specification.md` を更新する
-- UI や操作フローを変更した場合は、`docs/design.md` を確認し、差分があるなら更新する
-- UI や見た目を修正する場合は、実装前に `docs/design.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
+- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification/README.md` に反映する
+- データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` と必要に応じて `docs/specification/README.md` を更新する
+- UI や操作フローを変更した場合は、`docs/design/README.md` を確認し、差分があるなら更新する
+- UI や見た目を修正する場合は、実装前に `docs/design/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
 - UI スクリーンショットや `docs/designs/` を更新する場合は、古い画像を `docs/designs/archive/<YYYY-MM-DD>/` に退避し、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
 - UI 文言を変更する場合は表記揺れを確認し、非破壊のモーダル終了は「閉じる」、削除確認など確認操作の中止は「キャンセル」と表記する
@@ -118,9 +118,9 @@
 
 ### 6. project-status.md の扱い
 
-- 一時対応、妥協実装、既知の制約を入れた場合は、理由と残課題を `docs/project-status.md` に反映する
-- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/project-status.md` に追記候補として残す
-- `docs/project-status.md` は、実装済み機能の棚卸し、仕様との差分、残作業の記録先として扱う
+- 一時対応、妥協実装、既知の制約を入れた場合は、理由と残課題を `docs/status/project-status.md` に反映する
+- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/status/project-status.md` に追記候補として残す
+- `docs/status/project-status.md` は、実装済み機能の棚卸し、仕様との差分、残作業の記録先として扱う
 
 ### 7. README の扱い
 
