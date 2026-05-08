@@ -16,7 +16,8 @@
     "test:e2e:ui": "playwright test --ui",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "capture:designs": "node scripts/capture-design-screenshots.mjs"
+    "capture:designs": "node scripts/capture-design-screenshots.mjs",
+    "seed:sample": "node scripts/seed-sample-data.mjs"
   },
   "dependencies": {
     "dompurify": "^3.4.2",

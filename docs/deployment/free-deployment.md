@@ -189,6 +189,9 @@ management:
 | `AUTH_CSRF_ENABLED` | `true` | 本番必須。`prod` profile では `false` を指定すると起動エラー |
 | `AUTH_COOKIE_SECURE` | `true` | HTTPS cookie 必須。`SameSite=None` の場合も必須 |
 | `AUTH_COOKIE_SAME_SITE` | `None` | frontend と API が別 site の場合。same-site 配信なら `Lax` も検討可 |
+| `READSTACK_INITIAL_USER_ENABLED` | `false` | 初期 ADMIN の自動作成。通常は `false`、検証環境で必要な場合のみ `true` |
+| `READSTACK_INITIAL_USERNAME` | `owner` | 初期 ADMIN を有効化した場合の username |
+| `READSTACK_INITIAL_USER_PASSWORD` | `********` | 初期 ADMIN を有効化した場合の password |
 | `SPRING_PROFILES_ACTIVE` | `prod` | 本番 profile |
 
 秘密情報は Git にコミットしない。

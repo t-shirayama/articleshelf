@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "readstack.auth.cookie-secure=false",
         "readstack.auth.cookie-same-site=Lax",
         "readstack.auth.csrf-enabled=false",
+        "readstack.auth.initial-user-enabled=true",
         "readstack.auth.initial-username=owner-test",
         "readstack.auth.initial-user-password=password123"
 })

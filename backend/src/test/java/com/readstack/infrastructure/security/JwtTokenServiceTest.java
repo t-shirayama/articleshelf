@@ -79,6 +79,7 @@ class JwtTokenServiceTest {
                 false,
                 "Lax",
                 false,
+                false,
                 "owner",
                 "password123"
         );

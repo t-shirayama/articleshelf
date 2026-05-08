@@ -11,6 +11,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -32,8 +33,8 @@ public class ReadStackDataInitializer implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
-        AuthUser owner = authService.ensureInitialUser();
-        assignOwnerToLegacyData(owner.id());
+        Optional<AuthUser> owner = authService.ensureInitialUser();
+        owner.ifPresent(user -> assignOwnerToLegacyData(user.id()));
     }
 
     private void assignOwnerToLegacyData(UUID ownerId) {

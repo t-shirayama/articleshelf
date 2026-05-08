@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "readstack.auth.cookie-secure=false",
         "readstack.auth.cookie-same-site=Lax",
         "readstack.auth.csrf-enabled=false",
+        "readstack.auth.initial-user-enabled=false",
         "readstack.auth.initial-username=owner-test",
         "readstack.auth.initial-user-password=password123"
 })

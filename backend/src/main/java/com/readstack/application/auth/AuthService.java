@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -160,10 +161,13 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthUser ensureInitialUser() {
+    public Optional<AuthUser> ensureInitialUser() {
+        if (!settings.initialUserEnabled()) {
+            return Optional.empty();
+        }
         String username = normalizeUsername(settings.initialUsername());
         usernamePolicy.validate(username);
-        return userRepository.findByUsername(username).orElseGet(() -> {
+        return Optional.of(userRepository.findByUsername(username).orElseGet(() -> {
             passwordPolicy.validate(username, settings.initialUserPassword());
             AuthUser user = new AuthUser(
                     null,
@@ -176,7 +180,7 @@ public class AuthService {
                     Instant.EPOCH
             );
             return userRepository.save(user);
-        });
+        }));
     }
 
     private AuthUser requireActiveUser(CurrentUser currentUser) {

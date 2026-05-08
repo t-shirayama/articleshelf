@@ -53,6 +53,7 @@ class ProductionEnvironmentValidatorTest {
                 cookieSecure,
                 cookieSameSite,
                 csrfEnabled,
+                false,
                 "owner",
                 "password123"
         );
