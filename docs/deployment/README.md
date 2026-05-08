@@ -156,20 +156,6 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 - `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
 - secret と DB password は GitHub / Render / Cloudflare の secret 管理に置き、Git へコミットしない
 
-### 5.4 GitHub Actions による keep-awake
-
-Render Free Web Service の cold start を抑えるため、`.github/workflows/keep-render-awake.yml` で 10 分ごとに `/actuator/health` を ping する。
-GitHub Actions の schedule cron は UTC で評価される。
-
-Repository secret に次を設定する。
-
-| Secret                   | 例                                                      | 説明                               |
-| ------------------------ | ------------------------------------------------------- | ---------------------------------- |
-| `RENDER_HEALTHCHECK_URL` | `https://articleshelf-api.onrender.com/actuator/health` | Render backend の health check URL |
-
-この workflow は `workflow_dispatch` にも対応しているため、設定後に GitHub Actions 画面から手動実行して secret と endpoint を確認できる。
-Render や GitHub Actions の無料枠・利用条件に影響するため、デモ期間外や不要になった場合は workflow の無効化を検討する。
-
 ## 6. Database: Supabase Free PostgreSQL
 
 ### 6.1 接続方式
@@ -216,7 +202,6 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 ### 7.1 現在の運用
 
 - PR / push では GitHub Actions の CI を実行する
-- schedule / workflow_dispatch では `keep-render-awake.yml` が Render backend の `/actuator/health` を ping する
 - Cloudflare Pages は Git 連携で `frontend` を build / deploy する
 - Render は Git 連携で `backend` を Docker build / deploy する
 - 公開反映は Cloudflare Pages / Render 側の auto deploy に任せ、必要時だけ dashboard で rollback / redeploy する
@@ -267,8 +252,6 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] Render cold start 時の表示が破綻しない
 - [ ] Markdown 安全境界が維持されている
 - [ ] Supabase の database size / connection usage を確認した
-- [ ] GitHub secret `RENDER_HEALTHCHECK_URL` を設定した
-- [ ] `Keep Render Awake` workflow を手動実行し、health check が成功することを確認した
 
 ## 9. 未決事項
 
