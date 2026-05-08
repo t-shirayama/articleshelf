@@ -2,6 +2,9 @@
 import { toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check, GitMerge, Pencil, Plus, Search, Trash2, X } from "lucide-vue-next";
+import TagAddDialog from "./TagAddDialog.vue";
+import TagDeleteDialog from "./TagDeleteDialog.vue";
+import TagMergeDialog from "./TagMergeDialog.vue";
 import { useTagManagementState } from "../composables/useTagManagementState";
 import type { Tag } from "../types";
 
@@ -308,90 +311,28 @@ function confirmDelete(): void {
       </p>
     </div>
 
-    <VDialog :model-value="addDialogOpen" max-width="420" @update:model-value="!$event && closeAddDialog(saving)">
-      <VCard class="tag-management-dialog">
-        <VCardTitle>{{ t("tags.addTitle") }}</VCardTitle>
-        <VCardText class="tag-management-dialog-body">
-          <VTextField
-            v-model="addDraft"
-            :label="t('tags.name')"
-            autofocus
-            :disabled="saving"
-            @keyup.enter="confirmAdd"
-          />
-        </VCardText>
-        <VCardActions>
-          <VSpacer />
-          <VBtn variant="text" :disabled="saving" @click="closeAddDialog(saving)">{{ t("common.cancel") }}</VBtn>
-          <VBtn
-            class="action-button action-button-primary"
-            color="primary"
-            variant="flat"
-            :loading="saving"
-            :disabled="saving || !addDraft.trim()"
-            @click="confirmAdd"
-          >
-            {{ t("common.add") }}
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+    <TagAddDialog
+      v-model:draft="addDraft"
+      :open="addDialogOpen"
+      :saving="saving"
+      @cancel="closeAddDialog(saving)"
+      @confirm="confirmAdd"
+    />
 
-    <VDialog :model-value="Boolean(mergeSource)" max-width="460" @update:model-value="!$event && closeMerge()">
-      <VCard class="tag-management-dialog">
-        <VCardTitle>{{ t("tags.mergeTitle") }}</VCardTitle>
-        <VCardText class="tag-management-dialog-body">
-          <p>
-            <strong>{{ mergeSource?.name }}</strong>
-            {{ t("tags.mergeBody", { name: mergeSource?.name || '' }) }}
-          </p>
-          <VSelect
-            v-model="mergeTargetId"
-            class="readstack-select"
-            :label="t('tags.mergeTarget')"
-            :items="mergeOptions"
-            item-title="title"
-            item-value="value"
-          />
-        </VCardText>
-        <VCardActions>
-          <VSpacer />
-          <VBtn variant="text" @click="closeMerge">{{ t("common.cancel") }}</VBtn>
-          <VBtn
-            class="action-button action-button-primary"
-            color="primary"
-            variant="flat"
-            :loading="saving"
-            :disabled="saving || !mergeTargetId"
-            @click="confirmMerge"
-          >
-            {{ t("tags.mergeConfirm") }}
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+    <TagMergeDialog
+      v-model:target-id="mergeTargetId"
+      :source="mergeSource"
+      :options="mergeOptions"
+      :saving="saving"
+      @cancel="closeMerge"
+      @confirm="confirmMerge"
+    />
 
-    <VDialog :model-value="Boolean(deleteCandidate)" max-width="420" @update:model-value="!$event && (deleteCandidate = null)">
-      <VCard class="tag-management-dialog">
-        <VCardTitle>{{ t("tags.deleteUnusedTitle") }}</VCardTitle>
-        <VCardText>
-          {{ t("tags.deleteUnusedBody", { name: deleteCandidate?.name || '' }) }}
-        </VCardText>
-        <VCardActions>
-          <VSpacer />
-          <VBtn variant="text" @click="deleteCandidate = null">{{ t("common.cancel") }}</VBtn>
-          <VBtn
-            class="action-button action-button-danger"
-            color="error"
-            variant="flat"
-            :loading="saving"
-            :disabled="saving"
-            @click="confirmDelete"
-          >
-            {{ t("common.deleteAction") }}
-          </VBtn>
-        </VCardActions>
-      </VCard>
-    </VDialog>
+    <TagDeleteDialog
+      :candidate="deleteCandidate"
+      :saving="saving"
+      @cancel="deleteCandidate = null"
+      @confirm="confirmDelete"
+    />
   </section>
 </template>

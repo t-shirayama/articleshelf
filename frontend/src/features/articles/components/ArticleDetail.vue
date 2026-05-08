@@ -2,8 +2,8 @@
 import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
-import DateField from '../../../shared/components/DateField.vue'
-import StarRating from '../../../shared/components/StarRating.vue'
+import ArticleDeleteDialog from './ArticleDeleteDialog.vue'
+import ArticleDetailMetaPanel from './ArticleDetailMetaPanel.vue'
 import MarkdownViewer from './MarkdownViewer.vue'
 import TagEditor from './TagEditor.vue'
 import { useArticleDetailForm } from '../composables/useArticleDetailForm'
@@ -259,64 +259,22 @@ function confirmDelete(): void {
           </template>
         </section>
 
-        <VCard class="detail-meta" variant="flat">
-          <VCardText class="detail-meta-content">
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">{{ t('common.status') }}</span>
-              <VSelect
-                v-model="form.status"
-                class="readstack-select detail-meta-control"
-                :items="statusOptions"
-                item-title="label"
-                item-value="value"
-                density="comfortable"
-                :disabled="!isEditing"
-                hide-details
-                variant="outlined"
-              />
-            </div>
-
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">{{ t('common.readDate') }}</span>
-              <DateField
-                v-model="form.readDate"
-                class="readstack-date-field detail-meta-control"
-                density="comfortable"
-                :disabled="!isEditing"
-                :clearable="isEditing"
-                :error-messages="submitted && readDateError ? [readDateError] : []"
-              />
-            </div>
-
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">{{ t('common.rating') }}</span>
-              <div class="rating-field detail-rating-field">
-                <template v-if="isEditing">
-                  <StarRating v-model="form.rating" :size="20" />
-                </template>
-                <template v-else>
-                  <StarRating :model-value="article.rating" readonly :size="20" />
-                </template>
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
+        <ArticleDetailMetaPanel
+          :form="form"
+          :article-rating="article.rating"
+          :is-editing="isEditing"
+          :submitted="submitted"
+          :status-options="statusOptions"
+          :read-date-error="readDateError"
+        />
       </div>
 
-      <VDialog v-model="deleteDialogOpen" max-width="420">
-        <VCard class="delete-confirm-dialog" :title="t('dialogs.deleteArticleTitle')">
-          <VCardText>
-            <p>
-              {{ t('dialogs.deleteArticleBody', { title: article.title }) }}
-            </p>
-          </VCardText>
-          <VCardActions>
-            <VSpacer />
-            <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteDialogOpen = false">{{ t('common.cancel') }}</VBtn>
-            <VBtn class="action-button action-button-danger" color="error" variant="flat" :loading="props.deleting" :disabled="props.deleting" @click="confirmDelete">{{ t('common.deleteAction') }}</VBtn>
-          </VCardActions>
-        </VCard>
-      </VDialog>
+      <ArticleDeleteDialog
+        v-model:open="deleteDialogOpen"
+        :title="article.title"
+        :deleting="props.deleting"
+        @confirm="confirmDelete"
+      />
     </VForm>
   </main>
 </template>
