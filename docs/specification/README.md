@@ -7,7 +7,7 @@ ArticleShelfの機能仕様、データモデル、API仕様、UI仕様、技術
 ## 目次
 
 - [機能仕様](features.md): 記事一覧、記事詳細、カレンダー、記事追加、タグ管理、検索・フィルター
-- [データモデル](data-model.md): Article、Tag、ArticleTag
+- [データモデル](data-model.md): User、RefreshToken、Article、Tag、ArticleTag
 - [API仕様](api.md): 記事API、タグAPI
 - [ユーザー登録・ログイン・JWT認証設計](authentication.md): 認証方式、トークン、ユーザースコープ、API、移行方針
 - [セキュリティ仕様](security.md): 認証・認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization

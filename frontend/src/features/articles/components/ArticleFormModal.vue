@@ -161,6 +161,7 @@ function submit(): void {
         <div class="modal-field">
           <VTextarea
             v-model="form.notes"
+            counter="20000"
             :label="t('common.notes')"
             rows="5"
             auto-grow

@@ -1,0 +1,15 @@
+name: Keep Render Awake
+
+on:
+  schedule:
+    # Every 10 minutes. GitHub Actions cron uses UTC.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Ping Render health endpoint
+        run: curl -fsS --max-time 20 "${{ secrets.RENDER_HEALTHCHECK_URL }}"

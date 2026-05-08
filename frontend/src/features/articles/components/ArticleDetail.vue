@@ -190,7 +190,7 @@ function confirmDelete(): void {
                 v-else
                 v-model="form.notes"
                 class="detail-edit-notes-field"
-                counter="2000"
+                counter="20000"
                 :label="t('common.notes')"
                 rows="13"
                 variant="outlined"
