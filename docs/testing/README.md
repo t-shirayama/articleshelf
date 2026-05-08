@@ -139,6 +139,7 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-FE-008 | P1 | sort | 登録日、更新日、既読日、タイトル、評価 | 安定した順序になる |
 | UT-FE-009 | P1 | Markdown | raw HTML | 実行可能 HTML として描画しない |
 | UT-FE-010 | P2 | title helper | フィルタ条件 | 一覧タイトルが条件に追従 |
+| UT-FE-011 | P1 | API client / article actions | 4xx / 5xx / 通信失敗 / 401 retry / 一覧操作失敗 | 構造化エラーと表示先 error state へ変換する |
 
 ### 3.6 実装済み UT
 
@@ -173,6 +174,12 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
   - お気に入り楽観更新失敗時の rollback
   - ステータス楽観更新成功時の状態反映
   - ログアウト時の user scoped state 初期化
+- `client.test.ts`
+  - API `messages` と `existingArticleId` を `ApiRequestError` として保持する
+  - 空の 401、通信失敗、5xx、malformed success response を汎用メッセージへ変換する
+  - 401 後の refresh / retry で新しい access token を使う
+- `useArticleActions.test.ts`
+  - 一覧削除失敗や stale article 詳細取得失敗を一覧エラーバナー向け state へ変換する
 
 ## 4. IT: Integration Test
 

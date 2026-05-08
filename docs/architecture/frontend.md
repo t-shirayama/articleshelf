@@ -19,6 +19,9 @@
 
 - 表示状態と画面操作は feature の view / component に閉じる
 - API 通信は feature adapter または shared API client に集約する
+- API / 通信エラーの HTTP status、API `messages`、重複記事 ID、refresh retry、通信失敗、5xx の汎用化は `shared/api/client` が担当する
+- store / composable は `shared/errors` の `errorMessage` で表示文言を取り出し、一覧、タグ管理、追加モーダル、詳細画面など表示先に応じた error state へ入れる
+- API client は 5xx や malformed success response の内部詳細を画面へ出さず、i18n の汎用メッセージに変換する
 - 画面遷移、未保存警告、記事操作、タグ操作、詳細フォーム、タグ管理の検索 / 並び替え / ダイアログ状態など、複数要素にまたがる UI ロジックは feature composable に切り出す
 - 検索、フィルタ、ソート、フォーム変換などの純粋処理は `features/articles/domain` に置く
 - feature 固有の静的文言や表示候補は `features/articles/data` に置き、component / composable から生成関数越しに参照する

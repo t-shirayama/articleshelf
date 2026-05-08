@@ -1,5 +1,6 @@
 import { ref, type Ref } from "vue";
 import { ApiRequestError } from "../../../shared/api/client";
+import { errorMessage } from "../../../shared/errors";
 import type { useArticlesStore } from "../stores/articles";
 import type { Article, ArticleInput } from "../types";
 import type { WorkspaceViewMode } from "./useWorkspaceNavigation";
@@ -39,7 +40,7 @@ export function useArticleActions(options: ArticleActionOptions) {
       options.viewMode.value = "list";
     } catch (error: unknown) {
       options.articleFormError.value =
-        error instanceof Error ? error.message : options.t("articles.saveError");
+        errorMessage(error, options.t("articles.saveError"));
       options.duplicateArticleId.value =
         error instanceof ApiRequestError ? error.existingArticleId || "" : "";
     } finally {
@@ -55,7 +56,7 @@ export function useArticleActions(options: ArticleActionOptions) {
       await options.store.updateArticle(article);
     } catch (error: unknown) {
       options.detailFormError.value =
-        error instanceof Error ? error.message : options.t("articles.saveError");
+        errorMessage(error, options.t("articles.saveError"));
     } finally {
       isSavingDetail.value = false;
     }
@@ -71,7 +72,7 @@ export function useArticleActions(options: ArticleActionOptions) {
       options.navigateToList();
     } catch (error: unknown) {
       options.detailFormError.value =
-        error instanceof Error ? error.message : options.t("articles.deleteError");
+        errorMessage(error, options.t("articles.deleteError"));
     } finally {
       isDeletingArticle.value = false;
     }
@@ -85,14 +86,24 @@ export function useArticleActions(options: ArticleActionOptions) {
     if (!deleteCandidate.value) return;
     const articleId = deleteCandidate.value.id;
     deleteCandidate.value = null;
-    await options.store.deleteArticle(articleId);
+    options.store.error = "";
+    try {
+      await options.store.deleteArticle(articleId);
+    } catch (error: unknown) {
+      options.store.error = errorMessage(error, options.t("articles.deleteError"));
+    }
   }
 
   async function openArticle(article: Article): Promise<void> {
     options.detailFormError.value = "";
-    await options.store.selectArticle(article);
-    options.rotateMotivation();
-    options.viewMode.value = "detail";
+    options.store.error = "";
+    try {
+      await options.store.selectArticle(article);
+      options.rotateMotivation();
+      options.viewMode.value = "detail";
+    } catch (error: unknown) {
+      options.store.error = errorMessage(error, options.t("articles.fetchError"));
+    }
   }
 
   async function toggleFavorite(article: Article): Promise<void> {
@@ -101,9 +112,14 @@ export function useArticleActions(options: ArticleActionOptions) {
 
   async function openDuplicateArticle(articleId: string): Promise<void> {
     options.closeForDuplicateOpen();
-    await options.store.selectArticleById(articleId);
-    options.rotateMotivation();
-    options.viewMode.value = "detail";
+    options.detailFormError.value = "";
+    try {
+      await options.store.selectArticleById(articleId);
+      options.rotateMotivation();
+      options.viewMode.value = "detail";
+    } catch (error: unknown) {
+      options.detailFormError.value = errorMessage(error, options.t("articles.fetchError"));
+    }
   }
 
   return {

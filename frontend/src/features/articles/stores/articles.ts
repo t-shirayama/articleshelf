@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { errorMessage } from '../../../shared/errors'
 import { translate } from '../../../shared/i18n'
 import { articlesApi } from '../api/articlesApi'
 import { createDefaultArticleFilters, filterArticles, sortArticles } from '../domain/articleFilters'
@@ -50,7 +51,7 @@ export const useArticlesStore = defineStore('articles', {
           this.selectedArticle = this.articles.find((article) => article.id === selectedId) || null
         }
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : translate('articles.fetchError')
+        this.error = errorMessage(error, translate('articles.fetchError'))
       } finally {
         this.loading = false
       }
@@ -59,7 +60,7 @@ export const useArticlesStore = defineStore('articles', {
       try {
         this.tags = await articlesApi.findTags()
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : translate('tags.fetchError')
+        this.error = errorMessage(error, translate('tags.fetchError'))
       }
     },
     async createTag(name: string): Promise<void> {
@@ -115,7 +116,7 @@ export const useArticlesStore = defineStore('articles', {
         this.articles = previousArticles
         this.allArticles = previousAllArticles
         this.selectedArticle = previousSelectedArticle
-        this.error = error instanceof Error ? error.message : translate('articles.favoriteError')
+        this.error = errorMessage(error, translate('articles.favoriteError'))
       }
     },
     async updateArticleStatus(article: Article, status: Exclude<ArticleStatus, 'ALL'>, readDate: string | null): Promise<Article | null> {
@@ -134,7 +135,7 @@ export const useArticlesStore = defineStore('articles', {
         this.articles = previousArticles
         this.allArticles = previousAllArticles
         this.selectedArticle = previousSelectedArticle
-        this.error = error instanceof Error ? error.message : translate('articles.statusError')
+        this.error = errorMessage(error, translate('articles.statusError'))
         return null
       }
     },

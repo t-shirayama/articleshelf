@@ -1,4 +1,5 @@
 import { ref, type Ref } from "vue";
+import { errorMessage } from "../../../shared/errors";
 import type { useArticlesStore } from "../stores/articles";
 
 type ArticlesStore = ReturnType<typeof useArticlesStore>;
@@ -22,7 +23,7 @@ export function useTagActions(options: TagActionOptions) {
     try {
       await options.store.renameTag(id, name);
     } catch (error: unknown) {
-      options.store.error = error instanceof Error ? error.message : options.t("tags.renameError");
+      options.store.error = errorMessage(error, options.t("tags.renameError"));
     } finally {
       isSavingTag.value = false;
     }
@@ -35,7 +36,7 @@ export function useTagActions(options: TagActionOptions) {
     try {
       await options.store.createTag(name);
     } catch (error: unknown) {
-      options.store.error = error instanceof Error ? error.message : options.t("tags.addError");
+      options.store.error = errorMessage(error, options.t("tags.addError"));
     } finally {
       isSavingTag.value = false;
     }
@@ -48,7 +49,7 @@ export function useTagActions(options: TagActionOptions) {
     try {
       await options.store.mergeTag(sourceId, targetId);
     } catch (error: unknown) {
-      options.store.error = error instanceof Error ? error.message : options.t("tags.mergeError");
+      options.store.error = errorMessage(error, options.t("tags.mergeError"));
     } finally {
       isSavingTag.value = false;
     }
@@ -61,7 +62,7 @@ export function useTagActions(options: TagActionOptions) {
     try {
       await options.store.deleteTag(id);
     } catch (error: unknown) {
-      options.store.error = error instanceof Error ? error.message : options.t("tags.deleteError");
+      options.store.error = errorMessage(error, options.t("tags.deleteError"));
     } finally {
       isSavingTag.value = false;
     }

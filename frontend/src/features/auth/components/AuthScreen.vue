@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { LogIn, UserPlus } from "lucide-vue-next";
+import { errorMessage } from "../../../shared/errors";
 import { useAuthStore } from "../stores/auth";
 
 type AuthMode = "login" | "register";
@@ -56,7 +57,7 @@ async function submit(): Promise<void> {
     await authStore.login({ email: email.value, password: password.value });
   } catch (error: unknown) {
     localError.value =
-      error instanceof Error ? error.message : t("auth.errors.authFailed");
+      errorMessage(error, t("auth.errors.authFailed"));
   }
 }
 

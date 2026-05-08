@@ -260,6 +260,10 @@ export const en = {
     errors: {
       connection: 'Could not connect to the server. Check that the backend is running.',
       server: 'A server error occurred. Please wait a moment and reload.',
+      invalidResponse: 'The server returned an unexpected response. Please reload.',
+      unauthorized: 'Your session has expired. Please log in again.',
+      forbidden: 'This operation is not allowed. Please reload and try again.',
+      notFound: 'The requested data was not found. Please reload.',
       api: 'API request failed'
     }
   } as const
