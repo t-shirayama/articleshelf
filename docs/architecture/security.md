@@ -1,5 +1,8 @@
 # Security Boundaries
 
+具体的なセキュリティ対策の仕様は [セキュリティ仕様](../specification/security.md) を正とする。
+この文書では、実装上の責務境界と表示境界を整理する。
+
 ## Token Boundary
 
 - access token はフロントエンドの Pinia store にメモリ保持する
