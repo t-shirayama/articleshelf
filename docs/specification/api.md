@@ -37,7 +37,7 @@
 
 #### `POST /api/auth/logout-all`
 
-- 説明: 現在ユーザーの refresh token を全失効
+- 説明: 現在ユーザーの refresh token を全失効し、既発行 access token も無効化
 - 認証: 必須
 - レスポンス: `204 No Content`
 - 副作用: session cookie を削除

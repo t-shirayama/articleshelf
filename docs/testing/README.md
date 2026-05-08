@@ -269,8 +269,10 @@ Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、
   - ユーザー B の一覧・詳細からユーザー A の記事が見えない
   - URL 重複判定が user scoped で動く
   - malformed JSON、UUID / enum / boolean 型不正を `400` の統一エラー形式で返す
+  - framework 由来の method not allowed を `405` のまま返す
   - タグ名重複、同一タグ統合、存在しないタグ、使用中タグ削除のエラー応答
   - refresh token rotation 後、旧 refresh token の再利用が `401` になる
+  - 全端末ログアウト後、既発行 access token と refresh token がどちらも無効になる
 
 ## 5. E2E: End-to-End Test
 

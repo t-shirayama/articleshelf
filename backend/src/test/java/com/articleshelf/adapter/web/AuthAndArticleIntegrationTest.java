@@ -519,14 +519,29 @@ class AuthAndArticleIntegrationTest {
         AuthSession changedSession = login(username, "new-password123")
                 .andExpect(status().isOk())
                 .andReturnSession();
+        AuthSession secondDeviceSession = login(username, "new-password123")
+                .andExpect(status().isOk())
+                .andReturnSession();
+
+        waitForTokenInvalidationBoundary();
 
         mockMvc.perform(post("/api/auth/logout-all")
                         .header("Authorization", changedSession.bearer()))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().maxAge("ARTICLESHELF_REFRESH", 0));
 
+        mockMvc.perform(get("/api/articles")
+                        .header("Authorization", changedSession.bearer()))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/articles")
+                        .header("Authorization", secondDeviceSession.bearer()))
+                .andExpect(status().isUnauthorized());
+
         mockMvc.perform(post("/api/auth/refresh")
                         .cookie(changedSession.refreshCookie()))
+                .andExpect(status().isUnauthorized());
+        mockMvc.perform(post("/api/auth/refresh")
+                        .cookie(secondDeviceSession.refreshCookie()))
                 .andExpect(status().isUnauthorized());
 
         AuthSession finalSession = login(username, "new-password123")
@@ -570,6 +585,17 @@ class AuthAndArticleIntegrationTest {
         login(targetUsername, "admin-reset123").andExpect(status().isOk());
     }
 
+    @Test
+    void frameworkClientErrorsKeepMethodNotAllowedResponses() throws Exception {
+        AuthSession session = register(uniqueUsername("method"));
+
+        mockMvc.perform(get("/api/auth/logout-all")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.messages[0]").value("Request is invalid."));
+    }
+
     private AuthSession register(String username) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -602,6 +628,10 @@ class AuthAndArticleIntegrationTest {
 
     private String uniqueUsername(String prefix) {
         return (prefix + "-" + UUID.randomUUID().toString().replace("-", "")).substring(0, 24);
+    }
+
+    private void waitForTokenInvalidationBoundary() throws InterruptedException {
+        Thread.sleep(1100);
     }
 
     private void createArticle(AuthSession session, String url, String title) throws Exception {

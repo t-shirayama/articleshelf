@@ -124,7 +124,7 @@ public class AuthService {
     @Transactional
     public void logoutAll(CurrentUser currentUser) {
         AuthUser user = requireActiveUser(currentUser);
-        refreshTokenRepository.revokeAllByUserId(user.id(), Instant.now());
+        invalidateTokens(user);
     }
 
     @Transactional(readOnly = true)
@@ -201,6 +201,21 @@ public class AuthService {
                 user.displayName(),
                 user.role(),
                 status,
+                user.lastLoginAt(),
+                now
+        ));
+        refreshTokenRepository.revokeAllByUserId(user.id(), now);
+    }
+
+    private void invalidateTokens(AuthUser user) {
+        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        userRepository.save(new AuthUser(
+                user.id(),
+                user.username(),
+                user.passwordHash(),
+                user.displayName(),
+                user.role(),
+                user.status(),
                 user.lastLoginAt(),
                 now
         ));

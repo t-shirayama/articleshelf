@@ -15,13 +15,17 @@ import com.articleshelf.domain.article.TagInUseException;
 import com.articleshelf.domain.article.TagNotFoundException;
 import com.articleshelf.domain.user.PasswordPolicyException;
 import com.articleshelf.domain.user.UsernamePolicyException;
+import jakarta.servlet.ServletException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.ErrorResponseException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -161,6 +165,19 @@ public class ApiExceptionHandler {
         return ErrorResponse.of(message("error.request.invalidBody"));
     }
 
+    @ExceptionHandler(ErrorResponseException.class)
+    public ResponseEntity<ErrorResponse> handleFrameworkErrorResponse(ErrorResponseException exception) {
+        return frameworkErrorResponse(exception.getStatusCode());
+    }
+
+    @ExceptionHandler(ServletException.class)
+    public ResponseEntity<ErrorResponse> handleServletFrameworkException(ServletException exception) throws ServletException {
+        if (exception instanceof org.springframework.web.ErrorResponse errorResponse) {
+            return frameworkErrorResponse(errorResponse.getStatusCode());
+        }
+        throw exception;
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleUnexpected(Exception exception) {
@@ -222,6 +239,11 @@ public class ApiExceptionHandler {
 
     private String message(String key, Object... args) {
         return messageSource.getMessage(key, args, key, currentLocale());
+    }
+
+    private ResponseEntity<ErrorResponse> frameworkErrorResponse(HttpStatusCode statusCode) {
+        String key = statusCode.is4xxClientError() ? "error.request.invalid" : "error.request.internal";
+        return ResponseEntity.status(statusCode).body(ErrorResponse.of(message(key)));
     }
 
     private Locale currentLocale() {

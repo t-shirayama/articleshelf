@@ -10,8 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -107,6 +109,17 @@ class ApiExceptionHandlerTest {
 
         assertThat(invalidSize.messages()).containsExactly("Password must be 8 to 128 characters long.");
         assertThat(sameAsUsername.messages()).containsExactly("Password cannot be the same as the username.");
+    }
+
+    @Test
+    void frameworkClientErrorsKeepTheirOriginalStatusCode() throws Exception {
+        ResponseEntity<ApiExceptionHandler.ErrorResponse> response = handler.handleServletFrameworkException(
+                new HttpRequestMethodNotSupportedException("GET")
+        );
+
+        assertThat(response.getStatusCode().value()).isEqualTo(405);
+        assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().messages()).containsExactly("Request is invalid.");
     }
 
     @Test
