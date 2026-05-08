@@ -122,7 +122,7 @@ npm run seed:sample
 
 本番公開は完了しており、以後は無料枠構成での安定運用と CI 改善を進める前提です。
 
-![ArticleShelf デプロイ構成図](docs/deployment/images/articleshelf-deployment-overview.svg)
+![ArticleShelf デプロイ構成図](docs/deployment/images/articleshelf-deployment-overview.png)
 
 - フロントエンドは Cloudflare Pages で配信
 - バックエンド API は Render Web Service で公開

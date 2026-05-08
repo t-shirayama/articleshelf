@@ -1,13 +1,13 @@
 # ArticleShelf Test Strategy
 
-最終更新: 2026-05-08
+最終更新: 2026-05-09
 
 ## 1. 目的
 
 ArticleShelf のテストは、記事を「読んだ知識資産」として安全に登録・検索・更新できることを継続的に保証するために整備する。
 本ドキュメントでは、UT（Unit Test）、IT（Integration Test）、E2E（End-to-End Test）の目的、スコープ、観点、ケース、実行方針、CI 連携を定義する。
 
-経営・プロダクト観点では、公開前に次の品質リスクを下げることを目的にする。
+経営・プロダクト観点では、リリース前後に次の品質リスクを下げることを目的にする。
 
 - ユーザーが保存した記事、メモ、タグ、既読履歴を失わない
 - 重要な導線である記事追加、一覧検索、詳細編集、削除、カレンダー確認が壊れていない
@@ -33,7 +33,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 | 優先度 | 意味 | 対象例 |
 | --- | --- | --- |
-| P0 | 公開前に必須。壊れるとデータ消失、情報漏えい、主要導線停止につながる | 記事追加、保存、編集、削除、認証、ユーザースコープ、CI |
+| P0 | リリース判定に必須。壊れるとデータ消失、情報漏えい、主要導線停止につながる | 記事追加、保存、編集、削除、認証、ユーザースコープ、CI |
 | P1 | MVP の信頼性に必要。壊れると体験品質が大きく落ちる | 検索、フィルタ、タグ、カレンダー、Markdown 表示 |
 | P2 | 使い勝手や将来拡張の品質を上げる | 細かな表示状態、境界値、アクセシビリティ補助 |
 
@@ -233,7 +233,7 @@ ArticleShelf では API、DB、JPA mapping、Spring 設定、CORS、認証、ト
 | 認証 | Spring Security Test |
 | OGP | WireMock などの stub server、または `ArticleMetadataProvider` の test double |
 
-公開前は、本番に近い PostgreSQL で検証できるよう Testcontainers の採用を推奨する。
+リリース前後の DB 互換性確認では、本番に近い PostgreSQL で検証できるよう Testcontainers の採用を推奨する。
 ただし Docker in Docker の CI 負荷が高い場合は、まず `docker compose run --rm backend mvn test` のように backend コンテナからテストを実行する方式に寄せる。
 現行 IT は H2 の PostgreSQL mode を使い、Spring Security / MockMvc / JPA / API 契約を軽量に検証する。
 Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、Flyway migration、DB 制約を変更した場合は、H2 だけでなく PostgreSQL 実体を使う persistence IT を実行する。
@@ -279,7 +279,7 @@ Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、
 ### 5.1 目的
 
 E2E は、ユーザーがブラウザで使う主要導線を、フロントエンド、バックエンド、DB を結合して検証する。
-経営説明では「公開前の代表操作は自動で担保している」と示せるテスト群にする。
+経営説明では「リリース前後の代表操作は自動で担保している」と示せるテスト群にする。
 
 ### 5.2 スコープ
 
@@ -418,7 +418,7 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 | Phase 2 | frontend に Vitest を追加し `npm run test:unit` を実行 | 実装済み |
 | Phase 3 | Playwright script を追加し P0 E2E を実行 | 実装済み |
 | Phase 3.5 | CI を check / unit / integration / e2e に分割し、feature branch では変更パス別に実行 | 実装済み |
-| Phase 5 | schedule で health check と smoke test を実行 | 無料枠公開環境の休眠・疎通確認 |
+| Phase 5 | schedule で health check を実行し、必要に応じて smoke test を追加 | 無料枠公開環境の休眠・疎通確認 |
 
 ### 6.3 推奨 workflow 構成
 
@@ -427,12 +427,12 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 - `e2e.yml`
   - pull request / main push で P0 E2E を実行
   - 実行時間が伸びたら main push と手動実行に絞る
-- `healthcheck.yml`
-  - schedule で公開 URL の `/actuator/health` または `/api/health` を確認
+- `keep-render-awake.yml`
+  - schedule / workflow_dispatch で Render backend の `/actuator/health` を確認
 
 ## 7. 完了条件
 
-公開前の最小完了条件は次の通り。
+リリース前の最小完了条件は達成済み。現在の基準は次の通り。
 
 - P0 UT が CI で実行される: 達成
 - P0 IT が CI で実行される: 達成
