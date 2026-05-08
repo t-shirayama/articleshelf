@@ -445,13 +445,13 @@
   display: none;
 }
 
-.detail-meta .readstack-date-field,
-.detail-meta .readstack-date-field .v-input__control,
-.detail-meta .readstack-date-field .v-field {
+.detail-meta .articleshelf-date-field,
+.detail-meta .articleshelf-date-field .v-input__control,
+.detail-meta .articleshelf-date-field .v-field {
   min-height: 40px;
 }
 
-.detail-meta .readstack-date-field .v-field__input {
+.detail-meta .articleshelf-date-field .v-field__input {
   min-height: 40px;
 }
 

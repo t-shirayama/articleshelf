@@ -21,7 +21,7 @@ defineProps<{
         <span class="detail-meta-label">{{ $t('common.status') }}</span>
         <VSelect
           v-model="form.status"
-          class="readstack-select detail-meta-control"
+          class="articleshelf-select detail-meta-control"
           :items="statusOptions"
           item-title="label"
           item-value="value"
@@ -36,7 +36,7 @@ defineProps<{
         <span class="detail-meta-label">{{ $t('common.readDate') }}</span>
         <DateField
           v-model="form.readDate"
-          class="readstack-date-field detail-meta-control"
+          class="articleshelf-date-field detail-meta-control"
           density="comfortable"
           :disabled="!isEditing"
           :clearable="isEditing"

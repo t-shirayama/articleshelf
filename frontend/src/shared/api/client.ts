@@ -1,7 +1,7 @@
 import { getCurrentLocale, translate } from "../i18n"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-const CSRF_COOKIE = 'READSTACK_CSRF'
+const CSRF_COOKIE = 'ARTICLESHELF_CSRF'
 
 interface ApiErrorPayload {
   messages?: string[]

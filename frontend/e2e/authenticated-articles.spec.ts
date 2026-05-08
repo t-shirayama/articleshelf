@@ -398,7 +398,7 @@ test('user can rename and merge tags from tag management', async ({ page }, test
   await sourceRow.getByRole('button', { name: '統合' }).click()
   const mergeDialog = page.getByRole('dialog')
   await expect(mergeDialog).toContainText('タグを統合')
-  await mergeDialog.locator('.readstack-select').click()
+  await mergeDialog.locator('.articleshelf-select').click()
   await page.getByRole('option', { name: renamedTarget }).click()
   await mergeDialog.getByRole('button', { name: '統合する' }).click()
 
@@ -418,7 +418,7 @@ test('user can rename and merge tags from tag management', async ({ page }, test
 test('user can switch to English and the choice persists', async ({ page }, testInfo) => {
   const username = uniqueUsername('english', testInfo)
 
-  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'en'))
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'en'))
   await page.goto('/')
   await page.getByRole('button', { name: 'Sign up', exact: true }).click()
   await page.getByLabel('Username').fill(username)
@@ -503,13 +503,13 @@ test('admin can reset a user password through the API', async ({ page, request }
   const admin = await loginByApi(request, 'owner', 'password123')
   await resetPasswordByApi(request, admin.accessToken, username, newPassword)
 
-  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'ja'))
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'ja'))
   await page.goto('/')
   await login(page, username, newPassword)
 })
 
 async function register(page: Page, username: string): Promise<void> {
-  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'ja'))
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'ja'))
   await page.goto('/')
   await page.getByRole('button', { name: '登録', exact: true }).click()
   await page.getByLabel('ユーザー名').fill(username)
@@ -577,7 +577,7 @@ function uniqueUsername(prefix: string, testInfo: TestInfo): string {
 }
 
 function uniqueUrl(prefix: string, testInfo: TestInfo): string {
-  return `https://example.com/?readstackE2e=${prefix}-${uniqueSuffix(testInfo)}`
+  return `https://example.com/?articleshelfE2e=${prefix}-${uniqueSuffix(testInfo)}`
 }
 
 function uniqueSuffix(testInfo: TestInfo): string {

@@ -85,7 +85,7 @@ function formatDisplayValue(value?: string | null): string {
         <VTextField
           v-bind="{ ...$attrs, ...menuProps }"
           :model-value="displayValue"
-          class="readstack-date-field"
+          class="articleshelf-date-field"
           :label="label"
           :density="density"
           :disabled="disabled"
@@ -113,7 +113,7 @@ function formatDisplayValue(value?: string | null): string {
 
       <VDatePicker
         v-model="pickerValue"
-        class="readstack-date-picker"
+        class="articleshelf-date-picker"
         color="primary"
         show-adjacent-months
       />

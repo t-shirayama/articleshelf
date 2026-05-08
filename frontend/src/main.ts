@@ -18,9 +18,9 @@ const vuetify = createVuetify({
     messages: { ja, en }
   },
   theme: {
-    defaultTheme: 'readstack',
+    defaultTheme: 'articleshelf',
     themes: {
-      readstack: {
+      articleshelf: {
         dark: false,
         colors: {
           primary: '#186c74',

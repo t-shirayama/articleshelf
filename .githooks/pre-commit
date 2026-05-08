@@ -15,7 +15,7 @@ has_staged_content() {
   git diff --cached --name-only -- "$@" | grep -q .
 }
 
-echo "Running ReadStack pre-commit checks..."
+echo "Running ArticleShelf pre-commit checks..."
 
 if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
   echo "Frontend source changed: running frontend typecheck."
@@ -37,7 +37,7 @@ if has_changed '^(frontend/src/.*\.(vue|css)|docs/designs/README\.md|docs/specif
   echo "Design capture reminder:"
   echo "  - If visual docs/screenshots are affected, run: cd frontend && npm run capture:designs"
   echo "  - Keep current screenshots under docs/designs/screenshots/."
-  echo "  - Follow .codex/skills/readstack-design-capture/SKILL.md for deterministic capture data and login."
+  echo "  - Follow .codex/skills/articleshelf-design-capture/SKILL.md for deterministic capture data and login."
 fi
 
 if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; then
@@ -51,4 +51,4 @@ if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; th
   fi
 fi
 
-echo "ReadStack pre-commit checks passed."
+echo "ArticleShelf pre-commit checks passed."

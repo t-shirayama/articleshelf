@@ -114,8 +114,8 @@
 - Vuetify のUIロケールは現在の表示言語に追従し、日付表示は画面上では `ja-JP` / `en-US` に応じた表示、APIや永続化で扱う値は既存契約に合わせて `YYYY-MM-DD` を使う。日付ピッカーは各ロケールに追従し、日曜は赤系、土曜は青系で表示する
 - 新規作成・編集・絞り込みなど操作完了を伴うモーダルは、タイトルと主要アクションを同じヘッダー行に置き、本文末尾に同じアクションを重複配置しない
 - Markdown や `v-html` を扱う場合は raw HTML を無効化し、DOMPurify などでサニタイズし、リンク/画像の許可スキームとコード非実行の前提を崩さない
-- UI や見た目を修正する場合は、必要に応じて `.codex/skills/readstack-ui-polish/SKILL.md` を参照する
-- コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/readstack-change-sync/SKILL.md` を参照する
+- UI や見た目を修正する場合は、必要に応じて `.codex/skills/articleshelf-ui-polish/SKILL.md` を参照する
+- コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/articleshelf-change-sync/SKILL.md` を参照する
 - 新機能や大きな仕様変更では、実装前に影響範囲を確認し、必要な更新対象を整理してから着手する
 
 ### 6. project-status.md の扱い

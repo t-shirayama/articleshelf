@@ -1,0 +1,4 @@
+interface:
+  display_name: "ArticleShelf Change Sync"
+  short_description: "Keep ArticleShelf code, docs, and checks aligned"
+  default_prompt: "Use $articleshelf-change-sync to keep a ArticleShelf code change synchronized."

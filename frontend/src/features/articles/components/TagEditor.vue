@@ -88,7 +88,7 @@ function normalizeTags(tags: string[]): string[] {
       <VAutocomplete
         v-model="selectedExistingTag"
         v-model:search="existingTagSearch"
-        class="readstack-select tag-editor-existing"
+        class="articleshelf-select tag-editor-existing"
         :disabled="availableOptions.length === 0"
         :items="availableOptions"
         clearable

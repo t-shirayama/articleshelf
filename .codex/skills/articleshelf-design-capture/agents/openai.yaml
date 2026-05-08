@@ -1,0 +1,4 @@
+interface:
+  display_name: "ArticleShelf Design Capture"
+  short_description: "Refresh docs/designs/screenshots from the current app"
+  default_prompt: "Use $articleshelf-design-capture to recapture current ArticleShelf screenshots."

@@ -1,10 +1,10 @@
 spring:
   application:
-    name: readstack
+    name: articleshelf
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/readstack}
-    username: ${SPRING_DATASOURCE_USERNAME:readstack}
-    password: ${SPRING_DATASOURCE_PASSWORD:readstack}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/articleshelf}
+    username: ${SPRING_DATASOURCE_USERNAME:articleshelf}
+    password: ${SPRING_DATASOURCE_PASSWORD:articleshelf}
   flyway:
     baseline-on-migrate: true
     baseline-version: 0
@@ -39,22 +39,22 @@ server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
 
-readstack:
+articleshelf:
   frontend-origin: ${FRONTEND_ORIGIN:http://localhost:5173}
   auth:
-    access-token-secret: ${JWT_ACCESS_SECRET:dev-readstack-access-secret-change-me-please-32bytes}
+    access-token-secret: ${JWT_ACCESS_SECRET:dev-articleshelf-access-secret-change-me-please-32bytes}
     access-token-ttl-seconds: ${JWT_ACCESS_TOKEN_TTL_SECONDS:900}
-    refresh-token-hash-secret: ${AUTH_REFRESH_TOKEN_HASH_SECRET:dev-readstack-refresh-hash-secret-change-me}
+    refresh-token-hash-secret: ${AUTH_REFRESH_TOKEN_HASH_SECRET:dev-articleshelf-refresh-hash-secret-change-me}
     refresh-token-ttl-days: ${AUTH_REFRESH_TOKEN_TTL_DAYS:30}
     cookie-secure: ${AUTH_COOKIE_SECURE:false}
     cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
     csrf-enabled: ${AUTH_CSRF_ENABLED:false}
-    initial-user-enabled: ${READSTACK_INITIAL_USER_ENABLED:false}
-    initial-username: ${READSTACK_INITIAL_USERNAME:owner}
-    initial-user-password: ${READSTACK_INITIAL_USER_PASSWORD:password123}
+    initial-user-enabled: ${ARTICLESHELF_INITIAL_USER_ENABLED:false}
+    initial-username: ${ARTICLESHELF_INITIAL_USERNAME:owner}
+    initial-user-password: ${ARTICLESHELF_INITIAL_USER_PASSWORD:password123}
   auth-rate-limit:
-    enabled: ${READSTACK_AUTH_RATE_LIMIT_ENABLED:true}
-    login-capacity: ${READSTACK_LOGIN_RATE_LIMIT_CAPACITY:5}
-    login-window-seconds: ${READSTACK_LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
-    register-capacity: ${READSTACK_REGISTER_RATE_LIMIT_CAPACITY:3}
-    register-window-seconds: ${READSTACK_REGISTER_RATE_LIMIT_WINDOW_SECONDS:600}
+    enabled: ${ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED:true}
+    login-capacity: ${ARTICLESHELF_LOGIN_RATE_LIMIT_CAPACITY:5}
+    login-window-seconds: ${ARTICLESHELF_LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
+    register-capacity: ${ARTICLESHELF_REGISTER_RATE_LIMIT_CAPACITY:3}
+    register-window-seconds: ${ARTICLESHELF_REGISTER_RATE_LIMIT_WINDOW_SECONDS:600}

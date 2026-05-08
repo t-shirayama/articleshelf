@@ -51,7 +51,7 @@ const sortOptions = computed<Array<{ title: string, value: ArticleSort }>>(() =>
     </VTextField>
 
     <VSelect
-      class="readstack-select sort-select"
+      class="articleshelf-select sort-select"
       :model-value="sort"
       :items="sortOptions"
       item-title="title"

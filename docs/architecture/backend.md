@@ -19,35 +19,35 @@
 - `infrastructure` は `application` と `domain` のインターフェースに依存する
 - `adapter` は `application` のユースケースに依存し、`domain` を直接扱わない
 - `dto` は API 入出力とアプリケーション境界のために使う
-- `backend/src/test/java/com/readstack/architecture/CleanArchitectureDependencyTest.java` で、`domain` から外側の層や Spring/Jakarta への依存、`application` から `adapter` / `infrastructure` / `config` への依存、`adapter` から `infrastructure` / `config` への依存、`infrastructure` から `adapter` への依存を検査する
+- `backend/src/test/java/com/articleshelf/architecture/CleanArchitectureDependencyTest.java` で、`domain` から外側の層や Spring/Jakarta への依存、`application` から `adapter` / `infrastructure` / `config` への依存、`adapter` から `infrastructure` / `config` への依存、`infrastructure` から `adapter` への依存を検査する
 - GitHub Actions の `backend-check` job は `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest` を実行するため、この依存関係チェックも CI で必ず実行される
 
 ## パッケージ構成
 
-- `com.readstack.domain.article`
+- `com.articleshelf.domain.article`
   - `Article` (集約ルート)
   - `Tag` (値オブジェクト／エンティティ)
   - `ArticleRepository` (インターフェース)
   - `TagRepository` (タグ管理用インターフェース)
-- `com.readstack.application.article`
+- `com.articleshelf.application.article`
   - `ArticleService` / `ArticleUseCase`
   - `TagService` (タグ一覧、作成、名称変更、マージ、未使用タグ削除)
   - `AddArticleCommand`
   - `ArticleResponse`
   - `ArticleMetadataProvider` (OGP 取得など外部メタデータ取得のポート)
-- `com.readstack.application.auth`
+- `com.articleshelf.application.auth`
   - `AuthService`
   - `AuthUserRepository` / `RefreshTokenRepository` (認証永続化ポート)
   - `AccessTokenIssuer` / `RefreshTokenSecretService` / `PasswordHasher` (セキュリティ実装のポート)
-- `com.readstack.infrastructure.persistence`
+- `com.articleshelf.infrastructure.persistence`
   - `ArticleEntity`
   - `JpaArticleRepository`
   - `JpaAuthUserRepository`
   - `JpaRefreshTokenRepository`
-- `com.readstack.infrastructure.ogp`
+- `com.articleshelf.infrastructure.ogp`
   - `OgpClient`
   - `OgpService` (ArticleMetadataProvider の実装)
-- `com.readstack.adapter.web`
+- `com.articleshelf.adapter.web`
   - `ArticleController`
   - `TagController`
 

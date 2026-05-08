@@ -24,7 +24,7 @@
 Organization 名の例:
 
 ```text
-readstack
+articleshelf
 ```
 
 ---
@@ -35,7 +35,7 @@ readstack
 2. 以下のように入力する
 
 ```text
-Project name: readstack-prod
+Project name: articleshelf-prod
 Database password: 強力なランダムパスワード
 Region: Render backend に近いリージョン
 Pricing plan: Free
@@ -44,7 +44,7 @@ Pricing plan: Free
 おすすめ:
 
 ```text
-Project name: readstack-prod
+Project name: articleshelf-prod
 ```
 
 注意:
@@ -83,7 +83,7 @@ Supabase 公式ドキュメントでは、接続情報は Project Dashboard の 
 
 ### 2.1 接続情報画面を開く
 
-1. Supabase Dashboard で `readstack-prod` プロジェクトを開く
+1. Supabase Dashboard で `articleshelf-prod` プロジェクトを開く
 2. 画面上部または Database 周辺にある **Connect** を選択する
 3. 接続方式の一覧を開く
 4. Connection string を確認する
@@ -188,7 +188,7 @@ SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3
 以下が埋まっていれば DB 接続情報の確認は完了。
 
 ```text
-[ ] Supabase project name: readstack-prod
+[ ] Supabase project name: articleshelf-prod
 [ ] Supabase region を確認した
 [ ] Database password を保存した
 [ ] Pooler session mode の host を確認した

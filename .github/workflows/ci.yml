@@ -108,7 +108,7 @@ jobs:
       - name: Enforce backend domain/application coverage threshold
         run: |
           awk -F, '
-            NR>1 && ($2 ~ /^com\.readstack\.domain/ || $2 ~ /^com\.readstack\.application/) {
+            NR>1 && ($2 ~ /^com\.articleshelf\.domain/ || $2 ~ /^com\.articleshelf\.application/) {
               missed += $8;
               covered += $9;
             }
@@ -242,7 +242,7 @@ jobs:
       - name: Show compose logs on E2E failure
         if: failure()
         working-directory: .
-        run: docker compose -p readstack-e2e -f docker-compose.e2e.yml logs --tail 300
+        run: docker compose -p articleshelf-e2e -f docker-compose.e2e.yml logs --tail 300
       - name: Upload Playwright artifacts
         if: always()
         uses: actions/upload-artifact@v4

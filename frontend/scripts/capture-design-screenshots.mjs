@@ -9,19 +9,19 @@ const frontendDir = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(frontendDir, "..");
 const outputDir = path.join(repoRoot, "docs", "designs", "screenshots");
 const baseUrl =
-  process.env.READSTACK_SCREENSHOT_BASE_URL || "http://localhost:5173";
+  process.env.ARTICLESHELF_SCREENSHOT_BASE_URL || "http://localhost:5173";
 const apiBaseUrl =
-  process.env.READSTACK_SCREENSHOT_API_BASE_URL ||
+  process.env.ARTICLESHELF_SCREENSHOT_API_BASE_URL ||
   process.env.E2E_API_BASE_URL ||
   "http://127.0.0.1:8080";
 const desktopViewport = { width: 1920, height: 1080 };
 const mobileViewport = { width: 430, height: 932 };
 const captureId = Date.now().toString(36);
-const captureTarget = process.env.READSTACK_SCREENSHOT_TARGET || "all";
+const captureTarget = process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all";
 
 const captureArticles = [
   {
-    url: `https://example.com/?readstackCapture=vue-${captureId}`,
+    url: `https://example.com/?articleshelfCapture=vue-${captureId}`,
     title: "Vue で育てる記事棚の設計メモ",
     summary: "一覧、詳細、タグをつなげる ArticleShelf の設計観点。",
     status: "UNREAD",
@@ -31,7 +31,7 @@ const captureArticles = [
     tags: ["Vue", "設計"],
   },
   {
-    url: `https://example.com/?readstackCapture=spring-${captureId}`,
+    url: `https://example.com/?articleshelfCapture=spring-${captureId}`,
     title: "Spring Boot API エラー設計チェック",
     summary: "検証エラーと検索 API の回帰を確認する記事。",
     status: "READ",
@@ -42,7 +42,7 @@ const captureArticles = [
     tags: ["Spring", "API"],
   },
   {
-    url: `https://example.com/?readstackCapture=tags-${captureId}`,
+    url: `https://example.com/?articleshelfCapture=tags-${captureId}`,
     title: "タグ管理 UI の使い勝手レビュー",
     summary: "検索、並び替え、統合、削除確認のデザイン確認。",
     status: "UNREAD",
@@ -117,7 +117,7 @@ async function createContext(browser, storageState) {
   });
 
   await context.addInitScript(() => {
-    window.localStorage.setItem("readstack.locale", "ja");
+    window.localStorage.setItem("articleshelf.locale", "ja");
   });
 
   return context;

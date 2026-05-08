@@ -29,7 +29,7 @@ const { t } = useI18n();
         </p>
         <VSelect
           :model-value="targetId"
-          class="readstack-select"
+          class="articleshelf-select"
           :label="t('tags.mergeTarget')"
           :items="options"
           item-title="title"

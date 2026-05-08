@@ -4,7 +4,7 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
 
-readstack:
+articleshelf:
   frontend-origin: ${FRONTEND_ORIGIN}
   auth:
     access-token-secret: ${JWT_ACCESS_SECRET}
