@@ -359,6 +359,7 @@ CREATE TABLE article_tags (
   - `FRONTEND_ORIGIN` を本番 URL に設定
   - cookie を扱う場合は `allowCredentials(true)`
   - `Authorization`, `Content-Type`, `X-CSRF-Token` を許可
+  - API で使う `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS` を許可
 - 例外:
   - 未認証は `401`
   - 権限不足は `403`

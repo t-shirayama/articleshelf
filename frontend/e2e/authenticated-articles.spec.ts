@@ -110,6 +110,31 @@ test('user can toggle article status between unread and read from the list', asy
   await expect(articleCard(page, articleTitle)).toContainText('未読')
 })
 
+test('user can favorite an article and filter to favorites', async ({ page }, testInfo) => {
+  const email = uniqueEmail('favorite', testInfo)
+  const favoriteTitle = `Favorite ${uniqueSuffix(testInfo)}`
+  const otherTitle = `Plain ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('favorite-on', testInfo),
+    title: favoriteTitle
+  })
+  await createArticle(page, {
+    url: uniqueUrl('favorite-off', testInfo),
+    title: otherTitle
+  })
+
+  const favoriteButton = articleCard(page, favoriteTitle).locator('.card-favorite-button')
+  await favoriteButton.click()
+  await expect(favoriteButton).toHaveClass(/is-active/)
+
+  await page.getByRole('button', { name: 'お気に入り', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'お気に入り' })).toBeVisible()
+  await expect(articleCard(page, favoriteTitle)).toBeVisible()
+  await expect(articleCard(page, otherTitle)).toHaveCount(0)
+})
+
 test('user can filter articles by search, tag and rating', async ({ page }, testInfo) => {
   const email = uniqueEmail('filter', testInfo)
   const matchingTitle = `Vue guide ${uniqueSuffix(testInfo)}`
@@ -142,6 +167,104 @@ test('user can filter articles by search, tag and rating', async ({ page }, test
   await expect(articleCard(page, matchingTitle)).toBeVisible()
   await expect(articleCard(page, nonMatchingTitle)).toHaveCount(0)
   await expect(page.getByText('適用中')).toBeVisible()
+})
+
+test('user can sort articles by title', async ({ page }, testInfo) => {
+  const email = uniqueEmail('sort', testInfo)
+  const laterTitle = `Zeta ${uniqueSuffix(testInfo)}`
+  const firstTitle = `Alpha ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('sort-zeta', testInfo),
+    title: laterTitle
+  })
+  await createArticle(page, {
+    url: uniqueUrl('sort-alpha', testInfo),
+    title: firstTitle
+  })
+
+  await page.locator('.search-filter-bar .sort-select').click()
+  await page.getByRole('option', { name: 'タイトル順' }).click()
+
+  await expect(page.locator('.article-card h3').first()).toHaveText(firstTitle)
+})
+
+test('user can open articles from the calendar in created and read modes', async ({ page }, testInfo) => {
+  const email = uniqueEmail('calendar', testInfo)
+  const articleTitle = `Calendar ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('calendar', testInfo),
+    title: articleTitle
+  })
+  await articleCard(page, articleTitle).locator('.status-toggle-button').click()
+  await expect(page.getByText('既読にしました')).toBeVisible()
+
+  await page.getByRole('button', { name: 'カレンダー', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'カレンダー' })).toBeVisible()
+  await expect(page.getByRole('button', { name: articleTitle })).toBeVisible()
+
+  await page.getByRole('button', { name: '既読日' }).click()
+  await expect(page.getByRole('button', { name: articleTitle })).toBeVisible()
+  await page.getByRole('button', { name: articleTitle }).click()
+
+  await expect(page.getByRole('heading', { level: 2, name: articleTitle })).toBeVisible()
+})
+
+test('user can render markdown notes safely in the detail view', async ({ page }, testInfo) => {
+  const email = uniqueEmail('markdown', testInfo)
+  const articleTitle = `Markdown ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('markdown', testInfo),
+    title: articleTitle,
+    notes: [
+      '[ReadStack docs](https://example.com/docs)',
+      '',
+      '```ts',
+      'const answer = 42',
+      '```',
+      '',
+      '<script>alert("xss")</script>'
+    ].join('\n')
+  })
+
+  await openArticleFromList(page, articleTitle)
+  const markdown = page.locator('.markdown-viewer')
+
+  await expect(markdown.locator('a', { hasText: 'ReadStack docs' })).toHaveAttribute('href', 'https://example.com/docs')
+  await expect(markdown.locator('code')).toContainText('const answer = 42')
+  await expect(markdown.locator('script')).toHaveCount(0)
+})
+
+test('user is warned before leaving unsaved article edits', async ({ page }, testInfo) => {
+  const email = uniqueEmail('unsaved', testInfo)
+  const articleTitle = `Unsaved ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('unsaved', testInfo),
+    title: articleTitle,
+    notes: 'Original note'
+  })
+
+  await openArticleFromList(page, articleTitle)
+  await page.getByRole('button', { name: '編集' }).click()
+  await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Unsaved draft note')
+  await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+  await page.getByRole('button', { name: '戻る' }).click()
+
+  await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')
+  await page.getByRole('button', { name: '編集を続ける' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+
+  await page.getByRole('button', { name: '戻る' }).click()
+  await page.getByRole('button', { name: '破棄して移動' }).click()
+  await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
 })
 
 test('user can search tags and open articles from tag management', async ({ page }, testInfo) => {
@@ -192,6 +315,64 @@ test('user can create a standalone tag from tag management', async ({ page }, te
 
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toBeVisible()
+
+  const tagRow = page.locator('.tag-management-row').filter({ hasText: tagName })
+  await tagRow.getByRole('button', { name: '削除' }).click()
+  await page.getByRole('button', { name: '削除する' }).click()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toHaveCount(0)
+})
+
+test('user can rename and merge tags from tag management', async ({ page }, testInfo) => {
+  const email = uniqueEmail('tag-ops', testInfo)
+  const sourceTag = `Source-${uniqueSuffix(testInfo)}`
+  const targetTag = `Target-${uniqueSuffix(testInfo)}`
+  const renamedTarget = `Renamed-${uniqueSuffix(testInfo)}`
+  const sourceTitle = `Source article ${uniqueSuffix(testInfo)}`
+  const targetTitle = `Target article ${uniqueSuffix(testInfo)}`
+
+  await register(page, email)
+  await createArticle(page, {
+    url: uniqueUrl('tag-ops-source', testInfo),
+    title: sourceTitle,
+    tags: [sourceTag]
+  })
+  await createArticle(page, {
+    url: uniqueUrl('tag-ops-target', testInfo),
+    title: targetTitle,
+    tags: [targetTag]
+  })
+
+  await page.getByRole('button', { name: 'タグ管理' }).click()
+  await expect(page.getByRole('heading', { name: /タグ管理/ })).toBeVisible()
+
+  const targetRow = page.locator('.tag-management-row').filter({ hasText: targetTag })
+  await targetRow.getByRole('button', { name: '編集' }).click()
+  await page.locator('.tag-management-rename-input input').fill(renamedTarget)
+  await page.getByRole('button', { name: 'タグ名を保存' }).click()
+  await expect(page.locator('.tag-management-row').filter({ hasText: renamedTarget })).toBeVisible()
+  await expect(page.locator('.tag-management-row').filter({ hasText: targetTag })).toHaveCount(0)
+
+  const sourceRow = page.locator('.tag-management-row').filter({ hasText: sourceTag })
+  await sourceRow.getByRole('button', { name: '統合' }).click()
+  const mergeDialog = page.getByRole('dialog')
+  await expect(mergeDialog).toContainText('タグを統合')
+  await mergeDialog.locator('.readstack-select').click()
+  await page.getByRole('option', { name: renamedTarget }).click()
+  await mergeDialog.getByRole('button', { name: '統合する' }).click()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.tag-management-row').filter({ hasText: sourceTag })).toHaveCount(0)
+
+  await page
+    .locator('.tag-management-row')
+    .filter({ hasText: renamedTarget })
+    .getByRole('button', { name: `${renamedTarget} の記事一覧を開く` })
+    .click()
+  await expect(page.getByRole('heading', { level: 1, name: renamedTarget })).toBeVisible()
+  await expect(articleCard(page, sourceTitle)).toBeVisible()
+  await expect(articleCard(page, targetTitle)).toBeVisible()
 })
 
 test('user can switch to English and the choice persists', async ({ page }, testInfo) => {
