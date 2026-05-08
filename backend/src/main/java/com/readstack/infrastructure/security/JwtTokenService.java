@@ -1,102 +1,69 @@
 package com.readstack.infrastructure.security;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.readstack.application.auth.AccessTokenIssuer;
 import com.readstack.application.auth.CurrentUser;
 import com.readstack.config.AuthProperties;
+import com.nimbusds.jose.jwk.source.ImmutableSecret;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.Mac;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.MessageDigest;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
 public class JwtTokenService implements AccessTokenIssuer {
-    private static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
-    private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
-
     private final AuthProperties properties;
-    private final ObjectMapper objectMapper;
+    private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
 
-    public JwtTokenService(AuthProperties properties, ObjectMapper objectMapper) {
+    public JwtTokenService(AuthProperties properties) {
         this.properties = properties;
-        this.objectMapper = objectMapper;
+        SecretKey secretKey = new SecretKeySpec(
+                properties.accessTokenSecret().getBytes(StandardCharsets.UTF_8),
+                "HmacSHA256"
+        );
+        this.jwtEncoder = new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
+        this.jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
     }
 
     @Override
     public String issue(CurrentUser user) {
         Instant now = Instant.now();
-        Map<String, Object> header = Map.of("alg", "HS256", "typ", "JWT");
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("sub", user.id().toString());
-        payload.put("email", user.email());
-        payload.put("roles", user.roles());
-        payload.put("iat", now.getEpochSecond());
-        payload.put("exp", now.plusSeconds(properties.accessTokenTtlSeconds()).getEpochSecond());
-        payload.put("jti", UUID.randomUUID().toString());
+        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .subject(user.id().toString())
+                .claim("email", user.email())
+                .claim("roles", user.roles())
+                .issuedAt(now)
+                .expiresAt(now.plusSeconds(properties.accessTokenTtlSeconds()))
+                .id(UUID.randomUUID().toString())
+                .build();
 
-        String unsigned = encodeJson(header) + "." + encodeJson(payload);
-        return unsigned + "." + sign(unsigned);
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
     }
 
     public CurrentUser parse(String token) {
-        String[] parts = token == null ? new String[0] : token.split("\\.");
-        if (parts.length != 3) {
+        try {
+            Jwt jwt = jwtDecoder.decode(token);
+            UUID id = UUID.fromString(jwt.getSubject());
+            String email = jwt.getClaimAsString("email");
+            List<String> roles = jwt.getClaimAsStringList("roles");
+            return new CurrentUser(id, email, email, roles == null ? List.of() : roles);
+        } catch (JwtException | IllegalArgumentException exception) {
             throw new JwtValidationException("invalid token");
         }
-        String unsigned = parts[0] + "." + parts[1];
-        if (!constantTimeEquals(sign(unsigned), parts[2])) {
-            throw new JwtValidationException("invalid signature");
-        }
-
-        Map<String, Object> payload = decodeJson(parts[1]);
-        Number exp = (Number) payload.get("exp");
-        if (exp == null || Instant.ofEpochSecond(exp.longValue()).isBefore(Instant.now())) {
-            throw new JwtValidationException("token expired");
-        }
-
-        UUID id = UUID.fromString((String) payload.get("sub"));
-        String email = (String) payload.get("email");
-        List<String> roles = objectMapper.convertValue(payload.get("roles"), new TypeReference<>() {});
-        return new CurrentUser(id, email, email, roles == null ? List.of() : roles);
-    }
-
-    private String encodeJson(Map<String, Object> value) {
-        try {
-            return URL_ENCODER.encodeToString(objectMapper.writeValueAsBytes(value));
-        } catch (JsonProcessingException exception) {
-            throw new IllegalStateException("failed to encode jwt", exception);
-        }
-    }
-
-    private Map<String, Object> decodeJson(String value) {
-        try {
-            return objectMapper.readValue(URL_DECODER.decode(value), new TypeReference<>() {});
-        } catch (Exception exception) {
-            throw new JwtValidationException("invalid payload");
-        }
-    }
-
-    private String sign(String value) {
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(properties.accessTokenSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
-            return URL_ENCODER.encodeToString(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
-        } catch (Exception exception) {
-            throw new IllegalStateException("failed to sign jwt", exception);
-        }
-    }
-
-    private boolean constantTimeEquals(String left, String right) {
-        return MessageDigest.isEqual(left.getBytes(StandardCharsets.UTF_8), right.getBytes(StandardCharsets.UTF_8));
     }
 }

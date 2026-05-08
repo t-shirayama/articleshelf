@@ -47,7 +47,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - バックエンド: Java 21 + Spring Boot + Spring Data JPA
 - DB: PostgreSQL
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
-- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest,ApiExceptionHandlerTest,ProductionEnvironmentValidatorTest'`
+- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,ArticleServiceTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest'`
 - 既存 CI: `.github/workflows/ci.yml` でフロントエンド UT / build、バックエンド UT / IT、E2E を実行する
 
 ## 3. UT: Unit Test
@@ -130,6 +130,7 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-BE-008 | P1 | ErrorResponse | 重複 URL | `existingArticleId` を含む |
 | UT-BE-009 | P1 | ApiExceptionHandler | 認証、タグ、パスワード、想定外例外 | 例外 reason に応じた文言と汎用 500 を返す |
 | UT-BE-010 | P1 | ProductionEnvironmentValidator | 本番 CSRF / cookie 設定 | prod で CSRF 無効や `SameSite=None; Secure=false` を拒否する |
+| UT-BE-011 | P1 | JwtTokenService | JWT 発行 / 検証 | HS256 token を発行し、改ざん、期限切れ、想定外 alg を拒否する |
 | UT-FE-001 | P0 | API adapter | Article response 変換 | UI が必要な型に変換される |
 | UT-FE-002 | P0 | store | お気に入り楽観更新成功 | 一覧全体 reload なしで状態維持 |
 | UT-FE-003 | P0 | store | お気に入り保存失敗 | 元状態へ戻しエラー表示 |
@@ -165,6 +166,9 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
   - production profile で `AUTH_CSRF_ENABLED=false` を拒否する
   - `AUTH_COOKIE_SAME_SITE=None` と `AUTH_COOKIE_SECURE=false` の組み合わせを拒否する
   - secure cross-site production 設定を許可する
+- `JwtTokenServiceTest`
+  - Spring Security JOSE 経由で HS256 access token を発行 / 検証する
+  - token 改ざん、期限切れ、`alg=none` のような想定外 header を拒否する
 
 #### フロントエンド
 

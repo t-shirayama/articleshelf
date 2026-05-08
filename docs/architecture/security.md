@@ -7,6 +7,7 @@
 - API client は `Authorization: Bearer` 付与、期限前 refresh、`401` 時の refresh / retry を担当する
 - 認証ユースケースは backend application 層の `AuthService` に閉じる
 - JWT 発行 / 検証、refresh token hash、password encoder は application 層のポート越しに infrastructure 実装へ委譲する
+- JWT の署名、`alg` header、`exp` 検証は自前実装せず、`spring-security-oauth2-jose` の `NimbusJwtEncoder` / `NimbusJwtDecoder` に委譲する
 
 ## Markdown 表示の安全境界
 

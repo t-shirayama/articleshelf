@@ -10,7 +10,7 @@
 - `infrastructure`: 永続化実装、外部APIクライアント、OGP取得、リポジトリ実装
 - `adapter`: Web/API レイヤー、コントローラー、HTTP 入力/出力のマッピング
 - `config`: Spring の設定、CORS、Bean 定義
-- `infrastructure.security`: Spring Security、JWT 発行 / 検証、refresh token hash、password encoder
+- `infrastructure.security`: Spring Security、Spring Security JOSE による JWT 発行 / 検証、refresh token hash、password encoder
 
 ## DDDの依存関係ルール
 
@@ -57,7 +57,7 @@
 - URL/OGP取得ロジックはインフラ層で実装し、アプリケーション層は `ArticleMetadataProvider` ポート経由で呼び出す
 - 記事ユースケースは `ArticleService`、タグ管理ユースケースは `TagService` に分け、コントローラーも各サービスへ直接委譲する
 - 永続化と記事一覧の基本検索条件（ステータス、単一タグ、検索語、お気に入り）は `ArticleRepository` 経由で扱い、タグ一覧・名称変更・マージ・未使用削除は `TagRepository` 経由で扱う
-- 認証ユースケースは `AuthService` に閉じ、JPA Entity、Spring Data Repository、JWT発行、refresh token hash、password encoder は application 層のポート越しに扱う
+- 認証ユースケースは `AuthService` に閉じ、JPA Entity、Spring Data Repository、JWT発行、refresh token hash、password encoder は application 層のポート越しに扱う。JWT の署名・検証・`exp` 検証・`alg` 扱いは自前実装せず、`spring-security-oauth2-jose` の encoder / decoder に委譲する
 - API層は DTO を受け取り、アプリケーションサービスに変換して処理する
 
 ## 拡張ポイント
