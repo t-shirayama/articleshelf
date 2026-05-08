@@ -156,7 +156,7 @@ npm run seed:sample
 ## テスト
 
 - バックエンド UT / IT: `docker compose run --rm backend mvn test`
-- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest'`
+- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - バックエンド静的解析: `docker compose run --rm backend mvn clean compile spotbugs:check`
 - フロントエンド UT: `cd frontend && npm run test:unit`
 - フロントエンド UT coverage: `cd frontend && npm run test:unit:coverage`
@@ -167,7 +167,7 @@ npm run seed:sample
 E2E は Playwright と Docker Compose を使い、username 登録、重複 URL、詳細編集、削除、既読 / 未読切り替え、検索 + タグ + おすすめ度フィルタ、ログアウト / ログイン、パスワード変更、全端末ログアウト、退会、管理者パスワードリセット、ユーザー分離、他ユーザーによる更新 / 削除拒否まで確認します。Playwright は必要に応じて `docker compose -f docker-compose.e2e.yml up --build` を起動し、Compose は `/actuator/health` でバックエンドの起動完了を待ってからフロントエンドを起動します。ローカルで既に起動中のサーバーがある場合だけ再利用します。
 既に `docker-compose.e2e.yml` のサーバー群を起動済みで、Playwright に起動処理を触らせたくない場合は `PLAYWRIGHT_USE_EXISTING_SERVER=1 npm run test:e2e -- authenticated-articles.spec.ts` のように既存サーバー専用モードで流せます。
 フロントエンド UT には Markdown 表示の安全化テストを含め、バックエンド側は H2 ベース IT に加えて PostgreSQL 実体 + Flyway migration の persistence IT も追加しています。
-coverage report はフロントエンドが `frontend/coverage/`、バックエンドが `backend/target/site/jacoco/` に出力されます。CI では backend の domain / application 層の line coverage が 55% 未満の場合に失敗します。
+coverage report はフロントエンドが `frontend/coverage/`、バックエンドが `backend/target/site/jacoco/` に出力されます。CI では backend の domain / application 層の line coverage が 80% 未満の場合に失敗します。長期的には 100% に近づける前提で、不足分はテスト追加時に段階的に埋めます。
 
 ## 開発補助
 

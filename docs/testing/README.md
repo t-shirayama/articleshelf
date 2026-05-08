@@ -114,7 +114,7 @@ UT は、外部 I/O に依存しない小さな単位で仕様を固定する。
 現行実装では `frontend/package.json` に `vitest` と `jsdom` を追加し、`npm run test:unit` で実行する。
 coverage 確認は `npm run test:unit:coverage` で実行し、text summary と `frontend/coverage/` の HTML / lcov report を確認する。
 バックエンドは `spring-boot-starter-test`, `spring-security-test`, `h2` を追加し、`docker compose run --rm backend mvn test` で実行する。
-Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`backend/target/site/jacoco/` に report を出力する。CI では JaCoCo CSV から domain / application 層の line coverage を集計し、55% 未満なら失敗させる。
+Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`backend/target/site/jacoco/` に report を出力する。CI では JaCoCo CSV から domain / application 層の line coverage を集計し、80% 未満なら失敗させる。長期目標は 100% とし、未カバーの分岐や例外系は段階的にテストを追加する。
 
 ### 3.5 UT ケース一覧
 
@@ -398,7 +398,7 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
   - frontend は `npm run typecheck` と `npm run build` で型チェックと Vite ビルドを確認する
 - Step 2: `backend-unit` / `frontend-unit`
   - backend の domain / application UT と frontend の Vitest UT を coverage 付きで実行する
-  - backend は JaCoCo CSV から instruction / branch / line coverage summary を出力し、domain / application line coverage 55% 未満を失敗にする
+  - backend は JaCoCo CSV から instruction / branch / line coverage summary を出力し、domain / application line coverage 80% 未満を失敗にする
   - frontend は Vitest coverage-v8 の text summary を出力する
 - Step 3: `backend-integration` / `frontend-integration`
   - backend の Spring Boot / PostgreSQL IT と frontend の `*.integration.test.ts` を分けて実行する

@@ -51,6 +51,6 @@ ReadStack の品質属性と運用上守るべき仕様を定義する。
 - P0 中心の単体テスト、結合テスト、E2E テストを整備する
 - backend / frontend の check、unit、integration、E2E は CI で段階実行する
 - backend unit と frontend unit は coverage を確認する
-- backend unit coverage は JaCoCo CSV を使い、domain / application 層の line coverage が 55% 未満なら CI を失敗させる。初期値は緩めに置き、対象テスト拡充後に段階的に引き上げる
+- backend coverage は JaCoCo CSV を使い、domain / application 層の line coverage が 80% 未満なら CI を失敗させる。長期目標は 100% とし、未カバー分は機能追加や修正時に段階的に埋める
 - Spring Data JPA の `@Query`、JPQL、native SQL、DB 制約を変更した場合は PostgreSQL 実体を使う integration test で確認する
 - テスト範囲、具体的なコマンド、CI の job 構成は [docs/testing/README.md](../testing/README.md) に従う

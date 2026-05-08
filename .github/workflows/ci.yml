@@ -97,7 +97,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Run backend unit tests with coverage
-        run: docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest'
+        run: docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'
       - name: Print backend unit coverage summary
         run: |
           awk -F, 'NR>1 {im+=$4; ic+=$5; bm+=$6; bc+=$7; lm+=$8; lc+=$9} END {
@@ -116,8 +116,8 @@ jobs:
               total = covered + missed;
               ratio = total == 0 ? 1 : covered / total;
               printf "Domain/application line coverage: %.2f%% (%d/%d)\n", 100 * ratio, covered, total;
-              if (ratio < 0.55) {
-                printf "Coverage threshold failed: expected at least 55.00%%\n";
+              if (ratio < 0.80) {
+                printf "Coverage threshold failed: expected at least 80.00%%\n";
                 exit 1;
               }
             }
