@@ -115,6 +115,18 @@ npm run seed:sample
 - API: REST API
 - UI: Vuetify とカスタムCSSを組み合わせたデスクトップ向けUI
 
+## 公開構成
+
+現在の公開構成は Cloudflare Pages + Render + Supabase PostgreSQL を基本にしています。
+構成の詳細、環境変数、公開後の運用メモは [docs/deployment/README.md](docs/deployment/README.md) に整理しています。
+
+![ReadStack デプロイ構成図](docs/deployment/images/readstack-deployment-overview.svg)
+
+- フロントエンドは Cloudflare Pages で配信
+- バックエンド API は Render Web Service で公開
+- データベースは Supabase PostgreSQL を利用
+- CI は GitHub Actions、CD は段階的に GitHub Actions 連携へ寄せる方針
+
 ## 推奨バージョン
 
 - Node.js は `22 LTS` を基準にする
