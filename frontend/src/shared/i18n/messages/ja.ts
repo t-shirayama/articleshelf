@@ -167,6 +167,8 @@ export const ja = {
       emptySelection: '記事を選択すると詳細を編集できます。',
       articleDetails: '記事の詳細',
       notesHelp: '検索対象になります。Markdown 記法も使えます',
+      notesPreview: 'プレビュー',
+      notesEdit: '入力に戻る',
       tagEdit: 'タグ編集',
       emptySummary: '概要はまだありません',
       emptyTags: 'タグはまだありません',

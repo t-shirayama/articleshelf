@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, ChevronDown, ExternalLink, Eye, Heart, Pencil, Save, Trash2 } from 'lucide-vue-next'
 import ArticleDeleteDialog from './ArticleDeleteDialog.vue'
 import ArticleDetailMetaPanel from './ArticleDetailMetaPanel.vue'
 import MarkdownViewer from './MarkdownViewer.vue'
@@ -32,6 +32,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const notesPreviewOpen = ref(false)
 const {
   form,
   deleteDialogOpen,
@@ -162,10 +163,31 @@ function confirmDelete(): void {
           <template v-if="isEditing">
             <section class="detail-section detail-edit-notes-section">
               <div class="detail-section-header detail-notes-header">
-                <h3>{{ t('common.notes') }}</h3>
-                <span>{{ t('detail.notesHelp') }}</span>
+                <div class="detail-notes-heading-copy">
+                  <h3>{{ t('common.notes') }}</h3>
+                  <span>{{ t('detail.notesHelp') }}</span>
+                </div>
+                <VBtn
+                  class="detail-notes-preview-button"
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  type="button"
+                  @click="notesPreviewOpen = !notesPreviewOpen"
+                >
+                  <template #prepend>
+                    <Pencil v-if="notesPreviewOpen" :size="16" />
+                    <Eye v-else :size="16" />
+                  </template>
+                  {{ notesPreviewOpen ? t('detail.notesEdit') : t('detail.notesPreview') }}
+                </VBtn>
+              </div>
+              <div v-if="notesPreviewOpen" class="detail-notes-preview">
+                <MarkdownViewer v-if="form.notes.trim()" :source="form.notes" />
+                <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
               </div>
               <VTextarea
+                v-else
                 v-model="form.notes"
                 class="detail-edit-notes-field"
                 counter="2000"

@@ -167,6 +167,8 @@ export const en = {
       emptySelection: 'Select an article to edit details.',
       articleDetails: 'Article details',
       notesHelp: 'Searchable. Markdown is supported',
+      notesPreview: 'Preview',
+      notesEdit: 'Back to edit',
       tagEdit: 'Edit tags',
       emptySummary: 'No summary yet',
       emptyTags: 'No tags yet',

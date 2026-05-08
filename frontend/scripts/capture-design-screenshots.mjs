@@ -262,7 +262,10 @@ async function captureMobileList(page) {
 async function main() {
   await mkdir(outputDir, { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    args: ["--host-resolver-rules=MAP localhost 127.0.0.1"],
+    headless: true,
+  });
 
   try {
     await captureAuthLogin(browser);
