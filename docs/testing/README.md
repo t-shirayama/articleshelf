@@ -114,7 +114,7 @@ UT は、外部 I/O に依存しない小さな単位で仕様を固定する。
 現行実装では `frontend/package.json` に `vitest` と `jsdom` を追加し、`npm run test:unit` で実行する。
 coverage 確認は `npm run test:unit:coverage` で実行し、text summary と `frontend/coverage/` の HTML / lcov report を確認する。
 バックエンドは `spring-boot-starter-test`, `spring-security-test`, `h2` を追加し、`docker compose run --rm backend mvn test` で実行する。
-Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`backend/target/site/jacoco/` に report を出力する。
+Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`backend/target/site/jacoco/` に report を出力する。CI では JaCoCo CSV から domain / application 層の line coverage を集計し、55% 未満なら失敗させる。
 
 ### 3.5 UT ケース一覧
 
@@ -134,6 +134,7 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-BE-012 | P0 | UsernamePolicy | username 正規化 / 形式 | 3〜32文字、許可文字、小文字正規化を検証する |
 | UT-BE-013 | P1 | AuthRateLimiter | 登録 / ログイン試行制限 | login は `IP + username`、register は IP 単位で超過時に拒否し、window 後に再許可する |
 | IT-BE-006 | P1 | Auth rate limit API | 429 応答 | `X-Forwarded-For` の IP を使い、register / login の超過時に統一 JSON エラーを返す |
+| IT-API-010 | P1 | ArticleRequest validation | API 境界の入力制約 | `rating` 範囲外や長すぎる `title` を 400 で拒否する |
 | UT-FE-001 | P0 | API adapter | Article response 変換 | UI が必要な型に変換される |
 | UT-FE-002 | P0 | store | お気に入り楽観更新成功 | 一覧全体 reload なしで状態維持 |
 | UT-FE-003 | P0 | store | お気に入り保存失敗 | 元状態へ戻しエラー表示 |
@@ -397,7 +398,7 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
   - frontend は `npm run typecheck` と `npm run build` で型チェックと Vite ビルドを確認する
 - Step 2: `backend-unit` / `frontend-unit`
   - backend の domain / application UT と frontend の Vitest UT を coverage 付きで実行する
-  - backend は JaCoCo CSV から instruction / branch / line coverage summary を出力する
+  - backend は JaCoCo CSV から instruction / branch / line coverage summary を出力し、domain / application line coverage 55% 未満を失敗にする
   - frontend は Vitest coverage-v8 の text summary を出力する
 - Step 3: `backend-integration` / `frontend-integration`
   - backend の Spring Boot / PostgreSQL IT と frontend の `*.integration.test.ts` を分けて実行する

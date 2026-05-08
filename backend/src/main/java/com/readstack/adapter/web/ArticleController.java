@@ -7,7 +7,10 @@ import com.readstack.application.article.UpdateArticleCommand;
 import com.readstack.application.auth.CurrentUser;
 import com.readstack.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -73,15 +76,15 @@ public class ArticleController {
     }
 
     public record ArticleRequest(
-            @NotBlank @URL String url,
-            String title,
-            String summary,
+            @NotBlank @URL @Size(max = 2048) String url,
+            @Size(max = 255) String title,
+            @Size(max = 5000) String summary,
             ArticleStatus status,
             LocalDate readDate,
             Boolean favorite,
-            Integer rating,
-            String notes,
-            List<String> tags
+            @Min(0) @Max(5) Integer rating,
+            @Size(max = 20000) String notes,
+            @Size(max = 20) List<@Size(max = 255) String> tags
     ) {
         AddArticleCommand toAddCommand() {
             return new AddArticleCommand(url, title, summary, status, readDate, favorite, rating, notes, tags);

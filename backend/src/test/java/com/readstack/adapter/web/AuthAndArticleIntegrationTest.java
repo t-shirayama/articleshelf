@@ -225,6 +225,49 @@ class AuthAndArticleIntegrationTest {
     }
 
     @Test
+    void articleRequestValidationRejectsOutOfRangeAndOversizedFields() throws Exception {
+        AuthSession session = register(uniqueUsername("article-validation"));
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/%s",
+                                  "title": "Article",
+                                  "summary": "",
+                                  "status": "UNREAD",
+                                  "favorite": false,
+                                  "rating": 6,
+                                  "notes": "",
+                                  "tags": []
+                                }
+                                """.formatted(UUID.randomUUID())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Rating is invalid."));
+
+        mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "url": "https://example.com/%s",
+                                  "title": "%s",
+                                  "summary": "",
+                                  "status": "UNREAD",
+                                  "favorite": false,
+                                  "rating": 0,
+                                  "notes": "",
+                                  "tags": []
+                                }
+                                """.formatted(UUID.randomUUID(), "a".repeat(256))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("Title length is invalid."));
+    }
+
+    @Test
     void articleListAppliesRepositoryBackedFilters() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));

@@ -38,14 +38,14 @@
 - id: UUID
 - userId: UUID
 - url: string (必須、最大2048文字、ユーザー単位でユニーク)
-- title: string (必須)
-- summary: string (任意)
+- title: string (必須、最大255文字)
+- summary: string (任意、API入力は最大5000文字)
 - thumbnailUrl: string (任意)
 - status: enum(`UNREAD`, `READ`)
 - readDate: date (任意)
 - favorite: boolean
 - rating: integer (`0` - `5`, 未指定時は `0`)
-- notes: text (任意)
+- notes: text (任意、API入力は最大20000文字)
 - createdAt: timestamp
 - updatedAt: timestamp
 
