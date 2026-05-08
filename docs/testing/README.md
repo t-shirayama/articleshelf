@@ -418,7 +418,7 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 | Phase 2 | frontend に Vitest を追加し `npm run test:unit` を実行 | 実装済み |
 | Phase 3 | Playwright script を追加し P0 E2E を実行 | 実装済み |
 | Phase 3.5 | CI を check / unit / integration / e2e に分割し、feature branch では変更パス別に実行 | 実装済み |
-| Phase 5 | schedule で health check を実行し、必要に応じて smoke test を追加 | 無料枠公開環境の休眠・疎通確認 |
+| Phase 5 | 必要に応じて手動またはデプロイ基盤側で health check / smoke test を実施 | 公開環境の疎通確認 |
 
 ### 6.3 推奨 workflow 構成
 
@@ -427,8 +427,6 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 - `e2e.yml`
   - pull request / main push で P0 E2E を実行
   - 実行時間が伸びたら main push と手動実行に絞る
-- `keep-render-awake.yml`
-  - schedule / workflow_dispatch で Render backend の `/actuator/health` を確認
 
 ## 7. 完了条件
 
