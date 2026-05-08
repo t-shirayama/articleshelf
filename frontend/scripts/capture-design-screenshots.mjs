@@ -17,6 +17,7 @@ const apiBaseUrl =
 const desktopViewport = { width: 1920, height: 1080 };
 const mobileViewport = { width: 430, height: 932 };
 const captureId = Date.now().toString(36);
+const captureTarget = process.env.READSTACK_SCREENSHOT_TARGET || "all";
 
 const captureArticles = [
   {
@@ -263,6 +264,14 @@ async function captureDeleteArticleDialog(page) {
   await saveScreenshot(page, "delete_article_dialog.png");
 }
 
+async function captureAccountSettingsDialog(page) {
+  await openArticleList(page);
+  await page.getByRole("button", { name: "アカウント", exact: true }).click();
+  await page.waitForSelector(".account-settings-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "account_settings_dialog.png");
+}
+
 async function captureMobileList(page) {
   await page.setViewportSize(mobileViewport);
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
@@ -280,13 +289,19 @@ async function main() {
   });
 
   try {
-    await captureAuthLogin(browser);
-
     const captureData = await createCaptureData();
     const context = await createContext(browser);
     const page = await context.newPage();
     await loginCaptureUser(page, captureData.username);
 
+    if (captureTarget === "account-settings-dialog") {
+      await captureAccountSettingsDialog(page);
+      await context.close();
+      console.log(`Captured account settings screenshot in ${outputDir}`);
+      return;
+    }
+
+    await captureAuthLogin(browser);
     await captureDesktopList(page);
     await captureDesktopDetailView(page);
     await captureDesktopDetailEdit(page);
@@ -298,6 +313,7 @@ async function main() {
     await captureTagMergeDialog(page);
     await captureTagDeleteDialog(page);
     await captureDeleteArticleDialog(page);
+    await captureAccountSettingsDialog(page);
     await captureMobileList(page);
 
     await context.close();
