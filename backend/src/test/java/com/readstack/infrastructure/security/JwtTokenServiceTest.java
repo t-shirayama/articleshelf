@@ -26,19 +26,19 @@ class JwtTokenServiceTest {
     @Test
     void issuesAndParsesAccessToken() {
         JwtTokenService service = new JwtTokenService(authProperties(900));
-        CurrentUser user = new CurrentUser(UUID.randomUUID(), "user@example.com", "User", List.of("USER"));
+        CurrentUser user = new CurrentUser(UUID.randomUUID(), "reader", "User", List.of("USER"));
 
         CurrentUser parsed = service.parse(service.issue(user));
 
         assertThat(parsed.id()).isEqualTo(user.id());
-        assertThat(parsed.email()).isEqualTo(user.email());
+        assertThat(parsed.username()).isEqualTo(user.username());
         assertThat(parsed.roles()).containsExactly("USER");
     }
 
     @Test
     void rejectsTamperedToken() {
         JwtTokenService service = new JwtTokenService(authProperties(900));
-        String token = service.issue(new CurrentUser(UUID.randomUUID(), "user@example.com", "User", List.of("USER")));
+        String token = service.issue(new CurrentUser(UUID.randomUUID(), "reader", "User", List.of("USER")));
 
         assertThatThrownBy(() -> service.parse(token + "x"))
                 .isInstanceOf(JwtValidationException.class)
@@ -48,7 +48,7 @@ class JwtTokenServiceTest {
     @Test
     void rejectsUnexpectedAlgorithmHeader() {
         JwtTokenService service = new JwtTokenService(authProperties(900));
-        String token = service.issue(new CurrentUser(UUID.randomUUID(), "user@example.com", "User", List.of("USER")));
+        String token = service.issue(new CurrentUser(UUID.randomUUID(), "reader", "User", List.of("USER")));
         String[] parts = token.split("\\.");
         String noneHeader = Base64.getUrlEncoder()
                 .withoutPadding()
@@ -79,7 +79,7 @@ class JwtTokenServiceTest {
                 false,
                 "Lax",
                 false,
-                "owner@example.com",
+                "owner",
                 "password123"
         );
     }
@@ -91,7 +91,7 @@ class JwtTokenServiceTest {
         var header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
         var claims = JwtClaimsSet.builder()
                 .subject(UUID.randomUUID().toString())
-                .claim("email", "user@example.com")
+                .claim("username", "reader")
                 .claim("roles", List.of("USER"))
                 .issuedAt(now.minusSeconds(120))
                 .expiresAt(now.minusSeconds(61))

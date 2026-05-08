@@ -7,11 +7,12 @@ import java.util.UUID;
 
 public record AuthUser(
         UUID id,
-        String email,
+        String username,
         String passwordHash,
         String displayName,
         String role,
         UserStatus status,
-        Instant lastLoginAt
+        Instant lastLoginAt,
+        Instant tokenValidAfter
 ) {
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import AccountSettingsDialog from "../../auth/components/AccountSettingsDialog.vue";
 import { useAuthStore } from "../../auth/stores/auth";
 import ArticleDetail from "../components/ArticleDetail.vue";
 import ArticleFormModal from "../components/ArticleFormModal.vue";
@@ -26,6 +27,8 @@ const authStore = useAuthStore();
 const store = useArticlesStore();
 const { t } = useI18n();
 const filterDialogOpen = ref(false);
+const accountDialogOpen = ref(false);
+const accountDialogError = ref("");
 const detailFormError = ref("");
 const searchDraft = ref("");
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
@@ -141,6 +144,43 @@ onBeforeUnmount(() => {
 
 async function logout(): Promise<void> {
   await authStore.logout();
+  resetUserScopedState();
+}
+
+async function changePassword(input: { currentPassword: string; newPassword: string }): Promise<void> {
+  accountDialogError.value = "";
+  try {
+    await authStore.changePassword(input);
+    resetUserScopedState();
+    accountDialogOpen.value = false;
+  } catch {
+    accountDialogError.value = authStore.error;
+  }
+}
+
+async function logoutAll(): Promise<void> {
+  accountDialogError.value = "";
+  try {
+    await authStore.logoutAll();
+    resetUserScopedState();
+    accountDialogOpen.value = false;
+  } catch {
+    accountDialogError.value = authStore.error;
+  }
+}
+
+async function deleteAccount(input: { currentPassword: string }): Promise<void> {
+  accountDialogError.value = "";
+  try {
+    await authStore.deleteAccount(input);
+    resetUserScopedState();
+    accountDialogOpen.value = false;
+  } catch {
+    accountDialogError.value = authStore.error;
+  }
+}
+
+function resetUserScopedState(): void {
   store.resetState();
   resetNavigation();
 }
@@ -237,12 +277,13 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       :is-favorite-active="isFavoriteActive"
       :is-calendar-active="isCalendarActive"
       :is-tags-active="isTagsActive"
-      :user-name="authStore.user?.displayName || authStore.user?.email || ''"
+      :user-name="authStore.user?.displayName || authStore.user?.username || ''"
       @all-articles="setAllArticles"
       @status="setStatus"
       @favorite-only="setFavoriteOnly"
       @calendar="showCalendar"
       @tags="showTags"
+      @account="accountDialogOpen = true"
       @logout="logout"
     />
 
@@ -345,5 +386,15 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
     :open="unsavedChangesDialogOpen"
     @cancel="cancelPendingNavigation"
     @confirm="confirmPendingNavigation"
+  />
+
+  <AccountSettingsDialog
+    :open="accountDialogOpen"
+    :loading="authStore.loading"
+    :error="accountDialogError || authStore.error"
+    @close="accountDialogOpen = false"
+    @change-password="changePassword"
+    @logout-all="logoutAll"
+    @delete-account="deleteAccount"
   />
 </template>

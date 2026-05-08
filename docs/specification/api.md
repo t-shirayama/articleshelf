@@ -12,14 +12,14 @@
 #### `POST /api/auth/register`
 
 - 説明: ユーザー登録
-- リクエスト: `email`, `password`, `displayName`
+- リクエスト: `username`, `password`, `displayName`
 - レスポンス: `user`, `accessToken`
 - 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
 
 #### `POST /api/auth/login`
 
 - 説明: ログイン
-- リクエスト: `email`, `password`
+- リクエスト: `username`, `password`
 - レスポンス: `user`, `accessToken`
 - 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
 
@@ -35,10 +35,41 @@
 - レスポンス: `204 No Content`
 - 副作用: session cookie を削除
 
+#### `POST /api/auth/logout-all`
+
+- 説明: 現在ユーザーの refresh token を全失効
+- 認証: 必須
+- レスポンス: `204 No Content`
+- 副作用: session cookie を削除
+
 #### `GET /api/users/me`
 
 - 説明: 現在のログインユーザーを取得
-- レスポンス: `id`, `email`, `displayName`, `roles`
+- レスポンス: `id`, `username`, `displayName`, `roles`
+
+#### `PATCH /api/users/me/password`
+
+- 説明: 現在ユーザーのパスワードを変更
+- 認証: 必須
+- リクエスト: `currentPassword`, `newPassword`
+- レスポンス: `204 No Content`
+- 副作用: password hash 更新、refresh token 全失効、session cookie 削除
+
+#### `DELETE /api/users/me`
+
+- 説明: 現在ユーザーを退会状態へ変更
+- 認証: 必須
+- リクエスト: `currentPassword`
+- レスポンス: `204 No Content`
+- 副作用: `users.status = DELETED`、refresh token 全失効、session cookie 削除
+
+#### `POST /api/admin/users/{username}/password`
+
+- 説明: 管理者によるパスワードリセット
+- 認証: `ADMIN` のみ
+- リクエスト: `newPassword`
+- レスポンス: `204 No Content`
+- 備考: 新パスワードの通知はアプリ外運用で行い、メール送信は実装しない
 
 ## エンドポイント
 

@@ -27,12 +27,14 @@ ReadStack の主要データは PostgreSQL に保存します。
   - updated_at: TIMESTAMP
 
 - `article_tags`
+  - user_id: UUID
   - article_id: UUID
   - tag_id: UUID
 
 - `users`
   - id: UUID
-  - email: VARCHAR
+  - username: VARCHAR
+  - email: VARCHAR (移行互換用 nullable legacy column)
   - password_hash: VARCHAR
   - display_name: VARCHAR
   - role: VARCHAR
@@ -40,6 +42,7 @@ ReadStack の主要データは PostgreSQL に保存します。
   - created_at: TIMESTAMP
   - updated_at: TIMESTAMP
   - last_login_at: TIMESTAMP
+  - token_valid_after: TIMESTAMP
 
 - `refresh_tokens`
   - id: UUID
@@ -56,6 +59,10 @@ ReadStack の主要データは PostgreSQL に保存します。
 ## 永続化方針
 
 - 記事、タグ、ユーザー、refresh token は user scoped に扱う
-- `article_tags` は記事とタグの関連を保持する
+- `users.username` はログイン ID として小文字正規化し、一意制約を持つ
+- `users.email` は新規 API では返さない移行互換用 column として扱う
+- `users.token_valid_after` より古い JWT access token は protected API で拒否する
+- `article_tags` は記事とタグの関連を保持し、`user_id` も主キーに含める
 - article / tag の user mismatch は DB レベルでも拒否する
+- 退会は `users.status = DELETED` の論理削除とし、記事・タグは保持するが参照不可にする
 - JPA Entity は infrastructure 層の実装詳細として扱い、application / domain へ漏らさない

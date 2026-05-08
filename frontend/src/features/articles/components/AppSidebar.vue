@@ -8,6 +8,7 @@ import {
   Library,
   LogOut,
   Tags,
+  UserCog,
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
@@ -38,6 +39,7 @@ const emit = defineEmits<{
   favoriteOnly: [];
   calendar: [];
   tags: [];
+  account: [];
   logout: [];
 }>();
 
@@ -166,6 +168,18 @@ function changeLocale(value: unknown): void {
         <VBtn value="ja">{{ t("locale.ja") }}</VBtn>
         <VBtn value="en">{{ t("locale.en") }}</VBtn>
       </VBtnToggle>
+      <VBtn
+        block
+        variant="outlined"
+        color="primary"
+        class="sidebar-account-button"
+        @click="emit('account')"
+      >
+        <template #prepend>
+          <UserCog :size="17" />
+        </template>
+        {{ t("nav.account") }}
+      </VBtn>
       <VBtn
         block
         variant="outlined"

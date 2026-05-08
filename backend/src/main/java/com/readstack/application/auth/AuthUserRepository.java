@@ -6,9 +6,9 @@ import java.util.UUID;
 public interface AuthUserRepository {
     Optional<AuthUser> findById(UUID id);
 
-    Optional<AuthUser> findByEmail(String email);
+    Optional<AuthUser> findByUsername(String username);
 
-    boolean existsByEmail(String email);
+    boolean existsByUsername(String username);
 
     AuthUser save(AuthUser user);
 }

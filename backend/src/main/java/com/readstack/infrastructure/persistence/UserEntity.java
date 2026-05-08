@@ -19,7 +19,9 @@ public class UserEntity {
     @Id
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 32)
+    private String username;
+
     private String email;
 
     @Column(nullable = false)
@@ -42,6 +44,9 @@ public class UserEntity {
 
     private Instant lastLoginAt;
 
+    @Column(nullable = false)
+    private Instant tokenValidAfter;
+
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
@@ -53,6 +58,9 @@ public class UserEntity {
         }
         if (status == null) {
             status = UserStatus.ACTIVE;
+        }
+        if (tokenValidAfter == null) {
+            tokenValidAfter = Instant.EPOCH;
         }
         createdAt = now;
         updatedAt = now;
@@ -77,6 +85,14 @@ public class UserEntity {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPasswordHash() {
@@ -125,5 +141,13 @@ public class UserEntity {
 
     public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
+    }
+
+    public Instant getTokenValidAfter() {
+        return tokenValidAfter;
+    }
+
+    public void setTokenValidAfter(Instant tokenValidAfter) {
+        this.tokenValidAfter = tokenValidAfter;
     }
 }

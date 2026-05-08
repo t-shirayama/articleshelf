@@ -21,13 +21,13 @@ public class JpaAuthUserRepository implements AuthUserRepository {
     }
 
     @Override
-    public Optional<AuthUser> findByEmail(String email) {
-        return userJpaRepository.findByEmail(email).map(this::toApplication);
+    public Optional<AuthUser> findByUsername(String username) {
+        return userJpaRepository.findByUsername(username).map(this::toApplication);
     }
 
     @Override
-    public boolean existsByEmail(String email) {
-        return userJpaRepository.existsByEmail(email);
+    public boolean existsByUsername(String username) {
+        return userJpaRepository.existsByUsername(username);
     }
 
     @Override
@@ -36,24 +36,26 @@ public class JpaAuthUserRepository implements AuthUserRepository {
                 ? new UserEntity()
                 : userJpaRepository.findById(user.id()).orElseGet(UserEntity::new);
         entity.setId(user.id());
-        entity.setEmail(user.email());
+        entity.setUsername(user.username());
         entity.setPasswordHash(user.passwordHash());
         entity.setDisplayName(user.displayName());
         entity.setRole(user.role());
         entity.setStatus(user.status());
         entity.setLastLoginAt(user.lastLoginAt());
+        entity.setTokenValidAfter(user.tokenValidAfter());
         return toApplication(userJpaRepository.save(entity));
     }
 
     AuthUser toApplication(UserEntity entity) {
         return new AuthUser(
                 entity.getId(),
-                entity.getEmail(),
+                entity.getUsername(),
                 entity.getPasswordHash(),
                 entity.getDisplayName(),
                 entity.getRole(),
                 entity.getStatus(),
-                entity.getLastLoginAt()
+                entity.getLastLoginAt(),
+                entity.getTokenValidAfter()
         );
     }
 }

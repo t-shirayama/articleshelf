@@ -2,6 +2,7 @@ package com.readstack.application.auth;
 
 import com.readstack.domain.user.PasswordPolicy;
 import com.readstack.domain.user.UserStatus;
+import com.readstack.domain.user.UsernamePolicy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,7 +11,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -21,6 +21,7 @@ public class AuthService {
     private final AccessTokenIssuer accessTokenIssuer;
     private final RefreshTokenSecretService refreshTokenSecretService;
     private final AuthSettings settings;
+    private final UsernamePolicy usernamePolicy = new UsernamePolicy();
     private final PasswordPolicy passwordPolicy = new PasswordPolicy();
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -41,42 +42,45 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResult register(String email, String password, String displayName, String userAgent, String ipAddress) {
-        String normalizedEmail = normalizeEmail(email);
-        if (userRepository.existsByEmail(normalizedEmail)) {
-            throw new DuplicateEmailException(normalizedEmail);
+    public AuthResult register(String username, String password, String displayName, String userAgent, String ipAddress) {
+        String normalizedUsername = normalizeUsername(username);
+        if (userRepository.existsByUsername(normalizedUsername)) {
+            throw new DuplicateUsernameException(normalizedUsername);
         }
-        passwordPolicy.validate(normalizedEmail, password);
+        usernamePolicy.validate(normalizedUsername);
+        passwordPolicy.validate(normalizedUsername, password);
 
         AuthUser user = new AuthUser(
                 null,
-                normalizedEmail,
+                normalizedUsername,
                 passwordHasher.hash(password),
-                normalizeDisplayName(displayName, normalizedEmail),
+                normalizeDisplayName(displayName, normalizedUsername),
                 "USER",
                 UserStatus.ACTIVE,
-                Instant.now()
+                Instant.now(),
+                Instant.EPOCH
         );
         return issueAuthResult(userRepository.save(user), UUID.randomUUID(), userAgent, ipAddress);
     }
 
     @Transactional
-    public AuthResult login(String email, String password, String userAgent, String ipAddress) {
-        AuthUser user = userRepository.findByEmail(normalizeEmail(email))
+    public AuthResult login(String username, String password, String userAgent, String ipAddress) {
+        AuthUser user = userRepository.findByUsername(normalizeUsername(username))
                 .filter(candidate -> candidate.status() == UserStatus.ACTIVE)
                 .filter(candidate -> passwordHasher.matches(password == null ? "" : password, candidate.passwordHash()))
                 .orElseThrow(() -> new AuthException(
                         AuthException.Reason.INVALID_CREDENTIALS,
-                        "email address or password is incorrect"
+                        "username or password is incorrect"
                 ));
         user = userRepository.save(new AuthUser(
                 user.id(),
-                user.email(),
+                user.username(),
                 user.passwordHash(),
                 user.displayName(),
                 user.role(),
                 user.status(),
-                Instant.now()
+                Instant.now(),
+                user.tokenValidAfter()
         ));
         return issueAuthResult(user, UUID.randomUUID(), userAgent, ipAddress);
     }
@@ -116,30 +120,87 @@ public class AuthService {
                 });
     }
 
+    @Transactional
+    public void logoutAll(CurrentUser currentUser) {
+        AuthUser user = requireActiveUser(currentUser);
+        refreshTokenRepository.revokeAllByUserId(user.id(), Instant.now());
+    }
+
     @Transactional(readOnly = true)
     public UserResponse currentUser(CurrentUser currentUser) {
-        return userRepository.findById(currentUser.id())
-                .filter(user -> user.status() == UserStatus.ACTIVE)
-                .map(UserResponse::from)
-                .orElseThrow(() -> new AuthException(AuthException.Reason.USER_INACTIVE, "user is not active"));
+        return UserResponse.from(requireActiveUser(currentUser));
+    }
+
+    @Transactional
+    public void changePassword(CurrentUser currentUser, String currentPassword, String newPassword) {
+        AuthUser user = requireActiveUser(currentUser);
+        if (!passwordHasher.matches(currentPassword == null ? "" : currentPassword, user.passwordHash())) {
+            throw new AuthException(AuthException.Reason.INVALID_CREDENTIALS, "current password is incorrect");
+        }
+        passwordPolicy.validate(user.username(), newPassword);
+        saveWithPasswordAndInvalidatedTokens(user, newPassword, UserStatus.ACTIVE);
+    }
+
+    @Transactional
+    public void deleteAccount(CurrentUser currentUser, String currentPassword) {
+        AuthUser user = requireActiveUser(currentUser);
+        if (!passwordHasher.matches(currentPassword == null ? "" : currentPassword, user.passwordHash())) {
+            throw new AuthException(AuthException.Reason.INVALID_CREDENTIALS, "current password is incorrect");
+        }
+        saveWithPasswordAndInvalidatedTokens(user, null, UserStatus.DELETED);
+    }
+
+    @Transactional
+    public void resetPasswordByAdmin(String username, String newPassword) {
+        AuthUser user = userRepository.findByUsername(normalizeUsername(username))
+                .filter(candidate -> candidate.status() == UserStatus.ACTIVE)
+                .orElseThrow(() -> new AccountNotFoundException(username));
+        passwordPolicy.validate(user.username(), newPassword);
+        saveWithPasswordAndInvalidatedTokens(user, newPassword, UserStatus.ACTIVE);
     }
 
     @Transactional
     public AuthUser ensureInitialUser() {
-        String email = normalizeEmail(settings.initialUserEmail());
-        return userRepository.findByEmail(email).orElseGet(() -> {
-            passwordPolicy.validate(email, settings.initialUserPassword());
+        String username = normalizeUsername(settings.initialUsername());
+        usernamePolicy.validate(username);
+        return userRepository.findByUsername(username).orElseGet(() -> {
+            passwordPolicy.validate(username, settings.initialUserPassword());
             AuthUser user = new AuthUser(
                     null,
-                    email,
+                    username,
                     passwordHasher.hash(settings.initialUserPassword()),
                     "ReadStack Owner",
-                    "USER",
+                    "ADMIN",
                     UserStatus.ACTIVE,
-                    null
+                    null,
+                    Instant.EPOCH
             );
             return userRepository.save(user);
         });
+    }
+
+    private AuthUser requireActiveUser(CurrentUser currentUser) {
+        if (currentUser == null) {
+            throw new AuthException(AuthException.Reason.USER_INACTIVE, "user is not active");
+        }
+        return userRepository.findById(currentUser.id())
+                .filter(user -> user.status() == UserStatus.ACTIVE)
+                .orElseThrow(() -> new AuthException(AuthException.Reason.USER_INACTIVE, "user is not active"));
+    }
+
+    private void saveWithPasswordAndInvalidatedTokens(AuthUser user, String newPassword, UserStatus status) {
+        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        userRepository.save(new AuthUser(
+                user.id(),
+                user.username(),
+                newPassword == null ? user.passwordHash() : passwordHasher.hash(newPassword),
+                user.displayName(),
+                user.role(),
+                status,
+                user.lastLoginAt(),
+                now
+        ));
+        refreshTokenRepository.revokeAllByUserId(user.id(), now);
     }
 
     private AuthResult issueAuthResult(AuthUser user, UUID familyId, String userAgent, String ipAddress) {
@@ -161,7 +222,7 @@ public class AuthService {
     }
 
     private AuthResponse toAuthResponse(AuthUser user) {
-        CurrentUser currentUser = new CurrentUser(user.id(), user.email(), user.displayName(), List.of(user.role()));
+        CurrentUser currentUser = new CurrentUser(user.id(), user.username(), user.displayName(), List.of(user.role()));
         return new AuthResponse(UserResponse.from(user), accessTokenIssuer.issue(currentUser));
     }
 
@@ -171,16 +232,12 @@ public class AuthService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
-    private String normalizeEmail(String email) {
-        return email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+    private String normalizeUsername(String username) {
+        return usernamePolicy.normalize(username);
     }
 
-    private String normalizeDisplayName(String displayName, String email) {
-        if (displayName != null && !displayName.isBlank()) {
-            return displayName.trim();
-        }
-        int atIndex = email.indexOf('@');
-        return atIndex > 0 ? email.substring(0, atIndex) : email;
+    private String normalizeDisplayName(String displayName, String username) {
+        return displayName != null && !displayName.isBlank() ? displayName.trim() : username;
     }
 
     private record CreatedRefreshToken(String rawToken, RefreshTokenRecord record) {

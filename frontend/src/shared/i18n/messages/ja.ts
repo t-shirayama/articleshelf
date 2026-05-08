@@ -47,23 +47,39 @@ export const ja = {
       login: 'ログイン',
       register: '登録',
       registerTitle: 'ユーザー登録',
-      loginDescription: '登録済みのメールアドレスで続行します。',
+      loginDescription: '登録済みのユーザー名で続行します。',
       registerDescription: 'アカウントを作成して、自分の記事だけを管理できます。',
       submitRegister: '登録して始める',
-      email: 'メールアドレス',
+      username: 'ユーザー名',
       displayName: '表示名',
       password: 'パスワード',
-      emailPlaceholder: 'name@example.com',
+      usernamePlaceholder: 'owner',
       displayNamePlaceholder: '山田 太郎',
       errors: {
-        emailRequired: 'メールアドレスを入力してください',
-        emailInvalid: 'メールアドレスの形式が正しくありません',
+        usernameRequired: 'ユーザー名を入力してください',
+        usernameInvalid: 'ユーザー名は3〜32文字の英小文字・数字・ドット・アンダースコア・ハイフンで入力してください',
         displayNameRequired: '表示名を入力してください',
         passwordRequired: 'パスワードを入力してください',
         passwordLength: 'パスワードは8文字以上で入力してください',
         authFailed: '認証処理に失敗しました',
         registerFailed: 'ユーザー登録に失敗しました',
         loginFailed: 'ログインに失敗しました'
+      },
+      account: {
+        title: 'アカウント設定',
+        changePasswordTitle: 'パスワード変更',
+        currentPassword: '現在のパスワード',
+        newPassword: '新しいパスワード',
+        changePassword: 'パスワードを変更',
+        passwordChangeFailed: 'パスワード変更に失敗しました',
+        logoutAllTitle: '全端末ログアウト',
+        logoutAllDescription: '現在の端末を含むすべてのログイン状態を終了します。',
+        logoutAll: '全端末からログアウト',
+        logoutAllFailed: '全端末ログアウトに失敗しました',
+        deleteTitle: '退会',
+        deleteDescription: 'アカウントを無効化します。記事とタグは保持されますが、参照できなくなります。',
+        deleteAccount: '退会する',
+        deleteFailed: '退会処理に失敗しました'
       }
     },
     nav: {
@@ -73,6 +89,7 @@ export const ja = {
       favorite: 'お気に入り',
       calendar: 'カレンダー',
       tagManagement: 'タグ管理',
+      account: 'アカウント',
       logout: 'ログアウト'
     },
     articles: {

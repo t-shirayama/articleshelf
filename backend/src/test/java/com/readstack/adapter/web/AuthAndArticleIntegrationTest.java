@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "readstack.auth.cookie-secure=false",
         "readstack.auth.cookie-same-site=Lax",
         "readstack.auth.csrf-enabled=false",
-        "readstack.auth.initial-user-email=owner-test@example.com",
+        "readstack.auth.initial-username=owner-test",
         "readstack.auth.initial-user-password=password123"
 })
 class AuthAndArticleIntegrationTest {
@@ -67,8 +67,8 @@ class AuthAndArticleIntegrationTest {
     void registeredUsersCanOnlySeeTheirOwnArticles() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("Fetched title", "Fetched summary", "", true));
-        AuthSession userA = register("user-a-" + UUID.randomUUID() + "@example.com");
-        AuthSession userB = register("user-b-" + UUID.randomUUID() + "@example.com");
+        AuthSession userA = register(uniqueUsername("user-a"));
+        AuthSession userB = register(uniqueUsername("user-b"));
 
         MvcResult createResult = mockMvc.perform(post("/api/articles")
                         .header("Authorization", userA.bearer())
@@ -110,8 +110,8 @@ class AuthAndArticleIntegrationTest {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));
         String url = "https://example.com/same-" + UUID.randomUUID();
-        AuthSession userA = register("dup-a-" + UUID.randomUUID() + "@example.com");
-        AuthSession userB = register("dup-b-" + UUID.randomUUID() + "@example.com");
+        AuthSession userA = register(uniqueUsername("dup-a"));
+        AuthSession userB = register(uniqueUsername("dup-b"));
 
         createArticle(userA, url, "First");
 
@@ -134,56 +134,56 @@ class AuthAndArticleIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "not-an-email",
+                                  "username": "bad username",
                                   "password": "password123",
                                   "displayName": "Test User"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages[0]").value("メールアドレスの形式が正しくありません。"));
+                .andExpect(jsonPath("$.messages[0]").value("ユーザー名の形式が正しくありません。"));
 
         mockMvc.perform(post("/api/auth/register")
                         .header("Accept-Language", "en")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "not-an-email",
+                                  "username": "bad username",
                                   "password": "password123",
                                   "displayName": "Test User"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages[0]").value("Email address must be a valid email address."));
+                .andExpect(jsonPath("$.messages[0]").value("Username format is invalid."));
 
         mockMvc.perform(post("/api/auth/register")
                         .header("Accept-Language", "fr")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "not-an-email",
+                                  "username": "bad username",
                                   "password": "password123",
                                   "displayName": "Test User"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages[0]").value("Email address must be a valid email address."));
+                .andExpect(jsonPath("$.messages[0]").value("Username format is invalid."));
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "not-an-email",
+                                  "username": "bad username",
                                   "password": "password123",
                                   "displayName": "Test User"
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.messages[0]").value("Email address must be a valid email address."));
+                .andExpect(jsonPath("$.messages[0]").value("Username format is invalid."));
     }
 
     @Test
     void apiErrorsCoverMalformedInputAndTypeMismatch() throws Exception {
-        AuthSession session = register("bad-request-" + UUID.randomUUID() + "@example.com");
+        AuthSession session = register(uniqueUsername("bad"));
 
         mockMvc.perform(get("/api/articles/not-a-uuid")
                         .header("Authorization", session.bearer())
@@ -226,7 +226,7 @@ class AuthAndArticleIntegrationTest {
     void articleListAppliesRepositoryBackedFilters() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));
-        AuthSession session = register("filter-" + UUID.randomUUID() + "@example.com");
+        AuthSession session = register(uniqueUsername("filter"));
 
         mockMvc.perform(post("/api/articles")
                         .header("Authorization", session.bearer())
@@ -261,7 +261,7 @@ class AuthAndArticleIntegrationTest {
     void usersCanManageTheirOwnTags() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));
-        AuthSession session = register("tags-" + UUID.randomUUID() + "@example.com");
+        AuthSession session = register(uniqueUsername("tags"));
 
         String unusedTagId = createTag(session, "Unused");
         mockMvc.perform(patch("/api/tags/{id}", unusedTagId)
@@ -324,7 +324,7 @@ class AuthAndArticleIntegrationTest {
     void tagConflictResponsesCoverDuplicateMergeAndDeleteFailures() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));
-        AuthSession session = register("tag-errors-" + UUID.randomUUID() + "@example.com");
+        AuthSession session = register(uniqueUsername("tag-errors"));
 
         String sourceId = createTag(session, "Source");
         String targetId = createTag(session, "Target");
@@ -389,8 +389,8 @@ class AuthAndArticleIntegrationTest {
     void otherUsersCannotUpdateOrDeletePrivateArticles() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("Fetched title", "Fetched summary", "", true));
-        AuthSession userA = register("owner-" + UUID.randomUUID() + "@example.com");
-        AuthSession userB = register("intruder-" + UUID.randomUUID() + "@example.com");
+        AuthSession userA = register(uniqueUsername("owner"));
+        AuthSession userB = register(uniqueUsername("intruder"));
 
         MvcResult createResult = mockMvc.perform(post("/api/articles")
                         .header("Authorization", userA.bearer())
@@ -418,7 +418,7 @@ class AuthAndArticleIntegrationTest {
 
     @Test
     void refreshTokenRotatesAndOldTokenCannotBeReused() throws Exception {
-        AuthSession session = register("refresh-" + UUID.randomUUID() + "@example.com");
+        AuthSession session = register(uniqueUsername("refresh"));
 
         MvcResult refreshResult = mockMvc.perform(post("/api/auth/refresh")
                         .cookie(session.refreshCookie()))
@@ -434,21 +434,110 @@ class AuthAndArticleIntegrationTest {
                 .andExpect(cookie().maxAge("READSTACK_REFRESH", 0));
     }
 
-    private AuthSession register(String email) throws Exception {
+    @Test
+    void accountOperationsInvalidateSessionsAndDeleteAccount() throws Exception {
+        String username = uniqueUsername("account");
+        AuthSession session = register(username);
+
+        mockMvc.perform(patch("/api/users/me/password")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "currentPassword": "password123",
+                                  "newPassword": "new-password123"
+                                }
+                                """))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge("READSTACK_REFRESH", 0));
+
+        login(username, "password123").andExpect(status().isUnauthorized());
+        AuthSession changedSession = login(username, "new-password123")
+                .andExpect(status().isOk())
+                .andReturnSession();
+
+        mockMvc.perform(post("/api/auth/logout-all")
+                        .header("Authorization", changedSession.bearer()))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge("READSTACK_REFRESH", 0));
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .cookie(changedSession.refreshCookie()))
+                .andExpect(status().isUnauthorized());
+
+        AuthSession finalSession = login(username, "new-password123")
+                .andExpect(status().isOk())
+                .andReturnSession();
+        mockMvc.perform(delete("/api/users/me")
+                        .header("Authorization", finalSession.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"currentPassword\":\"new-password123\"}"))
+                .andExpect(status().isNoContent())
+                .andExpect(cookie().maxAge("READSTACK_REFRESH", 0));
+
+        login(username, "new-password123").andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/articles")
+                        .header("Authorization", finalSession.bearer()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void adminCanResetPasswordAndRegularUsersCannot() throws Exception {
+        String targetUsername = uniqueUsername("target");
+        AuthSession regularUser = register(uniqueUsername("regular"));
+        register(targetUsername);
+        AuthSession admin = login("owner-test", "password123")
+                .andExpect(status().isOk())
+                .andReturnSession();
+
+        mockMvc.perform(post("/api/admin/users/{username}/password", targetUsername)
+                        .header("Authorization", regularUser.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newPassword\":\"regular-reset123\"}"))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/admin/users/{username}/password", targetUsername)
+                        .header("Authorization", admin.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"newPassword\":\"admin-reset123\"}"))
+                .andExpect(status().isNoContent());
+
+        login(targetUsername, "password123").andExpect(status().isUnauthorized());
+        login(targetUsername, "admin-reset123").andExpect(status().isOk());
+    }
+
+    private AuthSession register(String username) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "email": "%s",
+                                  "username": "%s",
                                   "password": "password123",
                                   "displayName": "Test User"
                                 }
-                                """.formatted(email)))
+                                """.formatted(username)))
                 .andExpect(status().isOk())
                 .andExpect(cookie().exists("READSTACK_REFRESH"))
-                .andExpect(jsonPath("$.user.email").value(email))
+                .andExpect(jsonPath("$.user.username").value(username))
                 .andReturn();
         return new AuthSession(readAccessToken(result), result.getResponse().getCookie("READSTACK_REFRESH"));
+    }
+
+    private LoginResult login(String username, String password) throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "username": "%s",
+                                  "password": "%s"
+                                }
+                                """.formatted(username, password)))
+                .andReturn();
+        return new LoginResult(result);
+    }
+
+    private String uniqueUsername(String prefix) {
+        return (prefix + "-" + UUID.randomUUID().toString().replace("-", "")).substring(0, 24);
     }
 
     private void createArticle(AuthSession session, String url, String title) throws Exception {
@@ -501,6 +590,23 @@ class AuthAndArticleIntegrationTest {
     private record AuthSession(String accessToken, Cookie refreshCookie) {
         String bearer() {
             return "Bearer " + accessToken;
+        }
+    }
+
+    private class LoginResult {
+        private final MvcResult result;
+
+        LoginResult(MvcResult result) {
+            this.result = result;
+        }
+
+        LoginResult andExpect(org.springframework.test.web.servlet.ResultMatcher matcher) throws Exception {
+            matcher.match(result);
+            return this;
+        }
+
+        AuthSession andReturnSession() throws Exception {
+            return new AuthSession(readAccessToken(result), result.getResponse().getCookie("READSTACK_REFRESH"));
         }
     }
 }

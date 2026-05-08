@@ -34,7 +34,7 @@ class ArticleServiceTest {
     private final InMemoryArticleRepository repository = new InMemoryArticleRepository();
     private final StubMetadataProvider metadataProvider = new StubMetadataProvider();
     private final ArticleService service = new ArticleService(repository, repository, metadataProvider);
-    private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user@example.com", "User", List.of("USER"));
+    private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user", "User", List.of("USER"));
 
     @Test
     void addArticleUsesMetadataAndUserScopedTags() {
@@ -67,7 +67,7 @@ class ArticleServiceTest {
         assertThatThrownBy(() -> service.addArticle(user, command("https://example.com/same", "Duplicate")))
                 .isInstanceOf(DuplicateArticleUrlException.class);
 
-        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other@example.com", "Other", List.of("USER"));
+        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other", "Other", List.of("USER"));
         ArticleResponse response = service.addArticle(anotherUser, command("https://example.com/same", "Other"));
 
         assertThat(response.title()).isEqualTo("Other");
@@ -117,7 +117,7 @@ class ArticleServiceTest {
     @Test
     void deleteArticleIsUserScoped() {
         ArticleResponse response = service.addArticle(user, command("https://example.com/delete", "Delete"));
-        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other@example.com", "Other", List.of("USER"));
+        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other", "Other", List.of("USER"));
 
         assertThatThrownBy(() -> service.deleteArticle(anotherUser, response.id()))
                 .isInstanceOf(ArticleNotFoundException.class);
@@ -167,7 +167,7 @@ class ArticleServiceTest {
                 List.of()
         ))).isInstanceOf(DuplicateArticleUrlException.class);
 
-        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other@example.com", "Other", List.of("USER"));
+        CurrentUser anotherUser = new CurrentUser(UUID.randomUUID(), "other", "Other", List.of("USER"));
         service.addArticle(anotherUser, command("https://example.com/shared", "Other"));
         ArticleResponse ownArticle = service.addArticle(user, command("https://example.com/user-owned", "Mine"));
 

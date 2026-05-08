@@ -3,7 +3,7 @@ package com.readstack.domain.user;
 public class PasswordPolicyException extends RuntimeException {
     public enum Reason {
         SIZE,
-        SAME_AS_EMAIL
+        SAME_AS_USERNAME
     }
 
     private final Reason reason;

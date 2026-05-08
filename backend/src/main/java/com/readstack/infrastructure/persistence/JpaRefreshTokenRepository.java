@@ -66,6 +66,11 @@ public class JpaRefreshTokenRepository implements RefreshTokenRepository {
         refreshTokenJpaRepository.revokeFamily(userId, familyId, revokedAt);
     }
 
+    @Override
+    public void revokeAllByUserId(UUID userId, Instant revokedAt) {
+        refreshTokenJpaRepository.revokeAllByUserId(userId, revokedAt);
+    }
+
     private RefreshTokenRecord toApplication(RefreshTokenEntity entity) {
         return new RefreshTokenRecord(
                 entity.getId(),

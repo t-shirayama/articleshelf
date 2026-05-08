@@ -2,8 +2,9 @@ package com.readstack.adapter.web;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.readstack.adapter.web.AuthController.CsrfValidationException;
+import com.readstack.application.auth.AccountNotFoundException;
 import com.readstack.application.auth.AuthException;
-import com.readstack.application.auth.DuplicateEmailException;
+import com.readstack.application.auth.DuplicateUsernameException;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleStatus;
 import com.readstack.domain.article.ArticleUrlUnavailableException;
@@ -12,6 +13,7 @@ import com.readstack.domain.article.DuplicateTagNameException;
 import com.readstack.domain.article.TagInUseException;
 import com.readstack.domain.article.TagNotFoundException;
 import com.readstack.domain.user.PasswordPolicyException;
+import com.readstack.domain.user.UsernamePolicyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -95,19 +97,31 @@ public class ApiExceptionHandler {
         return ErrorResponse.of(message("error.auth.csrf"));
     }
 
-    @ExceptionHandler(DuplicateEmailException.class)
+    @ExceptionHandler(DuplicateUsernameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleDuplicateEmail(DuplicateEmailException exception) {
-        return ErrorResponse.of(message("error.auth.duplicateEmail"));
+    public ErrorResponse handleDuplicateUsername(DuplicateUsernameException exception) {
+        return ErrorResponse.of(message("error.auth.duplicateUsername"));
+    }
+
+    @ExceptionHandler(AccountNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleAccountNotFound(AccountNotFoundException exception) {
+        return ErrorResponse.of(message("error.auth.accountNotFound"));
     }
 
     @ExceptionHandler(PasswordPolicyException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlePasswordPolicy(PasswordPolicyException exception) {
-        if (exception.getReason() == PasswordPolicyException.Reason.SAME_AS_EMAIL) {
-            return ErrorResponse.of(message("error.auth.passwordSameAsEmail"));
+        if (exception.getReason() == PasswordPolicyException.Reason.SAME_AS_USERNAME) {
+            return ErrorResponse.of(message("error.auth.passwordSameAsUsername"));
         }
         return ErrorResponse.of(message("error.auth.passwordSize"));
+    }
+
+    @ExceptionHandler(UsernamePolicyException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleUsernamePolicy(UsernamePolicyException exception) {
+        return ErrorResponse.of(message("error.auth.usernamePolicy"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -153,11 +167,11 @@ public class ApiExceptionHandler {
         if ("NotBlank".equals(code) || "NotNull".equals(code)) {
             return message("error.validation.required", field);
         }
-        if ("Email".equals(code)) {
-            return message("error.validation.email", field);
-        }
         if ("Size".equals(code)) {
             return message("error.validation.size", field);
+        }
+        if ("Pattern".equals(code)) {
+            return message("error.validation.pattern", field);
         }
         return message("error.validation.invalid", field);
     }

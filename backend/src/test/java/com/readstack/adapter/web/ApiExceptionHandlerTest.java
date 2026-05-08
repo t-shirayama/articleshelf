@@ -69,9 +69,9 @@ class ApiExceptionHandlerTest {
                 new AuthException(AuthException.Reason.USER_INACTIVE, "user is not active")
         );
 
-        assertThat(invalidCredentials.messages()).containsExactly("Email address or password is incorrect.");
+        assertThat(invalidCredentials.messages()).containsExactly("Username or password is incorrect.");
         assertThat(invalidRefresh.messages()).containsExactly("Session is invalid. Please log in again.");
-        assertThat(inactiveUser.messages()).containsExactly("Email address or password is incorrect.");
+        assertThat(inactiveUser.messages()).containsExactly("Username or password is incorrect.");
     }
 
     @Test
@@ -79,12 +79,12 @@ class ApiExceptionHandlerTest {
         ApiExceptionHandler.ErrorResponse invalidSize = handler.handlePasswordPolicy(
                 new PasswordPolicyException(PasswordPolicyException.Reason.SIZE, "too short")
         );
-        ApiExceptionHandler.ErrorResponse sameAsEmail = handler.handlePasswordPolicy(
-                new PasswordPolicyException(PasswordPolicyException.Reason.SAME_AS_EMAIL, "same value")
+        ApiExceptionHandler.ErrorResponse sameAsUsername = handler.handlePasswordPolicy(
+                new PasswordPolicyException(PasswordPolicyException.Reason.SAME_AS_USERNAME, "same value")
         );
 
         assertThat(invalidSize.messages()).containsExactly("Password must be 8 to 128 characters long.");
-        assertThat(sameAsEmail.messages()).containsExactly("Password cannot be the same as the email address.");
+        assertThat(sameAsUsername.messages()).containsExactly("Password cannot be the same as the username.");
     }
 
     @Test

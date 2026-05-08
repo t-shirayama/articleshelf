@@ -59,11 +59,11 @@ async function createCaptureData() {
       "Accept-Language": "ja",
     },
   });
-  const email = `capture-${captureId}@example.com`;
+  const username = `capture-${captureId}`.slice(0, 32);
 
   const registerResponse = await api.post("/api/auth/register", {
     data: {
-      email,
+      username,
       password: "password123",
       displayName: "Capture User",
     },
@@ -102,7 +102,7 @@ async function createCaptureData() {
   }
 
   await api.dispose();
-  return { email };
+  return { username };
 }
 
 async function createContext(browser, storageState) {
@@ -122,10 +122,10 @@ async function createContext(browser, storageState) {
   return context;
 }
 
-async function loginCaptureUser(page, email) {
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+async function loginCaptureUser(page, username) {
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("form", { timeout: 30000 });
-  await page.getByLabel("メールアドレス").fill(email);
+  await page.getByLabel("ユーザー名").fill(username);
   await page.getByLabel("パスワード").fill("password123");
   await page.locator("form").getByRole("button", { name: "ログイン" }).click();
   await page.waitForSelector(".article-list", { timeout: 30000 });
@@ -134,7 +134,7 @@ async function loginCaptureUser(page, email) {
 
 async function openArticleList(page) {
   await page.setViewportSize(desktopViewport);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForSelector(".article-card", { timeout: 30000 });
   await page.waitForTimeout(700);
@@ -151,7 +151,7 @@ async function saveScreenshot(page, filename, options = {}) {
 async function captureAuthLogin(browser) {
   const context = await createContext(browser);
   const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("form", { timeout: 30000 });
   await page.waitForTimeout(500);
   await saveScreenshot(page, "auth_login.png");
@@ -253,7 +253,7 @@ async function captureDeleteArticleDialog(page) {
 
 async function captureMobileList(page) {
   await page.setViewportSize(mobileViewport);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForTimeout(700);
   await saveScreenshot(page, "mobile_article_list.png", { fullPage: true });
@@ -270,7 +270,7 @@ async function main() {
     const captureData = await createCaptureData();
     const context = await createContext(browser);
     const page = await context.newPage();
-    await loginCaptureUser(page, captureData.email);
+    await loginCaptureUser(page, captureData.username);
 
     await captureDesktopList(page);
     await captureDesktopDetail(page);

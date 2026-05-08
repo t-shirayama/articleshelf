@@ -45,7 +45,7 @@ public class JwtTokenService implements AccessTokenIssuer {
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.id().toString())
-                .claim("email", user.email())
+                .claim("username", user.username())
                 .claim("roles", user.roles())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(properties.accessTokenTtlSeconds()))
@@ -59,9 +59,9 @@ public class JwtTokenService implements AccessTokenIssuer {
         try {
             Jwt jwt = jwtDecoder.decode(token);
             UUID id = UUID.fromString(jwt.getSubject());
-            String email = jwt.getClaimAsString("email");
+            String username = jwt.getClaimAsString("username");
             List<String> roles = jwt.getClaimAsStringList("roles");
-            return new CurrentUser(id, email, email, roles == null ? List.of() : roles);
+            return new CurrentUser(id, username, username, roles == null ? List.of() : roles, jwt.getIssuedAt());
         } catch (JwtException | IllegalArgumentException exception) {
             throw new JwtValidationException("invalid token");
         }

@@ -13,7 +13,7 @@ public record AuthProperties(
         boolean cookieSecure,
         String cookieSameSite,
         boolean csrfEnabled,
-        String initialUserEmail,
+        String initialUsername,
         String initialUserPassword
 ) implements AuthSettings, AuthSessionSettings {
 }

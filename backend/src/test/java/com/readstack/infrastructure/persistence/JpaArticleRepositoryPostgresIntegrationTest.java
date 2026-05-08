@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "readstack.auth.cookie-secure=false",
         "readstack.auth.cookie-same-site=Lax",
         "readstack.auth.csrf-enabled=false",
-        "readstack.auth.initial-user-email=owner-test@example.com",
+        "readstack.auth.initial-username=owner-test",
         "readstack.auth.initial-user-password=password123"
 })
 class JpaArticleRepositoryPostgresIntegrationTest {
@@ -60,8 +60,8 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
     @Test
     void postgresSchemaAllowsSameUrlAcrossUsersButRejectsDuplicatesPerUser() {
-        UUID userA = createUser("postgres-a@example.com");
-        UUID userB = createUser("postgres-b@example.com");
+        UUID userA = createUser("postgres-a");
+        UUID userB = createUser("postgres-b");
 
         repository.save(article(userA, "https://example.com/shared", 4, LocalDate.parse("2026-05-07"), Set.of(tag(userA, "Vue"))));
         repository.save(article(userB, "https://example.com/shared", 2, null, Set.of(tag(userB, "Java"))));
@@ -83,7 +83,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
     @Test
     void postgresPersistenceReplacesArticleTagsWithoutLeavingStaleRelations() {
-        UUID userId = createUser("postgres-tags@example.com");
+        UUID userId = createUser("postgres-tags");
         Article saved = repository.save(article(
                 userId,
                 "https://example.com/tags",
@@ -122,7 +122,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
     @Test
     void postgresSearchAppliesOptionalFiltersWithoutTypeInferenceErrors() {
-        UUID userId = createUser("postgres-search@example.com");
+        UUID userId = createUser("postgres-search");
         Tag vue = tag(userId, "Vue");
         Tag java = tag(userId, "Java");
 
@@ -170,7 +170,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
     @Test
     void postgresSearchTreatsPercentAndUnderscoreAsLiteralText() {
-        UUID userId = createUser("postgres-search-wildcards@example.com");
+        UUID userId = createUser("postgres-search-wildcards");
 
         repository.save(new Article(
                 null,
@@ -254,7 +254,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
     @Test
     void postgresTagUsagesReturnCountsForAllTagsInOneRepositoryCall() {
-        UUID userId = createUser("postgres-tag-usages@example.com");
+        UUID userId = createUser("postgres-tag-usages");
         Tag used = tag(userId, "Used");
         tag(userId, "Unused");
         repository.save(article(userId, "https://example.com/used-tag", 3, null, Set.of(used)));
@@ -272,9 +272,9 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         });
     }
 
-    private UUID createUser(String email) {
+    private UUID createUser(String username) {
         UserEntity user = new UserEntity();
-        user.setEmail(email);
+        user.setUsername(username.substring(0, Math.min(username.length(), 32)));
         user.setPasswordHash("hashed-password");
         user.setDisplayName("Test User");
         user.setRole("USER");

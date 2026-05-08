@@ -47,23 +47,39 @@ export const en = {
       login: 'Log in',
       register: 'Sign up',
       registerTitle: 'Create account',
-      loginDescription: 'Continue with your registered email address.',
+      loginDescription: 'Continue with your registered username.',
       registerDescription: 'Create an account to manage your own articles.',
       submitRegister: 'Sign up and start',
-      email: 'Email address',
+      username: 'Username',
       displayName: 'Display name',
       password: 'Password',
-      emailPlaceholder: 'name@example.com',
+      usernamePlaceholder: 'owner',
       displayNamePlaceholder: 'Taro Yamada',
       errors: {
-        emailRequired: 'Enter your email address',
-        emailInvalid: 'Enter a valid email address',
+        usernameRequired: 'Enter your username',
+        usernameInvalid: 'Use 3 to 32 lowercase letters, numbers, dots, underscores, or hyphens',
         displayNameRequired: 'Enter your display name',
         passwordRequired: 'Enter your password',
         passwordLength: 'Enter at least 8 characters',
         authFailed: 'Authentication failed',
         registerFailed: 'Sign up failed',
         loginFailed: 'Login failed'
+      },
+      account: {
+        title: 'Account settings',
+        changePasswordTitle: 'Change password',
+        currentPassword: 'Current password',
+        newPassword: 'New password',
+        changePassword: 'Change password',
+        passwordChangeFailed: 'Could not change password',
+        logoutAllTitle: 'Log out everywhere',
+        logoutAllDescription: 'End every active login session, including this device.',
+        logoutAll: 'Log out everywhere',
+        logoutAllFailed: 'Could not log out everywhere',
+        deleteTitle: 'Delete account',
+        deleteDescription: 'Disable your account. Articles and tags are retained but will no longer be accessible.',
+        deleteAccount: 'Delete account',
+        deleteFailed: 'Could not delete account'
       }
     },
     nav: {
@@ -73,6 +89,7 @@ export const en = {
       favorite: 'Favorites',
       calendar: 'Calendar',
       tagManagement: 'Tag management',
+      account: 'Account',
       logout: 'Log out'
     },
     articles: {

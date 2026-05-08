@@ -10,8 +10,8 @@ import com.readstack.application.auth.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -50,7 +50,7 @@ public class AuthController {
             HttpServletResponse response
     ) {
         AuthResult result = authService.register(
-                request.email(),
+                request.username(),
                 request.password(),
                 request.displayName(),
                 servletRequest.getHeader("User-Agent"),
@@ -67,7 +67,7 @@ public class AuthController {
             HttpServletResponse response
     ) {
         AuthResult result = authService.login(
-                request.email(),
+                request.username(),
                 request.password(),
                 servletRequest.getHeader("User-Agent"),
                 servletRequest.getRemoteAddr()
@@ -105,6 +105,13 @@ public class AuthController {
     ) {
         validateCsrf(csrfCookie, csrfHeader);
         authService.logout(refreshToken);
+        clearSessionCookies(response);
+    }
+
+    @PostMapping("/logout-all")
+    @ResponseStatus(NO_CONTENT)
+    public void logoutAll(@AuthenticationPrincipal CurrentUser currentUser, HttpServletResponse response) {
+        authService.logoutAll(currentUser);
         clearSessionCookies(response);
     }
 
@@ -147,13 +154,13 @@ public class AuthController {
     }
 
     public record RegisterRequest(
-            @NotBlank @Email String email,
+            @NotBlank @Size(min = 3, max = 32) @Pattern(regexp = "^[A-Za-z0-9._-]+$") String username,
             @NotBlank @Size(min = 8, max = 128) String password,
             String displayName
     ) {
     }
 
-    public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {
+    public record LoginRequest(@NotBlank @Size(min = 3, max = 32) @Pattern(regexp = "^[A-Za-z0-9._-]+$") String username, @NotBlank String password) {
     }
 
     public static class CsrfValidationException extends RuntimeException {

@@ -48,5 +48,5 @@ readstack:
     cookie-secure: ${AUTH_COOKIE_SECURE:false}
     cookie-same-site: ${AUTH_COOKIE_SAME_SITE:Lax}
     csrf-enabled: ${AUTH_CSRF_ENABLED:false}
-    initial-user-email: ${READSTACK_INITIAL_USER_EMAIL:owner@example.com}
+    initial-username: ${READSTACK_INITIAL_USERNAME:owner}
     initial-user-password: ${READSTACK_INITIAL_USER_PASSWORD:password123}

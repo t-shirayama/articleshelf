@@ -43,7 +43,7 @@ Use this sequence for authenticated screenshot capture:
 2. Create representative articles and standalone tags with authenticated API calls using the returned access token.
 3. Start a fresh browser context with `locale: "ja-JP"`, `viewport: { width: 1920, height: 1080 }`, `deviceScaleFactor: 1`, and `reducedMotion: "reduce"`.
 4. Set `localStorage["readstack.locale"] = "ja"` via `addInitScript`.
-5. Navigate to the frontend login screen and log in through the visible form using the capture user's email/password.
+5. Navigate to the frontend login screen and log in through the visible form using the capture user's username/password.
 6. Wait for `.article-list` and at least one `.article-card` before capturing authenticated screens.
 
 This keeps screenshots independent from the developer's current browser state, existing local data, and Playwright API cookie behavior.

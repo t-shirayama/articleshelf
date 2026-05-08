@@ -10,26 +10,26 @@ class PasswordPolicyTest {
     private final PasswordPolicy policy = new PasswordPolicy();
 
     @Test
-    void acceptsPasswordWithinLengthAndDifferentFromEmail() {
-        assertThatCode(() -> policy.validate("user@example.com", "secure-password"))
+    void acceptsPasswordWithinLengthAndDifferentFromUsername() {
+        assertThatCode(() -> policy.validate("reader", "secure-password"))
                 .doesNotThrowAnyException();
     }
 
     @Test
-    void rejectsTooShortTooLongAndEmailEquivalentPassword() {
-        assertThatThrownBy(() -> policy.validate("user@example.com", "short"))
+    void rejectsTooShortTooLongAndUsernameEquivalentPassword() {
+        assertThatThrownBy(() -> policy.validate("reader", "short"))
                 .isInstanceOf(PasswordPolicyException.class)
                 .satisfies(exception -> assertThat(((PasswordPolicyException) exception).getReason())
                         .isEqualTo(PasswordPolicyException.Reason.SIZE));
 
-        assertThatThrownBy(() -> policy.validate("user@example.com", "x".repeat(129)))
+        assertThatThrownBy(() -> policy.validate("reader", "x".repeat(129)))
                 .isInstanceOf(PasswordPolicyException.class)
                 .satisfies(exception -> assertThat(((PasswordPolicyException) exception).getReason())
                         .isEqualTo(PasswordPolicyException.Reason.SIZE));
 
-        assertThatThrownBy(() -> policy.validate("User@Example.com", " user@example.com "))
+        assertThatThrownBy(() -> policy.validate("Reader", " reader "))
                 .isInstanceOf(PasswordPolicyException.class)
                 .satisfies(exception -> assertThat(((PasswordPolicyException) exception).getReason())
-                        .isEqualTo(PasswordPolicyException.Reason.SAME_AS_EMAIL));
+                        .isEqualTo(PasswordPolicyException.Reason.SAME_AS_USERNAME));
     }
 }

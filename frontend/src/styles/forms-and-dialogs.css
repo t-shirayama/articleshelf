@@ -572,3 +572,50 @@
   color: var(--muted);
   line-height: 1.7;
 }
+
+.account-settings-dialog {
+  width: min(560px, 100%);
+}
+
+.account-settings-header {
+  padding-bottom: 8px;
+}
+
+.account-settings-body {
+  display: grid;
+  gap: 18px;
+  padding: 10px 24px 24px;
+}
+
+.account-settings-section {
+  display: grid;
+  gap: 12px;
+}
+
+.account-settings-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.account-settings-section-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text);
+}
+
+.account-settings-section-heading svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.account-settings-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.account-settings-danger .account-settings-section-heading svg {
+  color: var(--danger);
+}
