@@ -1,8 +1,8 @@
-# ReadStack Specification
+# ArticleShelf Specification
 
 ## 概要
 
-ReadStackの機能仕様、データモデル、API仕様、UI仕様、技術スタック、非機能仕様をまとめる入口文書です。詳細は肥大化を防ぐため、`docs/specification/` 配下の項目別ファイルに分割します。
+ArticleShelfの機能仕様、データモデル、API仕様、UI仕様、技術スタック、非機能仕様をまとめる入口文書です。詳細は肥大化を防ぐため、`docs/specification/` 配下の項目別ファイルに分割します。
 
 ## 目次
 

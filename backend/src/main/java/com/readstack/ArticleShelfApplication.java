@@ -8,8 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @EnableConfigurationProperties({AuthProperties.class, AuthRateLimitProperties.class})
-public class ReadStackApplication {
+public class ArticleShelfApplication {
     public static void main(String[] args) {
-        SpringApplication.run(ReadStackApplication.class, args);
+        SpringApplication.run(ArticleShelfApplication.class, args);
     }
 }

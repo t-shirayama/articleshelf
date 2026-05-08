@@ -1,6 +1,6 @@
-# ReadStack Architecture
+# ArticleShelf Architecture
 
-ReadStack のアーキテクチャ全体像と、詳細文書への入口です。
+ArticleShelf のアーキテクチャ全体像と、詳細文書への入口です。
 
 ## システム構成
 

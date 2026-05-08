@@ -173,7 +173,7 @@ public class AuthService {
                     null,
                     username,
                     passwordHasher.hash(settings.initialUserPassword()),
-                    "ReadStack Owner",
+                    "ArticleShelf Owner",
                     "ADMIN",
                     UserStatus.ACTIVE,
                     null,

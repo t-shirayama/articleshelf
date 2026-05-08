@@ -13,7 +13,7 @@ const displayName = process.env.READSTACK_SAMPLE_DISPLAY_NAME || "Sample User";
 const sampleArticles = [
   {
     key: "architecture",
-    title: "ReadStack アーキテクチャ整理メモ",
+    title: "ArticleShelf アーキテクチャ整理メモ",
     summary: "frontend / backend / docs をどう分けるかを確認するサンプル記事。",
     status: "UNREAD",
     favorite: true,
@@ -25,7 +25,7 @@ const sampleArticles = [
       "- API 契約",
       "- テスト観点",
     ].join("\n"),
-    tags: ["設計", "ReadStack"],
+    tags: ["設計", "ArticleShelf"],
   },
   {
     key: "backend",

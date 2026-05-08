@@ -71,7 +71,7 @@ public class OgpClient {
         for (int redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
             HttpRequest request = HttpRequest.newBuilder(requestGuard.validate(currentUri))
                     .timeout(Duration.ofSeconds(5))
-                    .header("User-Agent", "ReadStack/0.1")
+                    .header("User-Agent", "ArticleShelf/0.1")
                     .GET()
                     .build();
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());

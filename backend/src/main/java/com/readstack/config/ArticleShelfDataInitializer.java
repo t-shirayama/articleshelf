@@ -15,12 +15,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class ReadStackDataInitializer implements ApplicationRunner {
+public class ArticleShelfDataInitializer implements ApplicationRunner {
     private final AuthService authService;
     private final SpringDataArticleJpaRepository articleRepository;
     private final SpringDataTagJpaRepository tagRepository;
 
-    public ReadStackDataInitializer(
+    public ArticleShelfDataInitializer(
             AuthService authService,
             SpringDataArticleJpaRepository articleRepository,
             SpringDataTagJpaRepository tagRepository

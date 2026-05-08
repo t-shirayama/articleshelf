@@ -1,6 +1,6 @@
 # Supabase 本番DB作成・DB接続情報確認手順
 
-対象: ReadStack 本番環境
+対象: ArticleShelf 本番環境
 目的: Render backend から接続する Supabase PostgreSQL を作成し、Render に設定する DB 接続情報を確認する
 
 ---
@@ -75,7 +75,7 @@ Project Settings
 
 ## 2. DB接続情報を確認
 
-ReadStack backend は Spring Boot から PostgreSQL に接続するため、Supabase の **Postgres connection string** を確認する。
+ArticleShelf backend は Spring Boot から PostgreSQL に接続するため、Supabase の **Postgres connection string** を確認する。
 
 Supabase 公式ドキュメントでは、接続情報は Project Dashboard の **Connect** ボタンから確認できる。Render のような永続的な backend から接続する場合、IPv6 が使えるなら Direct connection、IPv4 互換が必要なら Pooler session mode が推奨される。
 
@@ -155,7 +155,7 @@ SPRING_DATASOURCE_USERNAME=postgres
 SPRING_DATASOURCE_PASSWORD=<DATABASE_PASSWORD>
 ```
 
-ReadStack では、まず Pooler session mode を使う想定でよい。
+ArticleShelf では、まず Pooler session mode を使う想定でよい。
 
 ---
 

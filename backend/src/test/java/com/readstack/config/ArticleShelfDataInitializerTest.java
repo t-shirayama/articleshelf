@@ -12,13 +12,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-class ReadStackDataInitializerTest {
+class ArticleShelfDataInitializerTest {
     @Test
     void doesNotAssignLegacyDataWhenInitialUserIsDisabled() {
         AuthService authService = mock(AuthService.class);
         SpringDataArticleJpaRepository articleRepository = mock(SpringDataArticleJpaRepository.class);
         SpringDataTagJpaRepository tagRepository = mock(SpringDataTagJpaRepository.class);
-        ReadStackDataInitializer initializer = new ReadStackDataInitializer(
+        ArticleShelfDataInitializer initializer = new ArticleShelfDataInitializer(
                 authService,
                 articleRepository,
                 tagRepository

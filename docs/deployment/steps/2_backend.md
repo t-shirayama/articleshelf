@@ -1,6 +1,6 @@
 # Render backend デプロイ手順
 
-対象: ReadStack backend
+対象: ArticleShelf backend
 目的: Supabase 本番DBに接続する Render Web Service を作成し、backend 初回起動時に Flyway migration を実行して `/actuator/health` を確認する
 
 ---
@@ -15,7 +15,7 @@ SPRING_DATASOURCE_USERNAME=postgres.<PROJECT_REF>
 SPRING_DATASOURCE_PASSWORD=<DATABASE_PASSWORD>
 ```
 
-ReadStack backend は Spring Boot + Flyway 構成のため、backend 起動時に Flyway migration が実行される。
+ArticleShelf backend は Spring Boot + Flyway 構成のため、backend 起動時に Flyway migration が実行される。
 
 Render の Web Service は public URL を持つ動的アプリ向けサービスで、GitHub リポジトリまたは Docker image からデプロイできる。Dockerfile から build する場合、Render 側で Language を Docker にする。
 
@@ -220,7 +220,7 @@ SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3
 
 ### 3.5 Render の PORT について
 
-ReadStack backend は以下の設定になっている。
+ArticleShelf backend は以下の設定になっている。
 
 ```yaml
 server:
@@ -257,7 +257,7 @@ Docker image built
 Service starting
 ```
 
-ReadStack の `backend/Dockerfile` は Maven で jar を build し、最終 image で `java -jar app.jar` を実行する構成。
+ArticleShelf の `backend/Dockerfile` は Maven で jar を build し、最終 image で `java -jar app.jar` を実行する構成。
 
 ```text
 FROM maven:... AS build
@@ -307,14 +307,14 @@ Schema is up to date. No migration necessary.
 
 ### 5.2 JPA validate が通ることを確認
 
-ReadStack は JPA の `ddl-auto` が `validate` になっているため、Flyway migration 後の schema と Entity が一致しない場合、起動に失敗する。
+ArticleShelf は JPA の `ddl-auto` が `validate` になっているため、Flyway migration 後の schema と Entity が一致しない場合、起動に失敗する。
 
 期待する状態:
 
 ```text
 Application started
 Tomcat started
-Started ReadStackApplication
+Started ArticleShelfApplication
 ```
 
 失敗時によくある原因:

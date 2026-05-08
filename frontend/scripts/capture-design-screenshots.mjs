@@ -23,7 +23,7 @@ const captureArticles = [
   {
     url: `https://example.com/?readstackCapture=vue-${captureId}`,
     title: "Vue で育てる記事棚の設計メモ",
-    summary: "一覧、詳細、タグをつなげる ReadStack の設計観点。",
+    summary: "一覧、詳細、タグをつなげる ArticleShelf の設計観点。",
     status: "UNREAD",
     favorite: true,
     rating: 5,

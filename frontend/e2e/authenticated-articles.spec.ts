@@ -262,7 +262,7 @@ test('user can render markdown notes safely in the detail view', async ({ page }
     url: uniqueUrl('markdown', testInfo),
     title: articleTitle,
     notes: [
-      '[ReadStack docs](https://example.com/docs)',
+      '[ArticleShelf docs](https://example.com/docs)',
       '',
       '```ts',
       'const answer = 42',
@@ -275,7 +275,7 @@ test('user can render markdown notes safely in the detail view', async ({ page }
   await openArticleFromList(page, articleTitle)
   const markdown = page.locator('.markdown-viewer')
 
-  await expect(markdown.locator('a', { hasText: 'ReadStack docs' })).toHaveAttribute('href', 'https://example.com/docs')
+  await expect(markdown.locator('a', { hasText: 'ArticleShelf docs' })).toHaveAttribute('href', 'https://example.com/docs')
   await expect(markdown.locator('code')).toContainText('const answer = 42')
   await expect(markdown.locator('script')).toHaveCount(0)
 })
