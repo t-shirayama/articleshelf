@@ -1,212 +1,135 @@
-# 無料枠を中心にした公開・CI/CD構成案
+# 無料枠を中心にした公開・CI/CD構成
 
 最終更新: 2026-05-08
 
 ## 1. 目的
 
-ReadStack を初期公開するため、無料枠を中心にしたデプロイ構成、準備事項、必要なコード改修、GitHub Actions CI/CD、休眠対策を整理する。
+ReadStack を初期公開するための最終デプロイ構成、環境変数、公開前チェック、CI/CD 方針を整理する。
 対象は個人利用、社内説明、ポートフォリオ、小規模検証であり、商用 SLA や高可用性を前提にしない。
 
-## 2. 前提
-
-- フロントエンド: Vue 3 + TypeScript + Vite
-- バックエンド: Spring Boot + Java 21
-- DB: PostgreSQL
-- ローカル開発: Docker Compose
-- API: REST
-- 現在の frontend Dockerfile は Vite 開発サーバー用
-- 現在の backend Dockerfile は本番 JAR 起動ステージを持つ
-- 現在の CI は frontend build と backend package を実行済み
-
 無料枠は、容量制限、休眠、起動遅延、バックアップ制限、利用条件変更がある。
-初期公開では「無料で試せる構成」として扱い、継続運用や役員向けデモの安定性が必要になった段階で有料枠へ移行する。
+公開直前には各サービスの pricing / docs を再確認する。
 
-## 3. 推奨構成
+## 2. 最終構成
 
-### 3.1 初期推奨
-
-| レイヤー | 推奨 | 理由 |
+| レイヤー | 採用サービス | 役割 |
 | --- | --- | --- |
-| フロントエンド | Cloudflare Pages / Vercel / Render Static Site | Vite の `dist` を静的配信でき、無料枠で始めやすい |
-| バックエンド | Render Web Service | Spring Boot の Docker / Java アプリを公開しやすい |
-| DB | Neon または Supabase PostgreSQL | Render Free PostgreSQL は期限付きのため、継続利用には不向き |
-| CI | GitHub Actions | 既存 CI を拡張しやすい |
-| CD | 最初は PaaS の Git 連携、次に GitHub Actions deploy hook | 初期運用を単純化できる |
-
-### 3.2 構成図
+| フロントエンド | Cloudflare Pages | Vue / Vite の `dist` を静的配信する |
+| バックエンド API | Render Free Web Service | Spring Boot API を Docker / Java アプリとして公開する |
+| DB | Supabase Free PostgreSQL | users、articles、tags、article_tags、refresh_tokens を永続化する |
+| CI | GitHub Actions | build / test / coverage / E2E を実行する |
+| CD | 初期は各 PaaS の Git 連携 | Cloudflare Pages と Render の auto deploy を使う。安定後に deploy hook 化する |
 
 ```text
 User Browser
   |
   | HTTPS
   v
-Static Hosting (Cloudflare Pages / Vercel / Render Static Site)
+Cloudflare Pages
   |
+  | Vue.js SPA
   | HTTPS REST API
   v
-Backend Web Service (Render)
+Render Free Web Service
   |
   | JDBC over TLS
   v
-Managed PostgreSQL (Neon / Supabase / Render Postgres)
+Supabase Free PostgreSQL
 ```
 
-## 4. 無料枠候補の比較
+## 3. 実装との相性
 
-2026-05-07 時点で公式情報を確認した前提を記載する。無料枠は変更されるため、公開直前に各サービスの pricing / docs を再確認する。
+この構成は現行実装と相性がよい。
 
-| サービス | 用途 | 無料枠での利点 | 注意点 |
-| --- | --- | --- | --- |
-| Render Web Service | Spring Boot API | Docker / Git 連携しやすい | Free web service は 15 分 inbound traffic がないと spin down。再起動に待ち時間がある |
-| Render Static Site | Frontend | 静的サイトを無料公開できる | outbound bandwidth / build pipeline minutes の制限対象 |
-| Render Postgres | DB | Render 内で接続しやすい | Free database は期限付き。公式 docs では Free PostgreSQL が 30 日で expire する制約がある |
-| Cloudflare Pages | Frontend | Free plan で月 500 builds、静的配信が強い | backend は別途必要 |
-| Vercel Hobby | Frontend | Git 連携と CDN が簡単 | API backend は別途必要。Hobby の用途・上限を確認する |
-| Supabase Free | DB | PostgreSQL、認証、管理画面が使える | Free plan の DB 容量や project 数、バックアップ制限を確認する |
-| Neon Free | DB | PostgreSQL、scale to zero、無料枠が比較的扱いやすい | idle 時に compute が停止する。接続復帰を考慮する |
+- frontend は `VITE_API_BASE_URL` で backend API URL を build 時に注入できる
+- frontend API client は `credentials: 'include'` で refresh token cookie を送信できる
+- backend は `server.port: ${PORT:8080}` に対応済みで、Render が指定する `PORT` で待ち受けられる
+- backend は `server.forward-headers-strategy: framework` を有効化済みで、Render の HTTPS proxy 後段で secure request / forwarded header を扱える
+- production profile は datasource、frontend origin、JWT secret、refresh token hash secret を環境変数必須にしている
+- production profile は `AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None` を既定にし、frontend / API が別 site になる構成に合っている
+- OGP 取得は timeout、User-Agent、SSRF 対策、redirect 再検証、body size 制限、`text/html` 制限に対応済み
+- DB schema は Flyway migration と JPA `validate` で管理しており、Supabase PostgreSQL へ起動時 migration を適用できる
+- 現行 frontend は Vue Router を使っていないため SPA fallback は必須ではない。history mode の routing を導入した場合は `_redirects` を追加する
 
-## 5. Render 休眠と health check
+## 4. フロントエンド: Cloudflare Pages
 
-Render の Free web service は、15 分間 inbound HTTP request または WebSocket message がないと spin down する。
-次のアクセスで自動復帰するが、起動に時間がかかるため、初回 API 呼び出しが遅くなる。
+### 4.1 設定
 
-### 5.1 対応方針
+| 項目 | 値 |
+| --- | --- |
+| Root directory | `frontend` |
+| Framework preset | `Vue` または `Vite` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Production branch | `main` |
 
-- UI では API 初回接続が遅い場合に、サーバー起動中の可能性を示す
-- バックエンドに軽量な health endpoint を用意する
-- Render の health check path には `/actuator/health` または `/api/health` を設定する
-- 無料枠で常時起動を維持する目的の定期 ping は、各サービス規約と無料枠の趣旨を確認してから採用する
-- 役員向けデモ直前は、手動で一度アクセスして cold start を済ませる運用も用意する
+Cloudflare Pages は Vite / Vue の build command と output directory として `npm run build` / `dist` を扱える。
+依存関係の install は Pages build が行う前提とし、必要な場合だけ install command に `npm ci` を明示する。
 
-### 5.2 10分間隔 health check 案
+### 4.2 環境変数
 
-Render の休眠が 15 分無通信で発生するため、10 分間隔の health check は cold start 回避として技術的には有効である。
-GitHub Actions の schedule は公式 docs 上、最短 5 分間隔で実行できるため、10 分間隔は設定可能である。
+| 変数 | 例 | 説明 |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | `https://readstack-api.onrender.com` | Render 上の backend API URL |
 
-ただし、次の理由で本番の標準運用としては慎重に扱う。
+### 4.3 公開 URL
 
-- 無料枠の利用意図に反する可能性がある
-- GitHub Actions の無料 minutes を消費する
-- Render 側の Free instance hours / bandwidth / service-initiated traffic 制限に影響しうる
-- schedule は厳密な時刻実行を保証するものではない
-
-採用する場合は、初期デモ期間だけ有効にし、README または運用メモに目的と停止条件を書く。
-
-### 5.3 GitHub Actions healthcheck 例
-
-```yaml
-name: Healthcheck
-
-on:
-  schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch:
-
-jobs:
-  ping:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Ping backend health
-        run: curl -fsS "$BACKEND_HEALTH_URL"
-        env:
-          BACKEND_HEALTH_URL: ${{ secrets.BACKEND_HEALTH_URL }}
-```
-
-`BACKEND_HEALTH_URL` 例:
+Cloudflare Pages は `https://<project-name>.pages.dev` の無料 URL を提供する。
 
 ```text
-https://readstack-api.onrender.com/actuator/health
+https://readstack-app.pages.dev
 ```
 
-## 6. 必要なコード改修
+### 4.4 SPA fallback
 
-### 6.1 バックエンド
+現行実装は Vue Router を使っていないため、初期公開時点では `_redirects` は必須ではない。
+Vue Router の history mode を導入した場合は、`frontend/public/_redirects` を追加し、build output にコピーされるようにする。
 
-| 優先度 | 改修 | 理由 |
-| --- | --- | --- |
-| P0 | `server.port: ${PORT:8080}` にする | PaaS が `PORT` を指定する場合に対応 |
-| P0 | Actuator health endpoint を本番運用向けに調整 | Render health check / 外部監視に必要 |
-| P0 | CORS を本番 frontend origin に限定 | 公開環境で安全に API 通信する |
-| P0 | DB SSL 接続の確認 | managed PostgreSQL が TLS を要求する場合に必要 |
-| P0 | `ddl-auto=update` から migration へ移行検討 | 本番 DB の予期せぬ schema 変更を避ける |
-| 完了 | OGP 取得の timeout / User-Agent / SSRF 対策 | 公開 API から外部 URL を取得するため |
-| P1 | 本番 profile の logging 調整 | SQL や secret を出しすぎない |
-| P1 | graceful shutdown | deploy 時の中断を減らす |
-
-認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う。
-backend へ外部から直接到達させず、Render の公開 HTTPS 経路を通す構成を前提にする。
-複数インスタンスへ拡張する場合は、backend in-memory ではなく Redis、proxy、WAF 側の rate limit へ移す。
-
-`application.yml` の変更案:
-
-```yaml
-server:
-  port: ${PORT:8080}
-  forward-headers-strategy: framework
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      probes:
-        enabled: true
+```text
+/* /index.html 200
 ```
 
-### 6.2 フロントエンド
+## 5. バックエンド API: Render Free Web Service
 
-| 優先度 | 改修 | 理由 |
-| --- | --- | --- |
-| P0 | `VITE_API_BASE_URL` を公開 API URL に設定 | build 時に API 先を固定する |
-| P0 | API 初回遅延の表示 | Render cold start 時の体験を悪化させない |
-| P0 | production build の確認 | 静的 hosting へ `dist` を配置する |
-| P1 | runtime config 方式の検討 | 環境ごとに rebuild せず API URL を切り替えたい場合 |
-| P1 | 認証追加後の cookie / CORS credential 対応 | refresh token cookie を使う場合に必要 |
+### 5.1 設定
 
-### 6.3 Docker
+| 項目 | 値 |
+| --- | --- |
+| Service type | Web Service |
+| Environment | Docker |
+| Root directory / Build context | `backend` |
+| Dockerfile | `backend/Dockerfile` |
+| Health check path | `/actuator/health` |
+| Public URL | `https://<service-name>.onrender.com` |
 
-- frontend は本番では Docker を使わず、`npm ci && npm run build` の成果物を静的 hosting へ置く
-- 現在の `frontend/Dockerfile` は開発サーバー用として扱う
-- backend は既存 `backend/Dockerfile` の production stage を利用できる
-- Render で Docker deploy する場合、build context は `backend` にする
+```text
+https://readstack-api.onrender.com
+```
 
-## 7. 環境変数
+Render Free Web Service は、一定時間 inbound traffic がないと spin down し、次回アクセス時に起動待ちが発生する。
+README やアプリ画面では、次のような注意書きを表示候補にする。
 
-### 7.1 Frontend
+```text
+無料ホスティングを利用しているため、初回アクセス時に API 起動まで時間がかかる場合があります。
+```
+
+### 5.2 必須環境変数
 
 | 変数 | 例 | 説明 |
 | --- | --- | --- |
-| `VITE_API_BASE_URL` | `https://readstack-api.onrender.com` | 公開 API URL |
-
-### 7.2 Backend
-
-| 変数 | 例 | 説明 |
-| --- | --- | --- |
-| `PORT` | `8080` | PaaS が指定する listen port |
-| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://.../readstack?sslmode=require` | PostgreSQL JDBC URL |
-| `SPRING_DATASOURCE_USERNAME` | `readstack` | DB ユーザー |
-| `SPRING_DATASOURCE_PASSWORD` | `********` | DB パスワード |
-| `FRONTEND_ORIGIN` | `https://readstack.pages.dev` | CORS 許可 origin |
-| `JWT_ACCESS_SECRET` | `********` | 認証追加後の JWT 署名鍵。本番必須、32文字以上、dev値不可 |
-| `AUTH_REFRESH_TOKEN_HASH_SECRET` | `********` | refresh token HMAC 署名用 secret。本番必須、32文字以上、dev値不可 |
-| `AUTH_CSRF_ENABLED` | `true` | 本番必須。`prod` profile では `false` を指定すると起動エラー |
-| `AUTH_COOKIE_SECURE` | `true` | HTTPS cookie 必須。`SameSite=None` の場合も必須 |
-| `AUTH_COOKIE_SAME_SITE` | `None` | frontend と API が別 site の場合。same-site 配信なら `Lax` も検討可 |
-| `READSTACK_INITIAL_USER_ENABLED` | `false` | 初期 ADMIN の自動作成。通常は `false`、検証環境で必要な場合のみ `true` |
-| `READSTACK_INITIAL_USERNAME` | `owner` | 初期 ADMIN を有効化した場合の username |
-| `READSTACK_INITIAL_USER_PASSWORD` | `********` | 初期 ADMIN を有効化した場合の password |
-| `READSTACK_AUTH_RATE_LIMIT_ENABLED` | `true` | 登録 / ログイン API の in-memory レート制限 |
-| `READSTACK_LOGIN_RATE_LIMIT_CAPACITY` | `5` | `IP + username` 単位のログイン許可回数 |
-| `READSTACK_LOGIN_RATE_LIMIT_WINDOW_SECONDS` | `60` | ログイン許可回数の window 秒 |
-| `READSTACK_REGISTER_RATE_LIMIT_CAPACITY` | `3` | IP 単位の登録許可回数 |
-| `READSTACK_REGISTER_RATE_LIMIT_WINDOW_SECONDS` | `600` | 登録許可回数の window 秒 |
 | `SPRING_PROFILES_ACTIVE` | `prod` | 本番 profile |
-
-秘密情報は Git にコミットしない。
-GitHub Actions Secrets、Render Environment Variables、各 hosting provider の環境変数に登録する。
-`prod` profile では secret が未設定、短すぎる、`dev-` 始まり、`change-me` を含む場合は起動エラーになる。
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://.../postgres?sslmode=require` | Supabase PostgreSQL JDBC URL |
+| `SPRING_DATASOURCE_USERNAME` | `postgres.<project-ref>` | Supabase DB user。接続方式により形式が異なる |
+| `SPRING_DATASOURCE_PASSWORD` | `********` | Supabase DB password |
+| `FRONTEND_ORIGIN` | `https://readstack-app.pages.dev` | CORS 許可 origin |
+| `JWT_ACCESS_SECRET` | `********` | 本番必須。32文字以上、dev値不可 |
+| `AUTH_REFRESH_TOKEN_HASH_SECRET` | `********` | 本番必須。32文字以上、dev値不可 |
+| `AUTH_CSRF_ENABLED` | `true` | 本番必須 |
+| `AUTH_COOKIE_SECURE` | `true` | HTTPS cookie 必須 |
+| `AUTH_COOKIE_SAME_SITE` | `None` | Cloudflare Pages と Render が別 site のため既定は `None` |
+| `READSTACK_INITIAL_USER_ENABLED` | `false` | 通常は初期 ADMIN 自動作成を無効化 |
+| `READSTACK_AUTH_RATE_LIMIT_ENABLED` | `true` | 登録 / ログイン API の in-memory rate limit |
+| `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` | `3` | Supabase Free の接続数を圧迫しないため小さめにする |
 
 本番必須の認証設定:
 
@@ -214,44 +137,72 @@ GitHub Actions Secrets、Render Environment Variables、各 hosting provider の
 AUTH_CSRF_ENABLED=true
 AUTH_COOKIE_SECURE=true
 AUTH_COOKIE_SAME_SITE=None
-FRONTEND_ORIGIN=https://your-frontend.example.com
+FRONTEND_ORIGIN=https://readstack-app.pages.dev
 JWT_ACCESS_SECRET=<long-random-secret>
 AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 ```
 
-`AUTH_COOKIE_SAME_SITE=None` は frontend と API が別 site の場合に使う。
-同一 site 配信に寄せる場合は `Lax` も選べるが、`prod` profile では refresh / logout の cookie 認証を守るため CSRF は常に有効にする。
+### 5.3 セキュリティ前提
 
-## 8. GitHub Actions CI/CD
+- backend へ外部から直接到達させず、Render の公開 HTTPS 経路を通す
+- 認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う
+- 現行 rate limit は Render 無料枠の単一 backend インスタンス向け。複数インスタンスへ拡張する場合は Redis、proxy、WAF 側へ移す
+- `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
+- secret、DB password、deploy hook は GitHub / Render / Cloudflare の secret 管理に置き、Git へコミットしない
 
-### 8.1 現在の CI
+## 6. Database: Supabase Free PostgreSQL
 
-現在の `.github/workflows/ci.yml` は次を実行する。
+### 6.1 接続方式
 
-- frontend: `npm ci`, `npm run build`
-- backend: GitHub Actions runner 上で backend package job を実行
+Spring Boot は Supabase を DB としてのみ使う。
+Supabase Auth、Storage、Edge Functions には依存しない。
 
-### 8.2 目標
+推奨接続方式:
 
-- PR では build / test を実行し、壊れた変更を main に入れない
-- main push では CI 成功後に frontend / backend を deploy する
-- deploy hook や API token は GitHub Secrets で管理する
-- DB migration 導入後は、deploy 前後の migration 手順を明示する
-- 失敗時は deploy しない
+- Render から Supabase direct connection の IPv6 が使える場合: direct connection を使う
+- IPv6 が使えない、または接続が不安定な場合: Supavisor の Session pooler を使う
+- Hibernate / Flyway を使う永続 backend では、prepared statement 非対応の制約がある Transaction pooler は初期候補にしない
 
-### 8.3 推奨 workflow 分割
+JDBC URL 例:
 
-| workflow | trigger | 内容 |
-| --- | --- | --- |
-| `ci.yml` | push, pull_request | frontend build, backend build/test |
-| `e2e.yml` | pull_request, main push, manual | Docker Compose 起動、Playwright smoke |
-| `deploy-frontend.yml` | main push | 静的 hosting へ frontend deploy |
-| `deploy-backend.yml` | main push | Render deploy hook または provider API で backend deploy |
-| `healthcheck.yml` | schedule, manual | 公開 backend の health check |
+```text
+# direct connection
+jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?sslmode=require
 
-### 8.4 Render deploy hook 例
+# session pooler
+jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require
+```
 
-Render の deploy hook URL を repository secret `RENDER_DEPLOY_HOOK_URL` に入れる。
+`verify-full` を使う場合は Supabase の CA certificate を取得し、JDBC / runtime に証明書設定を追加する。
+初期公開では最低限 `sslmode=require` を必須にし、証明書検証の強化は本番化ステップとして扱う。
+
+### 6.2 Free plan の注意
+
+- Free plan は DB size、disk、egress、project 数、休眠条件に制限がある
+- DB size が Free quota を超えると read-only mode になる可能性がある
+- Free project は一定期間 inactive だと pause される可能性がある
+- 自動 backup は有料 plan と同等ではないため、公開前に manual export / restore 手順を用意する
+
+### 6.3 DB 運用
+
+- Supabase project は本番用と開発用を分ける
+- Flyway migration は backend 起動時に適用する
+- `spring.jpa.hibernate.ddl-auto=validate` を維持し、本番 DB で `update` は使わない
+- 公開前に `/actuator/health` で DB 接続が healthy になることを確認する
+- `pg_dump` または Supabase dashboard から export 手順を確認する
+
+## 7. CI/CD 方針
+
+### 7.1 初期運用
+
+- PR / push では GitHub Actions の CI を実行する
+- Cloudflare Pages は Git 連携で `frontend` を build / deploy する
+- Render は Git 連携で `backend` を Docker build / deploy する
+- CI が安定するまでは、PaaS 側 auto deploy を使いつつ、失敗時は dashboard で rollback / redeploy する
+
+### 7.2 安定後
+
+main push の CI 成功後に deploy hook を呼ぶ workflow へ寄せる。
 
 ```yaml
 name: Deploy Backend
@@ -273,90 +224,68 @@ jobs:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
 ```
 
-PaaS 側の Git auto deploy を使う場合、この workflow は不要。
-初期運用では「CI は GitHub Actions、deploy は PaaS Git 連携」にして、安定後に deploy hook へ寄せる。
+## 8. 公開準備チェックリスト
 
-### 8.5 Frontend deploy
+### 8.1 Frontend
 
-Cloudflare Pages / Vercel / Render Static Site のいずれでも、基本設定は次の通り。
+- [ ] Cloudflare Pages project を作成した
+- [ ] Root directory が `frontend` になっている
+- [ ] Build command が `npm run build` になっている
+- [ ] Build output directory が `dist` になっている
+- [ ] `VITE_API_BASE_URL` が Render API URL を向いている
+- [ ] 公開 URL を `FRONTEND_ORIGIN` に反映した
+- [ ] Vue Router history mode を導入した場合は `_redirects` を追加した
 
-```text
-Root directory: frontend
-Build command: npm ci && npm run build
-Output directory: dist
-Environment variable:
-  VITE_API_BASE_URL=https://readstack-api.example.com
-```
+### 8.2 Backend
 
-## 9. DB 運用
-
-### 9.1 初期公開
-
-- managed PostgreSQL を使う
-- DB の無料枠容量、停止条件、バックアップ有無、接続数を確認する
-- 初期公開前に export 手順を用意する
-- `ddl-auto=update` は検証環境までにし、本番前に migration 導入を優先する
-
-### 9.2 Backup / Export
-
-無料枠では自動 backup がない、または制限されることがある。
-最低限、次を用意する。
-
-- provider dashboard からの manual backup / export 手順
-- `pg_dump` を使う手順
-- 復元手順
-- DB provider 変更時の移行手順
-
-## 10. 公開準備チェックリスト
-
-### 10.1 アプリ
-
-- [ ] frontend build が成功する
-- [ ] backend package / test が成功する
-- [ ] 公開 frontend から API に通信できる
-- [ ] 記事追加、一覧、詳細、編集、削除が動く
-- [ ] OGP 取得が公開環境から動く
-- [ ] API 初回遅延時の表示が破綻しない
-- [ ] Markdown 安全境界が維持されている
-
-### 10.2 インフラ
-
-- [ ] DB 接続情報を環境変数に登録した
-- [ ] `FRONTEND_ORIGIN` を公開 URL に設定した
+- [ ] Render Web Service を Docker で作成した
+- [ ] Root directory / build context が `backend` になっている
+- [ ] Health check path が `/actuator/health` になっている
+- [ ] `SPRING_PROFILES_ACTIVE=prod` を設定した
+- [ ] Supabase 接続情報を設定した
+- [ ] `FRONTEND_ORIGIN` に Cloudflare Pages production URL を設定した
 - [ ] `AUTH_CSRF_ENABLED=true` を設定した
 - [ ] `AUTH_COOKIE_SECURE=true` を設定した
-- [ ] frontend と API が別 site の場合は `AUTH_COOKIE_SAME_SITE=None` を設定した
+- [ ] `AUTH_COOKIE_SAME_SITE=None` を設定した
 - [ ] `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` に十分長いランダム値を設定した
-- [x] health check endpoint を用意した
-- [ ] Render health check path を設定した
-- [ ] 無料枠の期限、容量、休眠条件を確認した
-- [ ] backup / export 手順を確認した
-- [ ] custom domain / HTTPS の必要性を判断した
+- [ ] `READSTACK_INITIAL_USER_ENABLED=false` を確認した
+- [ ] `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` を小さめに設定した
 
-### 10.3 CI/CD
+### 8.3 Database
 
-- [ ] PR で CI が実行される
-- [ ] main push で CI が実行される
-- [ ] CI 失敗時に deploy されない
-- [ ] deploy hook は secret に保存している
-- [ ] healthcheck workflow の目的と停止条件を記載した
+- [ ] Supabase project を本番用として作成した
+- [ ] Direct connection または Session pooler の JDBC URL を選んだ
+- [ ] JDBC URL に `sslmode=require` 以上を指定した
+- [ ] Flyway migration が正常に通ることを確認した
+- [ ] 開発用データと本番用データが混ざっていない
+- [ ] DB password を GitHub / Render / docs にコミットしていない
+- [ ] backup / export / restore 手順を確認した
 
-## 11. 公式参照
+### 8.4 公開後
 
-- Render Deploy for Free: https://render.com/docs/free
-- Render Health Checks: https://render.com/docs/health-checks
-- Render Deploy Hooks: https://render.com/docs/deploy-hooks
-- GitHub Actions workflow syntax: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
-- GitHub Actions billing and usage: https://docs.github.com/actions/learn-github-actions/usage-limits-billing-and-administration
-- Cloudflare Pages limits: https://developers.cloudflare.com/pages/platform/limits/
-- Supabase billing / Free Plan: https://supabase.com/docs/guides/platform/billing-on-supabase
-- Neon plans: https://neon.com/docs/introduction/pro-plan
-- Vercel pricing: https://vercel.com/pricing
+- [ ] Cloudflare Pages から API に通信できる
+- [ ] 登録、ログイン、refresh、logout が cookie / CSRF 込みで動く
+- [ ] 記事追加、一覧、詳細、編集、削除が動く
+- [ ] OGP 取得が公開環境から動く
+- [ ] Render cold start 時の表示が破綻しない
+- [ ] Markdown 安全境界が維持されている
+- [ ] Supabase の database size / connection usage を確認した
 
-## 12. 未決事項
+## 9. 未決事項
 
-- 初期公開 DB を Neon、Supabase、Render Postgres のどれにするか
 - 10 分間隔 health check を常時運用するか、デモ期間限定にするか
 - custom domain を初期から設定するか
-- 認証追加後、frontend / backend を same-site に寄せるか
-- migration 導入を公開前必須にするか
+- `sslmode=verify-full` と Supabase CA certificate の導入をいつ行うか
+- Cloudflare Pages / Render の deploy hook 化をいつ行うか
+
+## 10. 公式参照
+
+- Cloudflare Pages build configuration: https://developers.cloudflare.com/pages/configuration/build-configuration/
+- Cloudflare Pages redirects: https://developers.cloudflare.com/pages/configuration/redirects/
+- Render Deploy for Free: https://render.com/docs/free
+- Render Web Services: https://render.com/docs/web-services/
+- Render Deploy Hooks: https://render.com/docs/deploy-hooks
+- Supabase pricing: https://supabase.com/pricing
+- Supabase database size: https://supabase.com/docs/guides/platform/database-size
+- Supabase connection strings: https://supabase.com/docs/reference/postgres/connection-strings
+- Supabase SSL enforcement: https://supabase.com/docs/guides/platform/ssl-enforcement
