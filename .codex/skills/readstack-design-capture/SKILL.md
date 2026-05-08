@@ -16,7 +16,7 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 
 2. Review the current `docs/designs/screenshots/` files before replacing them.
    Release-ready docs keep only the current screenshots; do not maintain an archive folder.
-   Keep the current filenames for the refreshed captures: `desktop_article_list.png`, `desktop_article_detail_light.png`, `add_article_modal.png`, and `mobile_article_list.png`.
+   Keep the current filenames for the refreshed captures, including `desktop_article_list.png`, `desktop_article_detail_view.png`, `desktop_article_detail_edit.png`, `add_article_modal.png`, and `mobile_article_list.png`.
 
 3. Capture fresh screenshots from the live implementation.
    Run `npm run capture:designs` in `frontend/`.
@@ -27,7 +27,7 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
    If Playwright cannot launch Chromium, install it with `npx playwright install chromium` from `frontend/`.
 
 4. Verify that the captures still represent the current product accurately.
-   Check that the desktop list, detail view, add modal, and mobile list all render successfully.
+   Check that the desktop list, detail view mode, detail edit mode, add modal, and mobile list all render successfully.
    If the current implementation differs from the design docs, update `docs/designs/README.md` in the same task.
    If there are meaningful UI gaps that should not silently replace the intended design, record them in `docs/status/project-status.md`.
 

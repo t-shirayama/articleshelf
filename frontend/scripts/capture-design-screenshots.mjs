@@ -163,12 +163,24 @@ async function captureDesktopList(page) {
   await saveScreenshot(page, "desktop_article_list.png");
 }
 
-async function captureDesktopDetail(page) {
+async function openFirstArticleDetail(page) {
   await openArticleList(page);
   await page.locator(".article-card").first().click();
   await page.waitForSelector(".detail-page", { timeout: 30000 });
   await page.waitForTimeout(700);
-  await saveScreenshot(page, "desktop_article_detail_light.png");
+}
+
+async function captureDesktopDetailView(page) {
+  await openFirstArticleDetail(page);
+  await saveScreenshot(page, "desktop_article_detail_view.png");
+}
+
+async function captureDesktopDetailEdit(page) {
+  await openFirstArticleDetail(page);
+  await page.getByRole("button", { name: "編集", exact: true }).click();
+  await page.waitForSelector(".detail-page.is-editing", { timeout: 30000 });
+  await page.waitForTimeout(700);
+  await saveScreenshot(page, "desktop_article_detail_edit.png");
 }
 
 async function captureCalendarView(page) {
@@ -276,7 +288,8 @@ async function main() {
     await loginCaptureUser(page, captureData.username);
 
     await captureDesktopList(page);
-    await captureDesktopDetail(page);
+    await captureDesktopDetailView(page);
+    await captureDesktopDetailEdit(page);
     await captureCalendarView(page);
     await captureTagManagement(page);
     await captureAddModal(page);
