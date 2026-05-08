@@ -95,6 +95,7 @@
 - 既存の UT / IT / E2E が対象機能やUIを検証している場合、コード修正に合わせてテストも同じ作業内で追従させる。UI部品の種類、アクセシブル名、文言、操作フロー、APIレスポンス、エラー文言を変えたときは、関連するセレクタ・期待値・ヘルパーが古い前提のまま残っていないか確認する
 - ただし、挙動変更を伴う修正では確認手順または確認結果を残す
 - コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI変更時は関連ドキュメント更新の注意喚起を行う
+- 画面表示、見た目、レイアウト、文言、操作フロー、スクリーンショット対象コンポーネントに影響するコード変更をした場合は、同じ作業内で `docs/designs/screenshots/` を現行実装に合わせて更新する
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
 - Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、Flyway migration、DB 制約を変更した場合は、H2 だけでなく PostgreSQL 実体を使う Docker 経由テストを実行する。特に `LIKE`、`concat`、`coalesce`、nullable parameter、enum、UUID、日付、JOIN を含む条件は PostgreSQL との型推論差が出やすいため、`JpaArticleRepositoryPostgresIntegrationTest` などの persistence IT を追加または更新して確認する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
@@ -108,7 +109,10 @@
 - UI や操作フローを変更した場合は、`docs/designs/README.md` を確認し、差分があるなら更新する
 - UI や見た目を修正する場合は、実装前に `docs/designs/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
+- UI や操作フローに影響するコード変更では、`docs/designs/screenshots/` の該当スクリーンショットも同じ作業内で更新し、差分があるのに古い画像を残さない
 - UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
+- UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する。`127.0.0.1` と `localhost` を混在させない
+- UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認し、アプリ本体のコードを疑う前に起動経路とブラウザ依存を切り分ける
 - UI 文言を変更する場合は表記揺れを確認し、非破壊のモーダル終了は「閉じる」、削除確認など確認操作の中止は「キャンセル」と表記する
 - UI 表示言語は日本語 / English に対応し、表示文言を追加・変更する場合は `vue-i18n` の翻訳辞書へ反映する。未対応言語は英語へフォールバックする
 - Vuetify のUIロケールは現在の表示言語に追従し、日付表示は画面上では `ja-JP` / `en-US` に応じた表示、APIや永続化で扱う値は既存契約に合わせて `YYYY-MM-DD` を使う。日付ピッカーは各ロケールに追従し、日曜は赤系、土曜は青系で表示する

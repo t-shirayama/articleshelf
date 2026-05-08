@@ -18,6 +18,11 @@ const desktopViewport = { width: 1920, height: 1080 };
 const mobileViewport = { width: 430, height: 932 };
 const captureId = Date.now().toString(36);
 const captureTarget = process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all";
+const captureUsername =
+  process.env.ARTICLESHELF_CAPTURE_USERNAME || "owner";
+const capturePassword =
+  process.env.ARTICLESHELF_CAPTURE_PASSWORD || "password123";
+const standaloneTagName = "未使用";
 
 const captureArticles = [
   {
@@ -60,23 +65,21 @@ async function createCaptureData() {
       "Accept-Language": "ja",
     },
   });
-  const username = `capture-${captureId}`.slice(0, 32);
 
-  const registerResponse = await api.post("/api/auth/register", {
+  const loginResponse = await api.post("/api/auth/login", {
     data: {
-      username,
-      password: "password123",
-      displayName: "Capture User",
+      username: captureUsername,
+      password: capturePassword,
     },
   });
 
-  if (!registerResponse.ok()) {
+  if (!loginResponse.ok()) {
     throw new Error(
-      `キャプチャ用ユーザーの作成に失敗しました: ${registerResponse.status()} ${await registerResponse.text()}`,
+      `キャプチャ用ログインに失敗しました: ${loginResponse.status()} ${await loginResponse.text()}`,
     );
   }
 
-  const auth = await registerResponse.json();
+  const auth = await loginResponse.json();
   const accessToken = auth.accessToken;
   const authHeaders = { Authorization: `Bearer ${accessToken}` };
 
@@ -85,7 +88,7 @@ async function createCaptureData() {
       headers: authHeaders,
       data: article,
     });
-    if (!response.ok()) {
+    if (!response.ok() && response.status() !== 409) {
       throw new Error(
         `キャプチャ用記事の作成に失敗しました: ${response.status()} ${await response.text()}`,
       );
@@ -94,16 +97,16 @@ async function createCaptureData() {
 
   const standaloneTagResponse = await api.post("/api/tags", {
     headers: authHeaders,
-    data: { name: "未使用" },
+    data: { name: standaloneTagName },
   });
-  if (!standaloneTagResponse.ok()) {
+  if (!standaloneTagResponse.ok() && standaloneTagResponse.status() !== 409) {
     throw new Error(
       `キャプチャ用タグの作成に失敗しました: ${standaloneTagResponse.status()} ${await standaloneTagResponse.text()}`,
     );
   }
 
   await api.dispose();
-  return { username };
+  return { username: captureUsername };
 }
 
 async function createContext(browser, storageState) {
@@ -127,7 +130,7 @@ async function loginCaptureUser(page, username) {
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("form", { timeout: 30000 });
   await page.getByLabel("ユーザー名").fill(username);
-  await page.getByLabel("パスワード").fill("password123");
+  await page.getByLabel("パスワード").fill(capturePassword);
   await page.locator("form").getByRole("button", { name: "ログイン" }).click();
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForSelector(".article-card", { timeout: 30000 });
@@ -246,7 +249,7 @@ async function captureTagDeleteDialog(page) {
   await page.waitForSelector(".tag-management-view", { timeout: 30000 });
   await page
     .locator(".tag-management-row")
-    .filter({ hasText: "未使用" })
+    .filter({ hasText: standaloneTagName })
     .getByRole("button", { name: "削除" })
     .click();
   await page.waitForSelector(".tag-management-dialog", { timeout: 30000 });

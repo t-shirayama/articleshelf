@@ -11,8 +11,11 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 ## Workflow
 
 1. Confirm the app can be launched locally.
-   Use `docker compose up --build -d` from the repo root unless the user already has the app running another way.
+   Prefer `docker compose -f docker-compose.e2e.yml up --build -d` from the repo root for screenshot work.
+   This stack avoids the common failure modes seen with the dev stack: host `5432` conflicts, dev-only restart behavior, and unstable screenshot setup.
    Expect the frontend at `http://localhost:5173` and the backend at `http://localhost:8080`.
+   Prefer `localhost` over `127.0.0.1` for screenshot capture. The capture flow and backend `FRONTEND_ORIGIN` are expected to match `http://localhost:5173`.
+   If the user already has the app running another way, verify both URLs respond before capturing.
 
 2. Review the current `docs/designs/screenshots/` files before replacing them.
    Release-ready docs keep only the current screenshots; do not maintain an archive folder.
@@ -22,10 +25,16 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
    Run `npm run capture:designs` in `frontend/`.
    This uses `frontend/scripts/capture-design-screenshots.mjs` and writes directly into `docs/designs/screenshots/`.
    If the user explicitly asks to update only one screenshot, use `ARTICLESHELF_SCREENSHOT_TARGET=<target> npm run capture:designs` when the script supports that target, so unrelated images are not regenerated. For example, use `ARTICLESHELF_SCREENSHOT_TARGET=account-settings-dialog` for `account_settings_dialog.png`.
-   The script must create deterministic capture data through the API, then authenticate the browser with the normal login form before capturing authenticated screens.
+   The script should prefer a stable existing capture account over ad hoc user creation when that is more reliable for the current stack.
+   In this repo, the default stable path is the e2e stack's initial admin account: `owner` / `password123`, unless the script is intentionally testing registration.
+   The script may still seed representative articles and standalone tags through the API before capture.
+   The script must authenticate the browser with the normal login form before capturing authenticated screens.
    Do not rely on API request storage state or copied auth cookies to enter the app; cookie transfer can differ between Playwright API contexts and browser contexts.
    Keep the browser context locale as `ja-JP`, set the app locale to `ja`, and capture desktop images at `1920x1080`.
-   If Playwright cannot launch Chromium, install it with `npx playwright install chromium` from `frontend/`.
+   Prefer running Playwright from the local host environment, targeting the running app on `localhost`.
+   Do not default to running the capture script inside the frontend container. Browser binaries and OS dependencies are more likely to be incomplete there.
+   If Playwright cannot launch Chromium locally, install it with `npx playwright install chromium` from `frontend/`.
+   If the local sandbox blocks headless Chromium startup, rerun the capture command with escalated permissions instead of rewriting the script around the issue.
 
 4. Verify that the captures still represent the current product accurately.
    Check that the desktop list, account settings dialog, detail view mode, detail edit mode, add modal, and mobile list all render successfully.
@@ -40,12 +49,19 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 
 Use this sequence for authenticated screenshot capture:
 
-1. Create a unique capture user with `POST /api/auth/register`.
-2. Create representative articles and standalone tags with authenticated API calls using the returned access token.
-3. Start a fresh browser context with `locale: "ja-JP"`, `viewport: { width: 1920, height: 1080 }`, `deviceScaleFactor: 1`, and `reducedMotion: "reduce"`.
-4. Set `localStorage["articleshelf.locale"] = "ja"` via `addInitScript`.
-5. Navigate to the frontend login screen and log in through the visible form using the capture user's username/password.
-6. Wait for `.article-list` and at least one `.article-card` before capturing authenticated screens.
+1. Start the screenshot stack with `docker-compose.e2e.yml` unless there is a strong reason not to.
+2. Log in through the API using the stable capture account `owner` / `password123`, or another explicitly configured capture user.
+3. Create representative articles and standalone tags with authenticated API calls. Allow `409` conflicts for idempotent seed data when rerunning captures.
+4. Start a fresh browser context with `locale: "ja-JP"`, `viewport: { width: 1920, height: 1080 }`, `deviceScaleFactor: 1`, and `reducedMotion: "reduce"`.
+5. Set `localStorage["articleshelf.locale"] = "ja"` via `addInitScript`.
+6. Navigate to the frontend login screen on `http://localhost:5173` and log in through the visible form using the same capture credentials.
+7. Wait for `.article-list` and at least one `.article-card` before capturing authenticated screens.
+
+Avoid this failed pattern unless the script has been explicitly updated and verified:
+
+1. Starting from the dev `docker compose.yml` stack when a local PostgreSQL port conflict is possible.
+2. Mixing `127.0.0.1` for capture URLs with `localhost`-based backend origin settings.
+3. Running the screenshot script inside the frontend container before verifying Playwright browser dependencies there.
 
 This keeps screenshots independent from the developer's current browser state, existing local data, and Playwright API cookie behavior.
 
@@ -57,6 +73,12 @@ If the script captures new screens or dialogs, add the filenames to `docs/design
 - Prefer the skill plus screenshot script over a pre-commit hook. A hook can warn, but it cannot reliably decide whether the currently running UI and data are screenshot-worthy.
 - If the user explicitly asks for different captured states, update the Playwright script rather than taking one-off manual screenshots.
 - Avoid one-off local browser screenshots for README/design docs unless the user explicitly requests a temporary diagnostic image.
+- When capture fails, check these in order before changing app code:
+  1. `docker compose -f docker-compose.e2e.yml ps`
+  2. `curl -sS http://localhost:8080/actuator/health`
+  3. `curl -sI http://localhost:5173`
+  4. `npx playwright install chromium`
+  5. rerun `npm run capture:designs` against `localhost`
 
 ## Files To Touch Together
 
