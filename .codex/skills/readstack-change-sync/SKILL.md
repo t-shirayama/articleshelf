@@ -1,6 +1,6 @@
 ---
 name: readstack-change-sync
-description: Keep ReadStack implementation, documentation, and verification aligned when changing frontend, backend, API contracts, persistence, UI behavior, project setup, or operational rules. Use this for any code change that may require updates to docs/design/README.md, docs/specification/README.md, docs/specification/*, docs/architecture/README.md, docs/status/project-status.md, README.md, or AGENTS.md.
+description: Keep ReadStack implementation, documentation, and verification aligned when changing frontend, backend, API contracts, persistence, UI behavior, project setup, or operational rules. Use this for any code change that may require updates to docs/designs/README.md, docs/specification/README.md, docs/specification/*, docs/architecture/README.md, docs/status/project-status.md, README.md, or AGENTS.md.
 ---
 
 # ReadStack Change Sync
@@ -14,7 +14,7 @@ Use this skill to avoid implementation/documentation drift in ReadStack.
 3. Update only directly affected documentation:
    - Requirements or purpose: `docs/requirements/README.md` or `docs/requirements/*`
    - Feature or API behavior: `docs/specification/README.md` or `docs/specification/*`
-   - UI behavior or visual rules: `docs/design/README.md` and usually `docs/specification/ui.md`
+   - UI behavior or visual rules: `docs/designs/README.md` and usually `docs/specification/ui.md`
    - Architecture, persistence, or responsibility boundaries: `docs/architecture/README.md`
    - Known gaps, temporary workarounds, or technical debt: `docs/status/project-status.md`
    - Setup, scripts, or onboarding: `README.md`

@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDir = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(frontendDir, "..");
-const outputDir = path.join(repoRoot, "docs", "designs");
+const outputDir = path.join(repoRoot, "docs", "designs", "screenshots");
 const baseUrl =
   process.env.READSTACK_SCREENSHOT_BASE_URL || "http://localhost:5173";
 const apiBaseUrl =

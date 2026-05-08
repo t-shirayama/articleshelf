@@ -288,7 +288,7 @@ Markdown:
 - 375px、390px、600px、960px 以上で表示確認する
 - Playwright でスマホ幅の smoke test を追加する
 - `npm run build` を実行する
-- UI 変更後は `docs/designs/` のスクリーンショット更新を検討する
+- UI 変更後は `docs/designs/screenshots/` のスクリーンショット更新を検討する
 
 ## 12. 受け入れ条件
 

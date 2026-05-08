@@ -77,7 +77,7 @@
   - 構想段階の追加候補や将来案: `docs/requirements/future-considerations.md`
   - 機能仕様や API 契約の変更: `docs/specification/README.md`
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md`
-  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/design/README.md`
+  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md`
   - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/status/project-status.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
 
@@ -103,10 +103,10 @@
 
 - API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification/README.md` に反映する
 - データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` と必要に応じて `docs/specification/README.md` を更新する
-- UI や操作フローを変更した場合は、`docs/design/README.md` を確認し、差分があるなら更新する
-- UI や見た目を修正する場合は、実装前に `docs/design/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
+- UI や操作フローを変更した場合は、`docs/designs/README.md` を確認し、差分があるなら更新する
+- UI や見た目を修正する場合は、実装前に `docs/designs/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
-- UI スクリーンショットや `docs/designs/` を更新する場合は、古い画像を `docs/designs/archive/<YYYY-MM-DD>/` に退避し、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
+- UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
 - UI 文言を変更する場合は表記揺れを確認し、非破壊のモーダル終了は「閉じる」、削除確認など確認操作の中止は「キャンセル」と表記する
 - UI 表示言語は日本語 / English に対応し、表示文言を追加・変更する場合は `vue-i18n` の翻訳辞書へ反映する。未対応言語は英語へフォールバックする
 - Vuetify のUIロケールは現在の表示言語に追従し、日付表示は画面上では `ja-JP` / `en-US` に応じた表示、APIや永続化で扱う値は既存契約に合わせて `YYYY-MM-DD` を使う。日付ピッカーは各ロケールに追従し、日曜は赤系、土曜は青系で表示する
