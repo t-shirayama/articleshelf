@@ -1,5 +1,7 @@
 package com.readstack.config;
 
+import com.readstack.application.auth.AuthSettings;
+import com.readstack.application.auth.AuthSessionSettings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "readstack.auth")
@@ -13,5 +15,5 @@ public record AuthProperties(
         boolean csrfEnabled,
         String initialUserEmail,
         String initialUserPassword
-) {
+) implements AuthSettings, AuthSessionSettings {
 }

@@ -1,6 +1,5 @@
 package com.readstack.application.auth;
 
-import com.readstack.config.AuthProperties;
 import com.readstack.domain.user.PasswordPolicy;
 import com.readstack.domain.user.UserStatus;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,7 @@ public class AuthService {
     private final PasswordHasher passwordHasher;
     private final AccessTokenIssuer accessTokenIssuer;
     private final RefreshTokenSecretService refreshTokenSecretService;
-    private final AuthProperties properties;
+    private final AuthSettings settings;
     private final PasswordPolicy passwordPolicy = new PasswordPolicy();
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -31,14 +30,14 @@ public class AuthService {
             PasswordHasher passwordHasher,
             AccessTokenIssuer accessTokenIssuer,
             RefreshTokenSecretService refreshTokenSecretService,
-            AuthProperties properties
+            AuthSettings settings
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordHasher = passwordHasher;
         this.accessTokenIssuer = accessTokenIssuer;
         this.refreshTokenSecretService = refreshTokenSecretService;
-        this.properties = properties;
+        this.settings = settings;
     }
 
     @Transactional
@@ -124,13 +123,13 @@ public class AuthService {
 
     @Transactional
     public AuthUser ensureInitialUser() {
-        String email = normalizeEmail(properties.initialUserEmail());
+        String email = normalizeEmail(settings.initialUserEmail());
         return userRepository.findByEmail(email).orElseGet(() -> {
-            passwordPolicy.validate(email, properties.initialUserPassword());
+            passwordPolicy.validate(email, settings.initialUserPassword());
             AuthUser user = new AuthUser(
                     null,
                     email,
-                    passwordHasher.hash(properties.initialUserPassword()),
+                    passwordHasher.hash(settings.initialUserPassword()),
                     "ReadStack Owner",
                     "USER",
                     UserStatus.ACTIVE,
@@ -151,7 +150,7 @@ public class AuthService {
                 user,
                 refreshTokenSecretService.hash(rawToken),
                 familyId,
-                Instant.now().plus(properties.refreshTokenTtlDays(), ChronoUnit.DAYS),
+                Instant.now().plus(settings.refreshTokenTtlDays(), ChronoUnit.DAYS),
                 userAgent,
                 ipAddress
         );

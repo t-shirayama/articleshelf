@@ -3,10 +3,10 @@ package com.readstack.adapter.web;
 import com.readstack.application.auth.AuthResponse;
 import com.readstack.application.auth.AuthResult;
 import com.readstack.application.auth.AuthException;
+import com.readstack.application.auth.AuthSessionSettings;
 import com.readstack.application.auth.AuthService;
 import com.readstack.application.auth.CurrentUser;
 import com.readstack.application.auth.UserResponse;
-import com.readstack.config.AuthProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -36,11 +36,11 @@ public class AuthController {
     private static final String CSRF_COOKIE = "READSTACK_CSRF";
 
     private final AuthService authService;
-    private final AuthProperties properties;
+    private final AuthSessionSettings settings;
 
-    public AuthController(AuthService authService, AuthProperties properties) {
+    public AuthController(AuthService authService, AuthSessionSettings settings) {
         this.authService = authService;
-        this.properties = properties;
+        this.settings = settings;
     }
 
     @PostMapping("/register")
@@ -114,7 +114,7 @@ public class AuthController {
     }
 
     private void validateCsrf(String csrfCookie, String csrfHeader) {
-        if (!properties.csrfEnabled()) {
+        if (!settings.csrfEnabled()) {
             return;
         }
         if (csrfCookie == null || csrfCookie.isBlank() || !csrfCookie.equals(csrfHeader)) {
@@ -135,15 +135,15 @@ public class AuthController {
     private ResponseCookie cookie(String name, String value, boolean httpOnly, Duration maxAge) {
         return ResponseCookie.from(name, value)
                 .httpOnly(httpOnly)
-                .secure(properties.cookieSecure())
-                .sameSite(properties.cookieSameSite())
+                .secure(settings.cookieSecure())
+                .sameSite(settings.cookieSameSite())
                 .path("/")
                 .maxAge(maxAge)
                 .build();
     }
 
     private Duration refreshMaxAge() {
-        return Duration.ofDays(properties.refreshTokenTtlDays());
+        return Duration.ofDays(settings.refreshTokenTtlDays());
     }
 
     public record RegisterRequest(
