@@ -44,7 +44,7 @@
 - `adapter` は `application` のユースケースに依存し、`domain` を直接扱わない
 - `dto` は API 入出力とアプリケーション境界のために使う
 - `backend/src/test/java/com/readstack/architecture/CleanArchitectureDependencyTest.java` で、`domain` から外側の層や Spring/Jakarta への依存、`application` から `adapter` / `infrastructure` / `config` への依存、`adapter` から `infrastructure` / `config` への依存、`infrastructure` から `adapter` への依存を検査する
-- GitHub Actions の backend job は `docker compose run --rm backend mvn test` を実行するため、この依存関係チェックも CI で必ず実行される
+- GitHub Actions の `backend-check` job は `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest` を実行するため、この依存関係チェックも CI で必ず実行される
 
 #### 例: パッケージ構成
 

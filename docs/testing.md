@@ -337,9 +337,17 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 
 現在の `.github/workflows/ci.yml` は次を実行する。
 
-- frontend: `npm ci`, `npm run test:unit`, `npm run build`
-- backend: `docker compose run --rm backend mvn test`
-- e2e: `npx playwright install --with-deps chromium`, `npm run test:e2e`
+- Step 1: `backend-check` / `frontend-check`
+  - backend は `docker compose run --rm backend mvn clean compile spotbugs:check` と `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest` でコンパイル、SpotBugs、依存方向を確認する
+  - frontend は `npm run typecheck` と `npm run build` で型チェックと Vite ビルドを確認する
+- Step 2: `backend-unit` / `frontend-unit`
+  - backend の domain / application UT と frontend の Vitest UT を実行する
+- Step 3: `backend-integration` / `frontend-integration`
+  - backend の Spring Boot / PostgreSQL IT と frontend の `*.integration.test.ts` を分けて実行する
+- Step 4: `e2e`
+  - Playwright Chromium で P0 導線を確認する
+
+`main` / `develop` では全ジョブを実行し、それ以外のブランチでは変更パスに応じて backend / frontend / E2E の関連ジョブだけを実行する。
 
 ### 6.2 段階的な拡張
 
@@ -348,6 +356,7 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 | Phase 1 | backend に `spring-boot-starter-test` を追加し、Docker 経由の backend test を実行 | 実装済み |
 | Phase 2 | frontend に Vitest を追加し `npm run test:unit` を実行 | 実装済み |
 | Phase 3 | Playwright script を追加し P0 E2E を実行 | 実装済み |
+| Phase 3.5 | CI を check / unit / integration / e2e に分割し、feature branch では変更パス別に実行 | 実装済み |
 | Phase 4 | main push 後に deploy job を接続 | テスト成功後のみ公開環境へ反映 |
 | Phase 5 | schedule で health check と smoke test を実行 | 無料枠公開環境の休眠・疎通確認 |
 
