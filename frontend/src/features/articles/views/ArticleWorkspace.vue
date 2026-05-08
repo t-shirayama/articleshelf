@@ -15,6 +15,7 @@ import TagManagementView from "../components/TagManagementView.vue";
 import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
+import { useWorkspaceNavigation } from "../composables/useWorkspaceNavigation";
 import { useArticlesStore } from "../stores/articles";
 import type {
   Article,
@@ -24,7 +25,6 @@ import type {
 } from "../types";
 
 type PersistedArticleStatus = Exclude<ArticleStatus, "ALL">;
-type ViewMode = "list" | "calendar" | "detail" | "tags";
 
 interface StatusUndoState {
   articleId: string;
@@ -41,14 +41,10 @@ const articleFormError = ref("");
 const detailFormError = ref("");
 const duplicateArticleId = ref("");
 const searchDraft = ref("");
-const viewMode = ref<ViewMode>("list");
 const deleteCandidate = ref<Article | null>(null);
 const statusUndo = ref<StatusUndoState | null>(null);
 const statusSnackbarOpen = ref(false);
 const statusSnackbarMessage = ref("");
-const detailHasUnsavedChanges = ref(false);
-const unsavedChangesDialogOpen = ref(false);
-const pendingNavigation = ref<(() => void) | null>(null);
 const isCreatingArticle = ref(false);
 const isSavingDetail = ref(false);
 const isDeletingArticle = ref(false);
@@ -62,7 +58,21 @@ const filters = computed(() => store.filters);
 const { activeFilterCount, activeFilterSummary, pageTitle } =
   useArticleFilterPresentation(filters);
 const { currentMotivation, rotateMotivation } = useMotivationRotation();
-const isListMode = computed(() => viewMode.value === "list");
+const {
+  viewMode,
+  detailHasUnsavedChanges,
+  unsavedChangesDialogOpen,
+  isListMode,
+  isCalendarActive,
+  isTagsActive,
+  requestNavigation,
+  navigateToList: navigateWorkspaceToList,
+  navigateToCalendar,
+  navigateToTags,
+  cancelPendingNavigation,
+  confirmPendingNavigation,
+  resetNavigation,
+} = useWorkspaceNavigation(rotateMotivation);
 const isAllArticlesActive = computed(
   () =>
     isListMode.value &&
@@ -79,8 +89,6 @@ const isReadActive = computed(
 const isFavoriteActive = computed(
   () => isListMode.value && store.filters.favorite,
 );
-const isCalendarActive = computed(() => viewMode.value === "calendar");
-const isTagsActive = computed(() => viewMode.value === "tags");
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer);
@@ -135,8 +143,7 @@ async function saveArticle(article: ArticleInput): Promise<void> {
 async function logout(): Promise<void> {
   await authStore.logout();
   store.resetState();
-  detailHasUnsavedChanges.value = false;
-  viewMode.value = "list";
+  resetNavigation();
 }
 
 async function deleteArticle(articleId: string): Promise<void> {
@@ -368,43 +375,9 @@ function todayString(): string {
   return `${year}-${month}-${day}`;
 }
 
-function requestNavigation(action: () => void): void {
-  if (viewMode.value === "detail" && detailHasUnsavedChanges.value) {
-    pendingNavigation.value = action;
-    unsavedChangesDialogOpen.value = true;
-    return;
-  }
-
-  action();
-}
-
 function navigateToList(): void {
-  if (viewMode.value !== "list") rotateMotivation();
   detailFormError.value = "";
-  viewMode.value = "list";
-}
-
-function navigateToCalendar(): void {
-  if (viewMode.value !== "calendar") rotateMotivation();
-  viewMode.value = "calendar";
-}
-
-function navigateToTags(): void {
-  if (viewMode.value !== "tags") rotateMotivation();
-  viewMode.value = "tags";
-}
-
-function cancelPendingNavigation(): void {
-  pendingNavigation.value = null;
-  unsavedChangesDialogOpen.value = false;
-}
-
-function confirmPendingNavigation(): void {
-  const action = pendingNavigation.value;
-  pendingNavigation.value = null;
-  unsavedChangesDialogOpen.value = false;
-  detailHasUnsavedChanges.value = false;
-  action?.();
+  navigateWorkspaceToList();
 }
 
 function handleBeforeUnload(event: BeforeUnloadEvent): void {

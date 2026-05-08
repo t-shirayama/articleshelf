@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import { Check, GitMerge, Pencil, Plus, Search, Trash2, X } from "lucide-vue-next";
-import { getCurrentLocale } from "../../../shared/i18n";
+import { useTagManagementState } from "../composables/useTagManagementState";
 import type { Tag } from "../types";
-
-type TagSort = "COUNT_DESC" | "COUNT_ASC" | "NAME_ASC";
 
 const props = defineProps<{
   tags: Tag[];
@@ -24,91 +22,31 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const addDialogOpen = ref(false);
-const addDraft = ref("");
-const renameTagId = ref("");
-const renameDraft = ref("");
-const mergeSource = ref<Tag | null>(null);
-const mergeTargetId = ref("");
-const deleteCandidate = ref<Tag | null>(null);
-const searchQuery = ref<string | null>("");
-const sortMode = ref<TagSort>("COUNT_DESC");
-const sortMeasureEl = ref<HTMLElement | null>(null);
-const sortWidth = ref(252);
-
-const sortOptions = computed(() => [
-  { title: t("tags.sortCountDesc"), value: "COUNT_DESC" },
-  { title: t("tags.sortCountAsc"), value: "COUNT_ASC" },
-  { title: t("tags.sortNameAsc"), value: "NAME_ASC" },
-]);
-
-const longestSortTitle = computed(() =>
-  sortOptions.value.reduce(
-    (longest, option) => (option.title.length > longest.length ? option.title : longest),
-    "",
-  ),
-);
-
-const sortWidthStyle = computed(() => ({
-  "--tag-management-sort-width": `${sortWidth.value}px`,
-}));
-
-async function updateSortWidth(): Promise<void> {
-  await nextTick();
-  const measuredWidth = sortMeasureEl.value?.scrollWidth || 0;
-  sortWidth.value = Math.ceil(measuredWidth + 78);
-}
-
-watch(longestSortTitle, () => {
-  void updateSortWidth();
-});
-
-onMounted(() => {
-  void updateSortWidth();
-});
-
-const filteredTags = computed(() => {
-  const keyword = (searchQuery.value || "").trim().toLocaleLowerCase(currentTextLocale());
-  if (!keyword) return props.tags;
-  return props.tags.filter((tag) =>
-    tag.name.toLocaleLowerCase(currentTextLocale()).includes(keyword),
-  );
-});
-
-const sortedTags = computed(() => {
-  const tags = [...filteredTags.value];
-  return tags.sort((left, right) => {
-    const leftCount = left.articleCount || 0;
-    const rightCount = right.articleCount || 0;
-    if (sortMode.value === "COUNT_ASC") {
-      return leftCount - rightCount || left.name.localeCompare(right.name, "ja");
-    }
-    if (sortMode.value === "NAME_ASC") {
-      return left.name.localeCompare(right.name, "ja");
-    }
-    return rightCount - leftCount || left.name.localeCompare(right.name, "ja");
-  });
-});
-
-const mergeOptions = computed(() =>
-  props.tags
-    .filter((tag) => tag.id && tag.id !== mergeSource.value?.id)
-    .map((tag) => ({
-      title: `${tag.name} (${tag.articleCount || 0})`,
-      value: tag.id || "",
-    })),
-);
-
-function openAddDialog(): void {
-  addDraft.value = "";
-  addDialogOpen.value = true;
-}
-
-function closeAddDialog(): void {
-  if (props.saving) return;
-  addDialogOpen.value = false;
-  addDraft.value = "";
-}
+const {
+  addDialogOpen,
+  addDraft,
+  renameTagId,
+  renameDraft,
+  mergeSource,
+  mergeTargetId,
+  deleteCandidate,
+  searchQuery,
+  sortMode,
+  sortMeasureEl,
+  sortOptions,
+  longestSortTitle,
+  sortWidthStyle,
+  sortedTags,
+  mergeOptions,
+  openAddDialog,
+  closeAddDialog,
+  startRename,
+  cancelRename,
+  openMerge,
+  closeMerge,
+  requestDelete,
+  deleteTooltip,
+} = useTagManagementState(toRef(props, "tags"), t);
 
 function confirmAdd(): void {
   const name = addDraft.value.trim();
@@ -118,31 +56,11 @@ function confirmAdd(): void {
   addDialogOpen.value = false;
 }
 
-function startRename(tag: Tag): void {
-  renameTagId.value = tag.id || "";
-  renameDraft.value = tag.name;
-}
-
-function cancelRename(): void {
-  renameTagId.value = "";
-  renameDraft.value = "";
-}
-
 function confirmRename(): void {
   const name = renameDraft.value.trim();
   if (!renameTagId.value || !name) return;
   emit("renameTag", renameTagId.value, name);
   cancelRename();
-}
-
-function openMerge(tag: Tag): void {
-  mergeSource.value = tag;
-  mergeTargetId.value = "";
-}
-
-function closeMerge(): void {
-  mergeSource.value = null;
-  mergeTargetId.value = "";
 }
 
 function confirmMerge(): void {
@@ -151,23 +69,10 @@ function confirmMerge(): void {
   closeMerge();
 }
 
-function requestDelete(tag: Tag): void {
-  if ((tag.articleCount || 0) > 0) return;
-  deleteCandidate.value = tag;
-}
-
 function confirmDelete(): void {
   if (!deleteCandidate.value?.id) return;
   emit("deleteTag", deleteCandidate.value.id);
   deleteCandidate.value = null;
-}
-
-function deleteTooltip(tag: Tag): string {
-  return (tag.articleCount || 0) > 0 ? t("tags.deleteDisabledTooltip") : t("tags.deleteTooltip");
-}
-
-function currentTextLocale(): string {
-  return getCurrentLocale() === "ja" ? "ja" : "en";
 }
 </script>
 
@@ -403,7 +308,7 @@ function currentTextLocale(): string {
       </p>
     </div>
 
-    <VDialog :model-value="addDialogOpen" max-width="420" @update:model-value="!$event && closeAddDialog()">
+    <VDialog :model-value="addDialogOpen" max-width="420" @update:model-value="!$event && closeAddDialog(saving)">
       <VCard class="tag-management-dialog">
         <VCardTitle>{{ t("tags.addTitle") }}</VCardTitle>
         <VCardText class="tag-management-dialog-body">
@@ -417,7 +322,7 @@ function currentTextLocale(): string {
         </VCardText>
         <VCardActions>
           <VSpacer />
-          <VBtn variant="text" :disabled="saving" @click="closeAddDialog">{{ t("common.cancel") }}</VBtn>
+          <VBtn variant="text" :disabled="saving" @click="closeAddDialog(saving)">{{ t("common.cancel") }}</VBtn>
           <VBtn
             class="action-button action-button-primary"
             color="primary"
