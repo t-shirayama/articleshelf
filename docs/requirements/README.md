@@ -1,8 +1,8 @@
-# ReadStack Requirements
+# ArticleShelf Requirements
 
 ## 概要
 
-ReadStackは、読んだ技術記事を「資産」として蓄積・管理するストックアプリです。記事のURLやタイトル、タグ、メモ、既読日を保存し、振り返りや学習のために活用できるようにします。
+ArticleShelfは、読んだ技術記事を「資産」として蓄積・管理するストックアプリです。記事のURLやタイトル、タグ、メモ、既読日を保存し、振り返りや学習のために活用できるようにします。
 
 このファイルは要件ドキュメントの入口として保守し、詳細は `docs/requirements/` 配下の項目別ファイルに記載します。
 今後追加したい機能や構想段階のアイデアは、まず `docs/requirements/future-considerations.md` に整理します。

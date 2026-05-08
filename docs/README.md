@@ -1,6 +1,6 @@
-# ReadStack Docs
+# ArticleShelf Docs
 
-ReadStack の設計、要件、仕様、テスト、運用状況を整理する入口です。
+ArticleShelf の設計、要件、仕様、テスト、運用状況を整理する入口です。
 `docs/` 直下にはこの README だけを置き、詳細文書は目的ごとのディレクトリに格納します。
 
 ## 目次

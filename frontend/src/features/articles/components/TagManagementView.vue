@@ -106,7 +106,7 @@ function confirmDelete(): void {
         </VTextField>
         <VSelect
           v-model="sortMode"
-          class="readstack-select sort-select tag-management-sort"
+          class="articleshelf-select sort-select tag-management-sort"
           :style="sortWidthStyle"
           :items="sortOptions"
           item-title="title"

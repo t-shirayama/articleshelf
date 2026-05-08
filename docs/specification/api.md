@@ -14,14 +14,14 @@
 - 説明: ユーザー登録
 - リクエスト: `username`, `password`, `displayName`
 - レスポンス: `user`, `accessToken`
-- 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
+- 副作用: `ARTICLESHELF_REFRESH` と `ARTICLESHELF_CSRF` cookie を設定
 
 #### `POST /api/auth/login`
 
 - 説明: ログイン
 - リクエスト: `username`, `password`
 - レスポンス: `user`, `accessToken`
-- 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
+- 副作用: `ARTICLESHELF_REFRESH` と `ARTICLESHELF_CSRF` cookie を設定
 
 #### `POST /api/auth/refresh`
 

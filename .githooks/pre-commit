@@ -15,7 +15,7 @@ has_staged_content() {
   git diff --cached --name-only -- "$@" | grep -q .
 }
 
-echo "Running ReadStack pre-commit checks..."
+echo "Running ArticleShelf pre-commit checks..."
 
 if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
   echo "Frontend source changed: running frontend typecheck."
@@ -27,6 +27,10 @@ if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
     echo "WARNING: UI files changed without docs/designs/README.md or docs/specification/ui.md."
     echo "         If the visual behavior changed, update the relevant UI docs before committing."
   fi
+  if ! has_changed '^docs/designs/screenshots/.*\.png$'; then
+    echo "WARNING: UI files changed without updated design screenshots."
+    echo "         If the visible UI or flow changed, regenerate docs/designs/screenshots/ in the same task."
+  fi
   echo "UI design checklist:"
   echo "  - Check proximity, alignment, repetition, and contrast."
   echo "  - Check select values are not truncated and labels fit their containers."
@@ -35,9 +39,11 @@ fi
 
 if has_changed '^(frontend/src/.*\.(vue|css)|docs/designs/README\.md|docs/specification/ui\.md|docs/designs/.*)$'; then
   echo "Design capture reminder:"
+  echo "  - Preferred stack: docker compose -f docker-compose.e2e.yml up --build -d"
+  echo "  - Preferred URLs: http://localhost:5173 and http://localhost:8080"
   echo "  - If visual docs/screenshots are affected, run: cd frontend && npm run capture:designs"
   echo "  - Keep current screenshots under docs/designs/screenshots/."
-  echo "  - Follow .codex/skills/readstack-design-capture/SKILL.md for deterministic capture data and login."
+  echo "  - Follow .codex/skills/articleshelf-design-capture/SKILL.md for deterministic capture data and login."
 fi
 
 if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; then
@@ -51,4 +57,4 @@ if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; th
   fi
 fi
 
-echo "ReadStack pre-commit checks passed."
+echo "ArticleShelf pre-commit checks passed."

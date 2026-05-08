@@ -1,6 +1,6 @@
 # Supabase 本番DB作成・DB接続情報確認手順
 
-対象: ReadStack 本番環境
+対象: ArticleShelf 本番環境
 目的: Render backend から接続する Supabase PostgreSQL を作成し、Render に設定する DB 接続情報を確認する
 
 ---
@@ -24,7 +24,7 @@
 Organization 名の例:
 
 ```text
-readstack
+articleshelf
 ```
 
 ---
@@ -35,7 +35,7 @@ readstack
 2. 以下のように入力する
 
 ```text
-Project name: readstack-prod
+Project name: articleshelf-prod
 Database password: 強力なランダムパスワード
 Region: Render backend に近いリージョン
 Pricing plan: Free
@@ -44,7 +44,7 @@ Pricing plan: Free
 おすすめ:
 
 ```text
-Project name: readstack-prod
+Project name: articleshelf-prod
 ```
 
 注意:
@@ -75,7 +75,7 @@ Project Settings
 
 ## 2. DB接続情報を確認
 
-ReadStack backend は Spring Boot から PostgreSQL に接続するため、Supabase の **Postgres connection string** を確認する。
+ArticleShelf backend は Spring Boot から PostgreSQL に接続するため、Supabase の **Postgres connection string** を確認する。
 
 Supabase 公式ドキュメントでは、接続情報は Project Dashboard の **Connect** ボタンから確認できる。Render のような永続的な backend から接続する場合、IPv6 が使えるなら Direct connection、IPv4 互換が必要なら Pooler session mode が推奨される。
 
@@ -83,7 +83,7 @@ Supabase 公式ドキュメントでは、接続情報は Project Dashboard の 
 
 ### 2.1 接続情報画面を開く
 
-1. Supabase Dashboard で `readstack-prod` プロジェクトを開く
+1. Supabase Dashboard で `articleshelf-prod` プロジェクトを開く
 2. 画面上部または Database 周辺にある **Connect** を選択する
 3. 接続方式の一覧を開く
 4. Connection string を確認する
@@ -155,7 +155,7 @@ SPRING_DATASOURCE_USERNAME=postgres
 SPRING_DATASOURCE_PASSWORD=<DATABASE_PASSWORD>
 ```
 
-ReadStack では、まず Pooler session mode を使う想定でよい。
+ArticleShelf では、まず Pooler session mode を使う想定でよい。
 
 ---
 
@@ -188,7 +188,7 @@ SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3
 以下が埋まっていれば DB 接続情報の確認は完了。
 
 ```text
-[ ] Supabase project name: readstack-prod
+[ ] Supabase project name: articleshelf-prod
 [ ] Supabase region を確認した
 [ ] Database password を保存した
 [ ] Pooler session mode の host を確認した

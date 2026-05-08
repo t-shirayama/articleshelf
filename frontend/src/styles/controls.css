@@ -1,4 +1,4 @@
-.readstack-select .v-field {
+.articleshelf-select .v-field {
   background: linear-gradient(
     180deg,
     rgba(255, 255, 255, 0.88),
@@ -10,22 +10,22 @@
     0 5px 12px rgba(24, 108, 116, 0.08);
 }
 
-.readstack-select .v-field__outline {
+.articleshelf-select .v-field__outline {
   color: rgba(24, 108, 116, 0.42);
 }
 
-.readstack-select .v-label {
+.articleshelf-select .v-label {
   color: var(--accent-strong);
   font-size: 0.78rem;
   font-weight: 700;
 }
 
-.readstack-select .v-select__selection-text {
+.articleshelf-select .v-select__selection-text {
   color: var(--text);
   font-weight: 700;
 }
 
-.readstack-select .v-field__append-inner {
+.articleshelf-select .v-field__append-inner {
   position: relative;
   display: grid;
   width: 34px;
@@ -35,7 +35,7 @@
   color: var(--accent-strong);
 }
 
-.readstack-select .v-field__append-inner::after {
+.articleshelf-select .v-field__append-inner::after {
   width: 8px;
   height: 8px;
   border-right: 2px solid currentColor;
@@ -44,11 +44,11 @@
   transform: translateY(-2px) rotate(45deg);
 }
 
-.readstack-select .v-field__append-inner .v-select__menu-icon {
+.articleshelf-select .v-field__append-inner .v-select__menu-icon {
   display: none;
 }
 
-.readstack-select:hover .v-field {
+.articleshelf-select:hover .v-field {
   background: linear-gradient(180deg, #ffffff, rgba(232, 243, 239, 0.98));
   box-shadow:
     inset 0 0 0 1px rgba(24, 108, 116, 0.28),

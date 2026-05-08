@@ -1,0 +1,4 @@
+interface:
+  display_name: "ArticleShelf UI Polish"
+  short_description: "ArticleShelf UI rules for polished, stable screens"
+  default_prompt: "Use $articleshelf-ui-polish to refine a ArticleShelf UI change."

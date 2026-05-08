@@ -1,6 +1,6 @@
 # Data Model
 
-ReadStack の主要データは PostgreSQL に保存します。
+ArticleShelf の主要データは PostgreSQL に保存します。
 
 ## テーブル構成
 

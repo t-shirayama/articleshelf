@@ -1,8 +1,8 @@
-# ReadStack Task Backlog
+# ArticleShelf Task Backlog
 
 最終更新: 2026-05-08
 
-このドキュメントは、ReadStack の残タスクを優先度ごとに追うための一覧です。  
+このドキュメントは、ArticleShelf の残タスクを優先度ごとに追うための一覧です。  
 実装済み機能の棚卸しや仕様との差分は `docs/status/project-status.md` を参照し、このファイルでは「次に何を進めるか」を見やすく整理します。
 
 ## 1. 優先度高

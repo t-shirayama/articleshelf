@@ -1,11 +1,11 @@
 # 非機能仕様
 
-ReadStack の品質属性と運用上守るべき仕様を定義する。
+ArticleShelf の品質属性と運用上守るべき仕様を定義する。
 採用技術、推奨バージョン、開発環境は [technology.md](technology.md) に分ける。
 
 ## 1. セキュリティ
 
-- セキュリティは ReadStack の非機能要件として扱う
+- セキュリティは ArticleShelf の非機能要件として扱う
 - 認証、認可、CSRF、CORS、secret、rate limit、SSRF、Markdown sanitization などの具体的な対策は [security.md](security.md) に従う
 - 詳細な認証、Cookie、CSRF、CORS 仕様は [authentication.md](authentication.md) に従う
 

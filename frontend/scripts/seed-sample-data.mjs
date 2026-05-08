@@ -1,19 +1,19 @@
 const apiBaseUrl = normalizeBaseUrl(
-  process.env.READSTACK_SAMPLE_API_BASE_URL ||
+  process.env.ARTICLESHELF_SAMPLE_API_BASE_URL ||
     process.env.VITE_API_BASE_URL ||
     "http://127.0.0.1:8080",
 );
 const sampleUrlBase = normalizeBaseUrl(
-  process.env.READSTACK_SAMPLE_URL_BASE || apiBaseUrl,
+  process.env.ARTICLESHELF_SAMPLE_URL_BASE || apiBaseUrl,
 );
-const username = process.env.READSTACK_SAMPLE_USERNAME || "sample";
-const password = process.env.READSTACK_SAMPLE_PASSWORD || "password123";
-const displayName = process.env.READSTACK_SAMPLE_DISPLAY_NAME || "Sample User";
+const username = process.env.ARTICLESHELF_SAMPLE_USERNAME || "sample";
+const password = process.env.ARTICLESHELF_SAMPLE_PASSWORD || "password123";
+const displayName = process.env.ARTICLESHELF_SAMPLE_DISPLAY_NAME || "Sample User";
 
 const sampleArticles = [
   {
     key: "architecture",
-    title: "ReadStack アーキテクチャ整理メモ",
+    title: "ArticleShelf アーキテクチャ整理メモ",
     summary: "frontend / backend / docs をどう分けるかを確認するサンプル記事。",
     status: "UNREAD",
     favorite: true,
@@ -25,7 +25,7 @@ const sampleArticles = [
       "- API 契約",
       "- テスト観点",
     ].join("\n"),
-    tags: ["設計", "ReadStack"],
+    tags: ["設計", "ArticleShelf"],
   },
   {
     key: "backend",
@@ -93,7 +93,7 @@ async function ensureSampleUser() {
 
   if (!loginResponse.ok) {
     throw new Error(
-      `Sample user "${username}" already exists, but login failed. Set READSTACK_SAMPLE_PASSWORD to the existing password or choose READSTACK_SAMPLE_USERNAME. ` +
+      `Sample user "${username}" already exists, but login failed. Set ARTICLESHELF_SAMPLE_PASSWORD to the existing password or choose ARTICLESHELF_SAMPLE_USERNAME. ` +
         `${loginResponse.status} ${await loginResponse.text()}`,
     );
   }
@@ -107,7 +107,7 @@ async function createArticle(authHeaders, article) {
     method: "POST",
     headers: authHeaders,
     body: {
-      url: `${sampleUrlBase}/actuator/health?readstackSample=${encodeURIComponent(article.key)}`,
+      url: `${sampleUrlBase}/actuator/health?articleshelfSample=${encodeURIComponent(article.key)}`,
       title: article.title,
       summary: article.summary,
       status: article.status,

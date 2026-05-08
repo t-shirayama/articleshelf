@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.readstack</groupId>
-    <artifactId>readstack-backend</artifactId>
+    <groupId>com.articleshelf</groupId>
+    <artifactId>articleshelf-backend</artifactId>
     <version>0.1.0</version>
-    <name>readstack-backend</name>
-    <description>ReadStack backend API</description>
+    <name>articleshelf-backend</name>
+    <description>ArticleShelf backend API</description>
 
     <properties>
         <java.version>21</java.version>

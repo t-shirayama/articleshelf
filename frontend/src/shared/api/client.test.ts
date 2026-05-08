@@ -18,14 +18,14 @@ describe('api client error handling', () => {
     setCurrentLocale('en')
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
-    document.cookie = 'READSTACK_CSRF=csrf-token'
+    document.cookie = 'ARTICLESHELF_CSRF=csrf-token'
   })
 
   afterEach(() => {
     setAccessToken('')
     configureAuthRefresh(null)
     vi.unstubAllGlobals()
-    document.cookie = 'READSTACK_CSRF=; Max-Age=0'
+    document.cookie = 'ARTICLESHELF_CSRF=; Max-Age=0'
   })
 
   it('turns API error payloads into structured ApiRequestError instances', async () => {

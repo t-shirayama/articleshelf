@@ -1,6 +1,6 @@
 # 技術スタック仕様
 
-ReadStack の実装で採用する主要技術と、開発・CI で揃える実行環境を定義する。
+ArticleShelf の実装で採用する主要技術と、開発・CI で揃える実行環境を定義する。
 非機能要件そのものは [non-functional.md](non-functional.md) に整理する。
 
 ## 1. アプリケーション構成

@@ -1,4 +1,0 @@
-interface:
-  display_name: "ReadStack Change Sync"
-  short_description: "Keep ReadStack code, docs, and checks aligned"
-  default_prompt: "Use $readstack-change-sync to keep a ReadStack code change synchronized."

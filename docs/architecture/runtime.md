@@ -22,7 +22,7 @@
 ## 初期データ方針
 
 - 通常起動では初期ユーザー、記事、タグを自動投入しない
-- 初期 ADMIN が必要な検証環境だけ `READSTACK_INITIAL_USER_ENABLED=true` を指定する
+- 初期 ADMIN が必要な検証環境だけ `ARTICLESHELF_INITIAL_USER_ENABLED=true` を指定する
 - サンプル記事は `frontend` の `npm run seed:sample` を明示実行したときだけ投入する
 - E2E 用 Compose は管理者リセットシナリオのために初期 ADMIN を明示的に有効化するが、各テストの記事データはテスト内で一意に作成する
 

@@ -1,6 +1,6 @@
 export const en = {
     common: {
-      appName: 'ReadStack',
+      appName: 'ArticleShelf',
       appTagline: 'A reading shelf for your learning',
       retry: 'Retry',
       close: 'Close',

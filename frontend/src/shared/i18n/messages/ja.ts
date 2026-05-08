@@ -1,6 +1,6 @@
 export const ja = {
     common: {
-      appName: 'ReadStack',
+      appName: 'ArticleShelf',
       appTagline: '学びを蓄える記事棚',
       retry: '再試行',
       close: '閉じる',
