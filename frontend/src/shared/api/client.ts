@@ -1,7 +1,7 @@
 import { getCurrentLocale, translate } from "../i18n"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-const CSRF_COOKIE = 'READSTACK_CSRF'
+const CSRF_COOKIE = 'ARTICLESHELF_CSRF'
 
 interface ApiErrorPayload {
   messages?: string[]
@@ -9,12 +9,33 @@ interface ApiErrorPayload {
 }
 
 export class ApiRequestError extends Error {
+  readonly status: number
+  readonly messages: string[]
   existingArticleId?: string
 
-  constructor(message: string, existingArticleId?: string | null) {
+  constructor(message: string, existingArticleId?: string | null, status = 0, messages: string[] = [message]) {
     super(message)
     this.name = 'ApiRequestError'
+    this.status = status
+    this.messages = messages
     this.existingArticleId = existingArticleId || undefined
+  }
+}
+
+export class ApiConnectionError extends Error {
+  constructor(message = translate('errors.connection')) {
+    super(message)
+    this.name = 'ApiConnectionError'
+  }
+}
+
+export class ApiServerError extends Error {
+  readonly status: number
+
+  constructor(message = translate('errors.server'), status = 0) {
+    super(message)
+    this.name = 'ApiServerError'
+    this.status = status
   }
 }
 
@@ -32,8 +53,9 @@ export function setAccessToken(token: string): void {
   accessToken = token
 }
 
-export function configureAuthRefresh(callback: () => Promise<string | null>): void {
+export function configureAuthRefresh(callback: (() => Promise<string | null>) | null): void {
   refreshAccessToken = callback
+  refreshPromise = null
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -57,7 +79,7 @@ async function performRequest<T>(path: string, options: RequestOptions, retried:
     })
   } catch (error: unknown) {
     if (error instanceof TypeError) {
-      throw new Error(translate('errors.connection'))
+      throw new ApiConnectionError()
     }
     throw error
   }
@@ -73,14 +95,18 @@ async function performRequest<T>(path: string, options: RequestOptions, retried:
     return null as T
   }
 
-  const payload = await response.json().catch(() => null) as T | ApiErrorPayload | null
+  const payload = await readJson(response)
   if (!response.ok) {
     if (response.status >= 500) {
-      throw new Error(translate('errors.server'))
+      throw new ApiServerError(translate('errors.server'), response.status)
     }
-    const errorPayload = payload as ApiErrorPayload | null
-    const message = errorPayload?.messages?.join(', ') || translate('errors.api')
-    throw new ApiRequestError(message, errorPayload?.existingArticleId)
+    const errorPayload = toApiErrorPayload(payload)
+    const messages = errorPayload?.messages?.filter((message) => message.trim()) || []
+    const message = messages.length ? messages.join(', ') : fallbackErrorMessage(response.status)
+    throw new ApiRequestError(message, errorPayload?.existingArticleId, response.status, messages.length ? messages : [message])
+  }
+  if (payload === null) {
+    throw new ApiServerError(translate('errors.invalidResponse'), response.status)
   }
   return payload as T
 }
@@ -113,4 +139,21 @@ function readCookie(name: string): string {
     .map((value) => value.trim())
     .find((value) => value.startsWith(`${name}=`))
     ?.slice(name.length + 1) || ''
+}
+
+async function readJson(response: Response): Promise<unknown | null> {
+  return response.json().catch(() => null)
+}
+
+function toApiErrorPayload(payload: unknown): ApiErrorPayload | null {
+  if (!payload || typeof payload !== 'object') return null
+  const candidate = payload as ApiErrorPayload
+  return Array.isArray(candidate.messages) || 'existingArticleId' in candidate ? candidate : null
+}
+
+function fallbackErrorMessage(status: number): string {
+  if (status === 401) return translate('errors.unauthorized')
+  if (status === 403) return translate('errors.forbidden')
+  if (status === 404) return translate('errors.notFound')
+  return translate('errors.api')
 }

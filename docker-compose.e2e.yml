@@ -1,12 +1,14 @@
+name: articleshelf-e2e
+
 services:
   db:
     image: postgres:18-alpine
     environment:
-      POSTGRES_DB: readstack
-      POSTGRES_USER: readstack
-      POSTGRES_PASSWORD: readstack
+      POSTGRES_DB: articleshelf
+      POSTGRES_USER: articleshelf
+      POSTGRES_PASSWORD: articleshelf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U readstack -d readstack"]
+      test: ["CMD-SHELL", "pg_isready -U articleshelf -d articleshelf"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -15,17 +17,19 @@ services:
     build:
       context: ./backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/readstack
-      SPRING_DATASOURCE_USERNAME: readstack
-      SPRING_DATASOURCE_PASSWORD: readstack
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/articleshelf
+      SPRING_DATASOURCE_USERNAME: articleshelf
+      SPRING_DATASOURCE_PASSWORD: articleshelf
       FRONTEND_ORIGIN: http://localhost:5173
-      JWT_ACCESS_SECRET: dev-readstack-access-secret-change-me-please-32bytes
-      AUTH_REFRESH_TOKEN_HASH_SECRET: dev-readstack-refresh-hash-secret-change-me
+      JWT_ACCESS_SECRET: dev-articleshelf-access-secret-change-me-please-32bytes
+      AUTH_REFRESH_TOKEN_HASH_SECRET: dev-articleshelf-refresh-hash-secret-change-me
       AUTH_COOKIE_SECURE: "false"
       AUTH_COOKIE_SAME_SITE: Lax
       AUTH_CSRF_ENABLED: "false"
-      READSTACK_INITIAL_USER_EMAIL: owner@example.com
-      READSTACK_INITIAL_USER_PASSWORD: password123
+      ARTICLESHELF_INITIAL_USER_ENABLED: "true"
+      ARTICLESHELF_INITIAL_USERNAME: owner
+      ARTICLESHELF_INITIAL_USER_PASSWORD: password123
+      ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED: "false"
     ports:
       - "8080:8080"
     depends_on:

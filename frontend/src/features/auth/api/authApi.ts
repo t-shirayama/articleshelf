@@ -1,5 +1,13 @@
 import { request } from '../../../shared/api/client'
-import type { AuthCredentials, AuthResponse, RegisterInput, User } from '../types'
+import type {
+  AdminResetPasswordInput,
+  AuthCredentials,
+  AuthResponse,
+  ChangePasswordInput,
+  DeleteAccountInput,
+  RegisterInput,
+  User
+} from '../types'
 
 export const authApi = {
   register(input: RegisterInput): Promise<AuthResponse> {
@@ -31,7 +39,33 @@ export const authApi = {
       skipAuthRetry: true
     })
   },
+  logoutAll(): Promise<null> {
+    return request<null>('/api/auth/logout-all', {
+      method: 'POST',
+      skipAuthRetry: true
+    })
+  },
   me(): Promise<User> {
     return request<User>('/api/users/me')
+  },
+  changePassword(input: ChangePasswordInput): Promise<null> {
+    return request<null>('/api/users/me/password', {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+      skipAuthRetry: true
+    })
+  },
+  deleteAccount(input: DeleteAccountInput): Promise<null> {
+    return request<null>('/api/users/me', {
+      method: 'DELETE',
+      body: JSON.stringify(input),
+      skipAuthRetry: true
+    })
+  },
+  adminResetPassword(username: string, input: AdminResetPasswordInput): Promise<null> {
+    return request<null>(`/api/admin/users/${encodeURIComponent(username)}/password`, {
+      method: 'POST',
+      body: JSON.stringify(input)
+    })
   }
 }

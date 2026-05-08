@@ -229,13 +229,25 @@
 }
 
 .detail-notes-header {
-  justify-content: flex-start;
+  align-items: start;
+  justify-content: space-between;
 }
 
-.detail-notes-header span {
+.detail-notes-heading-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.detail-notes-heading-copy span {
   color: var(--muted);
   font-size: 0.78rem;
   line-height: 1.5;
+}
+
+.detail-notes-preview-button {
+  flex: 0 0 auto;
+  min-width: 124px;
 }
 
 .detail-edit-notes-field .v-field {
@@ -245,6 +257,15 @@
 .detail-edit-notes-field textarea {
   min-height: clamp(430px, calc(100vh - 455px), 620px);
   line-height: 1.65;
+}
+
+.detail-notes-preview {
+  min-height: clamp(430px, calc(100vh - 455px), 620px);
+  padding: 14px 16px;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(222, 217, 206, 0.9);
+  border-radius: 8px;
 }
 
 .detail-edit-article-section {
@@ -424,13 +445,13 @@
   display: none;
 }
 
-.detail-meta .readstack-date-field,
-.detail-meta .readstack-date-field .v-input__control,
-.detail-meta .readstack-date-field .v-field {
+.detail-meta .articleshelf-date-field,
+.detail-meta .articleshelf-date-field .v-input__control,
+.detail-meta .articleshelf-date-field .v-field {
   min-height: 40px;
 }
 
-.detail-meta .readstack-date-field .v-field__input {
+.detail-meta .articleshelf-date-field .v-field__input {
   min-height: 40px;
 }
 

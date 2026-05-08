@@ -1,4 +1,4 @@
-const DB_NAME = 'readstack-thumbnail-cache'
+const DB_NAME = 'articleshelf-thumbnail-cache'
 const DB_VERSION = 2
 const STORE_NAME = 'thumbnails'
 const FAILURE_RETRY_MS = 24 * 60 * 60 * 1000

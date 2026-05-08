@@ -150,7 +150,7 @@ function submit(): void {
           </label>
           <DateField
             v-model="form.readDate"
-            class="readstack-date-field"
+            class="articleshelf-date-field"
             :label="t('common.readDate')"
             :disabled="form.readLater"
             clearable

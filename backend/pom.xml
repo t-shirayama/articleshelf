@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.readstack</groupId>
-    <artifactId>readstack-backend</artifactId>
+    <groupId>com.articleshelf</groupId>
+    <artifactId>articleshelf-backend</artifactId>
     <version>0.1.0</version>
-    <name>readstack-backend</name>
-    <description>ReadStack backend API</description>
+    <name>articleshelf-backend</name>
+    <description>ArticleShelf backend API</description>
 
     <properties>
         <java.version>21</java.version>
@@ -33,6 +33,10 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-oauth2-jose</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -107,4 +111,33 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>0.8.13</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

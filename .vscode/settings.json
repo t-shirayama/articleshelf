@@ -1,3 +1,4 @@
 {
-  "cSpell.words": ["Qiita", "readstack", "vuetify", "Zenn"]
+  "cSpell.words": ["Qiita", "articleshelf", "springframework", "vuetify", "Zenn"],
+  "java.compile.nullAnalysis.mode": "automatic"
 }

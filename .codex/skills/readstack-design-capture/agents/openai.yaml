@@ -1,4 +1,0 @@
-interface:
-  display_name: "ReadStack Design Capture"
-  short_description: "Refresh docs/designs screenshots from the current app"
-  default_prompt: "Use $readstack-design-capture to archive old design images and recapture current ReadStack screenshots."

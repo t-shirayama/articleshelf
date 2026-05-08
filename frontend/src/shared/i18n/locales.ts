@@ -1,7 +1,7 @@
 export type SupportedLocale = "ja" | "en";
 
 export const DEFAULT_LOCALE: SupportedLocale = "en";
-export const LOCALE_STORAGE_KEY = "readstack.locale";
+export const LOCALE_STORAGE_KEY = "articleshelf.locale";
 
 export function normalizeLocale(value?: string | null): SupportedLocale | null {
   if (!value) return null;

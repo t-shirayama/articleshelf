@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
+import { errorMessage } from '../../../shared/errors'
 import { translate } from '../../../shared/i18n'
 import { configureAuthRefresh, setAccessToken } from '../../../shared/api/client'
 import { authApi } from '../api/authApi'
-import type { AuthCredentials, RegisterInput, User } from '../types'
+import type { AuthCredentials, ChangePasswordInput, DeleteAccountInput, RegisterInput, User } from '../types'
 
 let proactiveRefreshTimer: ReturnType<typeof window.setTimeout> | undefined
 
@@ -42,7 +43,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.applyAuthResponse(await authApi.register(input))
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : translate('auth.errors.registerFailed')
+        this.error = errorMessage(error, translate('auth.errors.registerFailed'))
         throw error
       } finally {
         this.loading = false
@@ -54,7 +55,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         this.applyAuthResponse(await authApi.login(input))
       } catch (error: unknown) {
-        this.error = error instanceof Error ? error.message : translate('auth.errors.loginFailed')
+        this.error = errorMessage(error, translate('auth.errors.loginFailed'))
         throw error
       } finally {
         this.loading = false
@@ -76,6 +77,45 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.clearSession()
       }
+    },
+    async logoutAll(): Promise<void> {
+      this.loading = true
+      this.error = ''
+      try {
+        await authApi.logoutAll()
+      } catch (error: unknown) {
+        this.error = errorMessage(error, translate('auth.account.logoutAllFailed'))
+        throw error
+      } finally {
+        this.loading = false
+        this.clearSession()
+      }
+    },
+    async changePassword(input: ChangePasswordInput): Promise<void> {
+      this.loading = true
+      this.error = ''
+      try {
+        await authApi.changePassword(input)
+      } catch (error: unknown) {
+        this.error = errorMessage(error, translate('auth.account.passwordChangeFailed'))
+        throw error
+      } finally {
+        this.loading = false
+      }
+      this.clearSession()
+    },
+    async deleteAccount(input: DeleteAccountInput): Promise<void> {
+      this.loading = true
+      this.error = ''
+      try {
+        await authApi.deleteAccount(input)
+      } catch (error: unknown) {
+        this.error = errorMessage(error, translate('auth.account.deleteFailed'))
+        throw error
+      } finally {
+        this.loading = false
+      }
+      this.clearSession()
     },
     clearSession(): void {
       this.user = null

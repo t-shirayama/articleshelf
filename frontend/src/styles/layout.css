@@ -194,6 +194,7 @@
   background: var(--accent-soft);
 }
 
+.sidebar-account-button,
 .sidebar-logout-button {
   width: 100%;
   justify-content: flex-start;
@@ -205,6 +206,7 @@
   font-weight: 800;
 }
 
+.sidebar-account-button:hover,
 .sidebar-logout-button:hover {
   background: rgba(216, 239, 238, 0.42);
   border-color: rgba(24, 108, 116, 0.54);
@@ -415,4 +417,3 @@
   color: var(--accent-strong);
   background: rgba(216, 239, 238, 0.92) !important;
 }
-

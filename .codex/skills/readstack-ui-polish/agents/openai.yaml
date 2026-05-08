@@ -1,4 +1,0 @@
-interface:
-  display_name: "ReadStack UI Polish"
-  short_description: "ReadStack UI rules for polished, stable screens"
-  default_prompt: "Use $readstack-ui-polish to refine a ReadStack UI change."

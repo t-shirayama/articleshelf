@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-STATE_FILE=/tmp/readstack-source-state
-PREVIOUS_STATE_FILE=/tmp/readstack-source-state.previous
+STATE_FILE=/tmp/articleshelf-source-state
+PREVIOUS_STATE_FILE=/tmp/articleshelf-source-state.previous
 POLL_INTERVAL="${HOT_RELOAD_POLL_INTERVAL:-2}"
 JVM_ARGUMENTS="${SPRING_BOOT_RUN_JVM_ARGUMENTS:--Dspring.devtools.restart.poll-interval=2s -Dspring.devtools.restart.quiet-period=1s}"
 

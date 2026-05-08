@@ -3,10 +3,10 @@ import { expect, test, type APIRequestContext, type Page, type TestInfo } from '
 const RUN_ID = Date.now().toString(36)
 
 test('user can register, create an article, logout and login again', async ({ page }, testInfo) => {
-  const email = uniqueEmail('reader', testInfo)
+  const username = uniqueUsername('reader', testInfo)
   const articleTitle = `E2E article ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('register-login', testInfo),
     title: articleTitle,
@@ -18,16 +18,56 @@ test('user can register, create an article, logout and login again', async ({ pa
   await page.getByRole('button', { name: /ログアウト/ }).click()
   await expect(page.getByRole('heading', { name: 'ログイン' })).toBeVisible()
 
-  await login(page, email)
+  await login(page, username)
   await expect(articleCard(page, articleTitle)).toBeVisible()
 })
 
+test('user can change password and must use the new password', async ({ page }, testInfo) => {
+  const username = uniqueUsername('password-change', testInfo)
+  const newPassword = 'new-password123'
+
+  await register(page, username)
+  await page.getByRole('button', { name: 'アカウント' }).click()
+  await page.getByLabel('現在のパスワード').first().fill('password123')
+  await page.getByLabel('新しいパスワード').fill(newPassword)
+  await page.getByRole('button', { name: 'パスワードを変更' }).click()
+
+  await expect(page.getByRole('heading', { name: 'ログイン' })).toBeVisible()
+  await page.getByLabel('ユーザー名').fill(username)
+  await page.getByLabel('パスワード').fill('password123')
+  await page.locator('form').getByRole('button', { name: 'ログイン' }).click()
+  await expect(page.getByText('ユーザー名またはパスワードが正しくありません。')).toBeVisible()
+
+  await login(page, username, newPassword)
+})
+
+test('user can log out all sessions and delete their account', async ({ page }, testInfo) => {
+  const logoutAllUsername = uniqueUsername('logout-all', testInfo)
+  const deleteUsername = uniqueUsername('delete-account', testInfo)
+
+  await register(page, logoutAllUsername)
+  await page.getByRole('button', { name: 'アカウント' }).click()
+  await page.getByRole('button', { name: '全端末からログアウト' }).click()
+  await expect(page.getByRole('heading', { name: 'ログイン' })).toBeVisible()
+
+  await register(page, deleteUsername)
+  await page.getByRole('button', { name: 'アカウント' }).click()
+  await page.getByLabel('現在のパスワード').last().fill('password123')
+  await page.getByRole('button', { name: '退会する' }).click()
+  await expect(page.getByRole('heading', { name: 'ログイン' })).toBeVisible()
+
+  await page.getByLabel('ユーザー名').fill(deleteUsername)
+  await page.getByLabel('パスワード').fill('password123')
+  await page.locator('form').getByRole('button', { name: 'ログイン' }).click()
+  await expect(page.getByText('ユーザー名またはパスワードが正しくありません。')).toBeVisible()
+})
+
 test('duplicate article url shows an error and can open the existing article', async ({ page }, testInfo) => {
-  const email = uniqueEmail('duplicate', testInfo)
+  const username = uniqueUsername('duplicate', testInfo)
   const sharedUrl = uniqueUrl('duplicate', testInfo)
   const originalTitle = `Original ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: sharedUrl,
     title: originalTitle
@@ -46,10 +86,10 @@ test('duplicate article url shows an error and can open the existing article', a
 })
 
 test('user can edit article details and persist notes tags and rating', async ({ page }, testInfo) => {
-  const email = uniqueEmail('detail-edit', testInfo)
+  const username = uniqueUsername('detail-edit', testInfo)
   const articleTitle = `Editable ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('detail-edit', testInfo),
     title: articleTitle,
@@ -74,10 +114,10 @@ test('user can edit article details and persist notes tags and rating', async ({
 })
 
 test('user can delete an article from the detail view', async ({ page }, testInfo) => {
-  const email = uniqueEmail('detail-delete', testInfo)
+  const username = uniqueUsername('detail-delete', testInfo)
   const articleTitle = `Delete me ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('detail-delete', testInfo),
     title: articleTitle
@@ -92,10 +132,10 @@ test('user can delete an article from the detail view', async ({ page }, testInf
 })
 
 test('user can toggle article status between unread and read from the list', async ({ page }, testInfo) => {
-  const email = uniqueEmail('status-toggle', testInfo)
+  const username = uniqueUsername('status-toggle', testInfo)
   const articleTitle = `Toggle ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('status-toggle', testInfo),
     title: articleTitle
@@ -110,12 +150,37 @@ test('user can toggle article status between unread and read from the list', asy
   await expect(articleCard(page, articleTitle)).toContainText('未読')
 })
 
+test('user can favorite an article and filter to favorites', async ({ page }, testInfo) => {
+  const username = uniqueUsername('favorite', testInfo)
+  const favoriteTitle = `Favorite ${uniqueSuffix(testInfo)}`
+  const otherTitle = `Plain ${uniqueSuffix(testInfo)}`
+
+  await register(page, username)
+  await createArticle(page, {
+    url: uniqueUrl('favorite-on', testInfo),
+    title: favoriteTitle
+  })
+  await createArticle(page, {
+    url: uniqueUrl('favorite-off', testInfo),
+    title: otherTitle
+  })
+
+  const favoriteButton = articleCard(page, favoriteTitle).locator('.card-favorite-button')
+  await favoriteButton.click()
+  await expect(favoriteButton).toHaveClass(/is-active/)
+
+  await page.getByRole('button', { name: 'お気に入り', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'お気に入り' })).toBeVisible()
+  await expect(articleCard(page, favoriteTitle)).toBeVisible()
+  await expect(articleCard(page, otherTitle)).toHaveCount(0)
+})
+
 test('user can filter articles by search, tag and rating', async ({ page }, testInfo) => {
-  const email = uniqueEmail('filter', testInfo)
+  const username = uniqueUsername('filter', testInfo)
   const matchingTitle = `Vue guide ${uniqueSuffix(testInfo)}`
   const nonMatchingTitle = `Java guide ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('filter-match', testInfo),
     title: matchingTitle,
@@ -144,12 +209,110 @@ test('user can filter articles by search, tag and rating', async ({ page }, test
   await expect(page.getByText('適用中')).toBeVisible()
 })
 
+test('user can sort articles by title', async ({ page }, testInfo) => {
+  const username = uniqueUsername('sort', testInfo)
+  const laterTitle = `Zeta ${uniqueSuffix(testInfo)}`
+  const firstTitle = `Alpha ${uniqueSuffix(testInfo)}`
+
+  await register(page, username)
+  await createArticle(page, {
+    url: uniqueUrl('sort-zeta', testInfo),
+    title: laterTitle
+  })
+  await createArticle(page, {
+    url: uniqueUrl('sort-alpha', testInfo),
+    title: firstTitle
+  })
+
+  await page.locator('.search-filter-bar .sort-select').click()
+  await page.getByRole('option', { name: 'タイトル順' }).click()
+
+  await expect(page.locator('.article-card h3').first()).toHaveText(firstTitle)
+})
+
+test('user can open articles from the calendar in created and read modes', async ({ page }, testInfo) => {
+  const username = uniqueUsername('calendar', testInfo)
+  const articleTitle = `Calendar ${uniqueSuffix(testInfo)}`
+
+  await register(page, username)
+  await createArticle(page, {
+    url: uniqueUrl('calendar', testInfo),
+    title: articleTitle
+  })
+  await articleCard(page, articleTitle).locator('.status-toggle-button').click()
+  await expect(page.getByText('既読にしました')).toBeVisible()
+
+  await page.getByRole('button', { name: 'カレンダー', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'カレンダー' })).toBeVisible()
+  await expect(page.getByRole('button', { name: articleTitle })).toBeVisible()
+
+  await page.getByRole('button', { name: '既読日' }).click()
+  await expect(page.getByRole('button', { name: articleTitle })).toBeVisible()
+  await page.getByRole('button', { name: articleTitle }).click()
+
+  await expect(page.getByRole('heading', { level: 2, name: articleTitle })).toBeVisible()
+})
+
+test('user can render markdown notes safely in the detail view', async ({ page }, testInfo) => {
+  const username = uniqueUsername('markdown', testInfo)
+  const articleTitle = `Markdown ${uniqueSuffix(testInfo)}`
+
+  await register(page, username)
+  await createArticle(page, {
+    url: uniqueUrl('markdown', testInfo),
+    title: articleTitle,
+    notes: [
+      '[ArticleShelf docs](https://example.com/docs)',
+      '',
+      '```ts',
+      'const answer = 42',
+      '```',
+      '',
+      '<script>alert("xss")</script>'
+    ].join('\n')
+  })
+
+  await openArticleFromList(page, articleTitle)
+  const markdown = page.locator('.markdown-viewer')
+
+  await expect(markdown.locator('a', { hasText: 'ArticleShelf docs' })).toHaveAttribute('href', 'https://example.com/docs')
+  await expect(markdown.locator('code')).toContainText('const answer = 42')
+  await expect(markdown.locator('script')).toHaveCount(0)
+})
+
+test('user is warned before leaving unsaved article edits', async ({ page }, testInfo) => {
+  const username = uniqueUsername('unsaved', testInfo)
+  const articleTitle = `Unsaved ${uniqueSuffix(testInfo)}`
+
+  await register(page, username)
+  await createArticle(page, {
+    url: uniqueUrl('unsaved', testInfo),
+    title: articleTitle,
+    notes: 'Original note'
+  })
+
+  await openArticleFromList(page, articleTitle)
+  await page.getByRole('button', { name: '編集' }).click()
+  await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Unsaved draft note')
+  await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+  await page.getByRole('button', { name: '戻る' }).click()
+
+  await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')
+  await page.getByRole('button', { name: '編集を続ける' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+
+  await page.getByRole('button', { name: '戻る' }).click()
+  await page.getByRole('button', { name: '破棄して移動' }).click()
+  await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
+})
+
 test('user can search tags and open articles from tag management', async ({ page }, testInfo) => {
-  const email = uniqueEmail('tag-management', testInfo)
+  const username = uniqueUsername('tag-management', testInfo)
   const matchingTitle = `Tagged AI ${uniqueSuffix(testInfo)}`
   const nonMatchingTitle = `Tagged Ops ${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('tag-management-ai', testInfo),
     title: matchingTitle,
@@ -178,10 +341,10 @@ test('user can search tags and open articles from tag management', async ({ page
 })
 
 test('user can create a standalone tag from tag management', async ({ page }, testInfo) => {
-  const email = uniqueEmail('tag-create', testInfo)
+  const username = uniqueUsername('tag-create', testInfo)
   const tagName = `Idea-${uniqueSuffix(testInfo)}`
 
-  await register(page, email)
+  await register(page, username)
   await page.getByRole('button', { name: 'タグ管理' }).click()
   await expect(page.getByRole('heading', { name: /タグ管理/ })).toBeVisible()
   await page.getByRole('button', { name: '最初のタグを追加' }).click()
@@ -192,15 +355,73 @@ test('user can create a standalone tag from tag management', async ({ page }, te
 
   await expect(page.getByRole('dialog')).toHaveCount(0)
   await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toBeVisible()
+
+  const tagRow = page.locator('.tag-management-row').filter({ hasText: tagName })
+  await tagRow.getByRole('button', { name: '削除' }).click()
+  await page.getByRole('button', { name: '削除する' }).click()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.tag-management-row').filter({ hasText: tagName })).toHaveCount(0)
+})
+
+test('user can rename and merge tags from tag management', async ({ page }, testInfo) => {
+  const username = uniqueUsername('tag-ops', testInfo)
+  const sourceTag = `Source-${uniqueSuffix(testInfo)}`
+  const targetTag = `Target-${uniqueSuffix(testInfo)}`
+  const renamedTarget = `Renamed-${uniqueSuffix(testInfo)}`
+  const sourceTitle = `Source article ${uniqueSuffix(testInfo)}`
+  const targetTitle = `Target article ${uniqueSuffix(testInfo)}`
+
+  await register(page, username)
+  await createArticle(page, {
+    url: uniqueUrl('tag-ops-source', testInfo),
+    title: sourceTitle,
+    tags: [sourceTag]
+  })
+  await createArticle(page, {
+    url: uniqueUrl('tag-ops-target', testInfo),
+    title: targetTitle,
+    tags: [targetTag]
+  })
+
+  await page.getByRole('button', { name: 'タグ管理' }).click()
+  await expect(page.getByRole('heading', { name: /タグ管理/ })).toBeVisible()
+
+  const targetRow = page.locator('.tag-management-row').filter({ hasText: targetTag })
+  await targetRow.getByRole('button', { name: '編集' }).click()
+  await page.locator('.tag-management-rename-input input').fill(renamedTarget)
+  await page.getByRole('button', { name: 'タグ名を保存' }).click()
+  await expect(page.locator('.tag-management-row').filter({ hasText: renamedTarget })).toBeVisible()
+  await expect(page.locator('.tag-management-row').filter({ hasText: targetTag })).toHaveCount(0)
+
+  const sourceRow = page.locator('.tag-management-row').filter({ hasText: sourceTag })
+  await sourceRow.getByRole('button', { name: '統合' }).click()
+  const mergeDialog = page.getByRole('dialog')
+  await expect(mergeDialog).toContainText('タグを統合')
+  await mergeDialog.locator('.articleshelf-select').click()
+  await page.getByRole('option', { name: renamedTarget }).click()
+  await mergeDialog.getByRole('button', { name: '統合する' }).click()
+
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.locator('.tag-management-row').filter({ hasText: sourceTag })).toHaveCount(0)
+
+  await page
+    .locator('.tag-management-row')
+    .filter({ hasText: renamedTarget })
+    .getByRole('button', { name: `${renamedTarget} の記事一覧を開く` })
+    .click()
+  await expect(page.getByRole('heading', { level: 1, name: renamedTarget })).toBeVisible()
+  await expect(articleCard(page, sourceTitle)).toBeVisible()
+  await expect(articleCard(page, targetTitle)).toBeVisible()
 })
 
 test('user can switch to English and the choice persists', async ({ page }, testInfo) => {
-  const email = uniqueEmail('english', testInfo)
+  const username = uniqueUsername('english', testInfo)
 
-  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'en'))
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'en'))
   await page.goto('/')
   await page.getByRole('button', { name: 'Sign up', exact: true }).click()
-  await page.getByLabel('Email address').fill(email)
+  await page.getByLabel('Username').fill(username)
   await page.getByLabel('Display name').fill('E2E User')
   await page.getByLabel('Password').fill('password123')
   await page.getByRole('button', { name: 'Sign up and start' }).click()
@@ -220,11 +441,11 @@ test('user can switch to English and the choice persists', async ({ page }, test
 })
 
 test('users cannot see each other articles', async ({ page }, testInfo) => {
-  const firstEmail = uniqueEmail('first', testInfo)
-  const secondEmail = uniqueEmail('second', testInfo)
+  const firstUsername = uniqueUsername('first', testInfo)
+  const secondUsername = uniqueUsername('second', testInfo)
   const privateTitle = `Private article ${uniqueSuffix(testInfo)}`
 
-  await register(page, firstEmail)
+  await register(page, firstUsername)
   await createArticle(page, {
     url: uniqueUrl('private-first', testInfo),
     title: privateTitle
@@ -232,14 +453,14 @@ test('users cannot see each other articles', async ({ page }, testInfo) => {
   await expect(articleCard(page, privateTitle)).toBeVisible()
   await page.getByRole('button', { name: /ログアウト/ }).click()
 
-  await register(page, secondEmail)
+  await register(page, secondUsername)
   await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
   await expect(articleCard(page, privateTitle)).toHaveCount(0)
 })
 
 test('user separation also blocks update and delete through the API', async ({ request }, testInfo) => {
-  const owner = await registerByApi(request, uniqueEmail('owner', testInfo))
-  const intruder = await registerByApi(request, uniqueEmail('intruder', testInfo))
+  const owner = await registerByApi(request, uniqueUsername('owner', testInfo))
+  const intruder = await registerByApi(request, uniqueUsername('intruder', testInfo))
   const created = await createArticleByApi(
     request,
     owner.accessToken,
@@ -274,20 +495,33 @@ test('user separation also blocks update and delete through the API', async ({ r
   expect((await ownerFetch.json()).title).toBe('Owner article')
 })
 
-async function register(page: Page, email: string): Promise<void> {
-  await page.addInitScript(() => window.localStorage.setItem('readstack.locale', 'ja'))
+test('admin can reset a user password through the API', async ({ page, request }, testInfo) => {
+  const username = uniqueUsername('admin-reset', testInfo)
+  const newPassword = 'reset-password123'
+
+  await registerByApi(request, username)
+  const admin = await loginByApi(request, 'owner', 'password123')
+  await resetPasswordByApi(request, admin.accessToken, username, newPassword)
+
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'ja'))
+  await page.goto('/')
+  await login(page, username, newPassword)
+})
+
+async function register(page: Page, username: string): Promise<void> {
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'ja'))
   await page.goto('/')
   await page.getByRole('button', { name: '登録', exact: true }).click()
-  await page.getByLabel('メールアドレス').fill(email)
+  await page.getByLabel('ユーザー名').fill(username)
   await page.getByLabel('表示名').fill('E2E User')
   await page.getByLabel('パスワード').fill('password123')
   await page.getByRole('button', { name: '登録して始める' }).click()
   await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
 }
 
-async function login(page: Page, email: string): Promise<void> {
-  await page.getByLabel('メールアドレス').fill(email)
-  await page.getByLabel('パスワード').fill('password123')
+async function login(page: Page, username: string, password = 'password123'): Promise<void> {
+  await page.getByLabel('ユーザー名').fill(username)
+  await page.getByLabel('パスワード').fill(password)
   await page.locator('form').getByRole('button', { name: 'ログイン' }).click()
   await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
 }
@@ -338,12 +572,12 @@ function articleCard(page: Page, title: string) {
   return page.locator('.article-card').filter({ hasText: title })
 }
 
-function uniqueEmail(prefix: string, testInfo: TestInfo): string {
-  return `${prefix}-${uniqueSuffix(testInfo)}@example.com`
+function uniqueUsername(prefix: string, testInfo: TestInfo): string {
+  return `${prefix}-${uniqueSuffix(testInfo)}`.slice(0, 32)
 }
 
 function uniqueUrl(prefix: string, testInfo: TestInfo): string {
-  return `https://example.com/?readstackE2e=${prefix}-${uniqueSuffix(testInfo)}`
+  return `https://example.com/?articleshelfE2e=${prefix}-${uniqueSuffix(testInfo)}`
 }
 
 function uniqueSuffix(testInfo: TestInfo): string {
@@ -359,10 +593,10 @@ function apiUrl(path: string): string {
   return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:8080'}${path}`
 }
 
-async function registerByApi(request: APIRequestContext, email: string): Promise<{ accessToken: string }> {
+async function registerByApi(request: APIRequestContext, username: string): Promise<{ accessToken: string }> {
   const response = await request.post(apiUrl('/api/auth/register'), {
     data: {
-      email,
+      username,
       password: 'password123',
       displayName: 'E2E User'
     }
@@ -370,6 +604,39 @@ async function registerByApi(request: APIRequestContext, email: string): Promise
   expect(response.ok()).toBeTruthy()
   const body = await response.json()
   return { accessToken: body.accessToken as string }
+}
+
+async function loginByApi(
+  request: APIRequestContext,
+  username: string,
+  password: string
+): Promise<{ accessToken: string }> {
+  const response = await request.post(apiUrl('/api/auth/login'), {
+    data: {
+      username,
+      password
+    }
+  })
+  expect(response.ok()).toBeTruthy()
+  const body = await response.json()
+  return { accessToken: body.accessToken as string }
+}
+
+async function resetPasswordByApi(
+  request: APIRequestContext,
+  accessToken: string,
+  username: string,
+  newPassword: string
+): Promise<void> {
+  const response = await request.post(apiUrl(`/api/admin/users/${encodeURIComponent(username)}/password`), {
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    data: {
+      newPassword
+    }
+  })
+  expect(response.status()).toBe(204)
 }
 
 async function createArticleByApi(

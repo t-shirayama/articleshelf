@@ -12,16 +12,16 @@
 #### `POST /api/auth/register`
 
 - 説明: ユーザー登録
-- リクエスト: `email`, `password`, `displayName`
+- リクエスト: `username`, `password`, `displayName`
 - レスポンス: `user`, `accessToken`
-- 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
+- 副作用: `ARTICLESHELF_REFRESH` と `ARTICLESHELF_CSRF` cookie を設定
 
 #### `POST /api/auth/login`
 
 - 説明: ログイン
-- リクエスト: `email`, `password`
+- リクエスト: `username`, `password`
 - レスポンス: `user`, `accessToken`
-- 副作用: `READSTACK_REFRESH` と `READSTACK_CSRF` cookie を設定
+- 副作用: `ARTICLESHELF_REFRESH` と `ARTICLESHELF_CSRF` cookie を設定
 
 #### `POST /api/auth/refresh`
 
@@ -35,10 +35,41 @@
 - レスポンス: `204 No Content`
 - 副作用: session cookie を削除
 
+#### `POST /api/auth/logout-all`
+
+- 説明: 現在ユーザーの refresh token を全失効し、既発行 access token も無効化
+- 認証: 必須
+- レスポンス: `204 No Content`
+- 副作用: session cookie を削除
+
 #### `GET /api/users/me`
 
 - 説明: 現在のログインユーザーを取得
-- レスポンス: `id`, `email`, `displayName`, `roles`
+- レスポンス: `id`, `username`, `displayName`, `roles`
+
+#### `PATCH /api/users/me/password`
+
+- 説明: 現在ユーザーのパスワードを変更
+- 認証: 必須
+- リクエスト: `currentPassword`, `newPassword`
+- レスポンス: `204 No Content`
+- 副作用: password hash 更新、refresh token 全失効、session cookie 削除
+
+#### `DELETE /api/users/me`
+
+- 説明: 現在ユーザーを退会状態へ変更
+- 認証: 必須
+- リクエスト: `currentPassword`
+- レスポンス: `204 No Content`
+- 副作用: `users.status = DELETED`、refresh token 全失効、session cookie 削除
+
+#### `POST /api/admin/users/{username}/password`
+
+- 説明: 管理者によるパスワードリセット
+- 認証: `ADMIN` のみ
+- リクエスト: `newPassword`
+- レスポンス: `204 No Content`
+- 備考: 新パスワードの通知はアプリ外運用で行い、メール送信は実装しない
 
 ## エンドポイント
 
@@ -66,13 +97,16 @@
 - 説明: 記事を追加
 - 認証: 必須
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
-- `url` は必須かつURL形式
+- `url` は必須かつURL形式、最大2048文字
+- `title` は任意、最大255文字
 - `title` が未入力の場合は OGP タイトル、OGP タイトルがない場合は URL を使う
+- `summary` は任意、最大5000文字
 - `summary` が未入力の場合は OGP description を使う
 - `status` が未指定の場合はドメイン側で未読扱いにする
 - `favorite` が未指定の場合は `false`
-- `rating` が未指定の場合は `0`
-- `tags` は空白を除去し、空文字を除外して重複をまとめる
+- `rating` は `0` - `5`、未指定の場合は `0`
+- `notes` は任意、最大20000文字
+- `tags` は最大20件、各タグ名は最大255文字。空白を除去し、空文字を除外して重複をまとめる
 - `url` がアクセス不可、タイムアウト、または 4xx/5xx 応答の場合は保存しない
 
 ### `PUT /api/articles/{id}`
@@ -80,6 +114,12 @@
 - 説明: 記事を更新
 - 認証: 必須
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
+- `url` は必須かつURL形式、最大2048文字
+- `title` は任意、最大255文字
+- `summary` は任意、最大5000文字
+- `rating` は `0` - `5`
+- `notes` は任意、最大20000文字
+- `tags` は最大20件、各タグ名は最大255文字
 - `url` を変更する場合、変更先がアクセス不可、タイムアウト、または 4xx/5xx 応答なら保存しない
 - `url` を変更した場合、または既存記事に `thumbnailUrl` がない場合は OGP を再取得してサムネイルURLを補完する
 - `title`, `status`, `favorite`, `rating` が未指定の場合は既存値を維持する
@@ -136,6 +176,11 @@
 - フロントエンドは API リクエストへ現在の表示言語を `Accept-Language` として付与する
 - API エラー文言は `Accept-Language` に応じて日本語 / 英語で返す
 - `Accept-Language` が `ja` 以外、未対応、または未指定の場合は英語で返す
+- エラー時のレスポンス形式は `timestamp` と `messages` を持つ JSON
+- エラー時の JSON 形状は言語に関係なく維持し、`messages` の本文だけを切り替える
+- 例外から API エラーへ変換する責務は `ApiExceptionHandler` に集約する
+- エラー種別の判定は例外 message の文字列ではなく、例外型または明示的な reason code で行う
+- 想定済みの業務例外、認証例外、入力不正は下記の HTTP status へ変換し、内部例外 message をそのまま返さない
 - バリデーションエラーや不正なパラメータは `400 Bad Request`
 - 未認証または token 不正は `401 Unauthorized`
 - CSRF token 不一致は `403 Forbidden`
@@ -143,7 +188,6 @@
 - 存在しない記事 ID は `404 Not Found`
 - 重複 URL は `409 Conflict`
 - 重複タグ名、使用中タグの削除は `409 Conflict`
-- エラー時のレスポンス形式は `timestamp` と `messages` を持つ JSON
-- エラー時の JSON 形状は言語に関係なく維持し、`messages` の本文だけを切り替える
+- 想定外例外は `500 Internal Server Error` とし、ログへ詳細を残しつつ API には汎用メッセージだけを返す
 - 重複 URL の場合は、登録済み記事の詳細へ遷移できるよう `existingArticleId` を返す
 - `status` の不正値、`id` の不正な UUID、`readDate` の不正な日付形式も `messages` 配列に説明文を入れて返す

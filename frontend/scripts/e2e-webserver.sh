@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-PROJECT_NAME="${E2E_COMPOSE_PROJECT_NAME:-readstack-e2e}"
+PROJECT_NAME="${E2E_COMPOSE_PROJECT_NAME:-articleshelf-e2e}"
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
 cd "$ROOT_DIR"

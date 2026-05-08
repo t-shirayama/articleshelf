@@ -7,22 +7,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDir = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(frontendDir, "..");
-const outputDir = path.join(repoRoot, "docs", "designs");
+const outputDir = path.join(repoRoot, "docs", "designs", "screenshots");
 const baseUrl =
-  process.env.READSTACK_SCREENSHOT_BASE_URL || "http://localhost:5173";
+  process.env.ARTICLESHELF_SCREENSHOT_BASE_URL || "http://localhost:5173";
 const apiBaseUrl =
-  process.env.READSTACK_SCREENSHOT_API_BASE_URL ||
+  process.env.ARTICLESHELF_SCREENSHOT_API_BASE_URL ||
   process.env.E2E_API_BASE_URL ||
   "http://127.0.0.1:8080";
 const desktopViewport = { width: 1920, height: 1080 };
 const mobileViewport = { width: 430, height: 932 };
 const captureId = Date.now().toString(36);
+const captureTarget = process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all";
+const captureUsername =
+  process.env.ARTICLESHELF_CAPTURE_USERNAME || "owner";
+const capturePassword =
+  process.env.ARTICLESHELF_CAPTURE_PASSWORD || "password123";
+const standaloneTagName = "未使用";
 
 const captureArticles = [
   {
-    url: `https://example.com/?readstackCapture=vue-${captureId}`,
+    url: `https://example.com/?articleshelfCapture=vue-${captureId}`,
     title: "Vue で育てる記事棚の設計メモ",
-    summary: "一覧、詳細、タグをつなげる ReadStack の設計観点。",
+    summary: "一覧、詳細、タグをつなげる ArticleShelf の設計観点。",
     status: "UNREAD",
     favorite: true,
     rating: 5,
@@ -30,7 +36,7 @@ const captureArticles = [
     tags: ["Vue", "設計"],
   },
   {
-    url: `https://example.com/?readstackCapture=spring-${captureId}`,
+    url: `https://example.com/?articleshelfCapture=spring-${captureId}`,
     title: "Spring Boot API エラー設計チェック",
     summary: "検証エラーと検索 API の回帰を確認する記事。",
     status: "READ",
@@ -41,7 +47,7 @@ const captureArticles = [
     tags: ["Spring", "API"],
   },
   {
-    url: `https://example.com/?readstackCapture=tags-${captureId}`,
+    url: `https://example.com/?articleshelfCapture=tags-${captureId}`,
     title: "タグ管理 UI の使い勝手レビュー",
     summary: "検索、並び替え、統合、削除確認のデザイン確認。",
     status: "UNREAD",
@@ -59,23 +65,21 @@ async function createCaptureData() {
       "Accept-Language": "ja",
     },
   });
-  const email = `capture-${captureId}@example.com`;
 
-  const registerResponse = await api.post("/api/auth/register", {
+  const loginResponse = await api.post("/api/auth/login", {
     data: {
-      email,
-      password: "password123",
-      displayName: "Capture User",
+      username: captureUsername,
+      password: capturePassword,
     },
   });
 
-  if (!registerResponse.ok()) {
+  if (!loginResponse.ok()) {
     throw new Error(
-      `キャプチャ用ユーザーの作成に失敗しました: ${registerResponse.status()} ${await registerResponse.text()}`,
+      `キャプチャ用ログインに失敗しました: ${loginResponse.status()} ${await loginResponse.text()}`,
     );
   }
 
-  const auth = await registerResponse.json();
+  const auth = await loginResponse.json();
   const accessToken = auth.accessToken;
   const authHeaders = { Authorization: `Bearer ${accessToken}` };
 
@@ -84,7 +88,7 @@ async function createCaptureData() {
       headers: authHeaders,
       data: article,
     });
-    if (!response.ok()) {
+    if (!response.ok() && response.status() !== 409) {
       throw new Error(
         `キャプチャ用記事の作成に失敗しました: ${response.status()} ${await response.text()}`,
       );
@@ -93,16 +97,16 @@ async function createCaptureData() {
 
   const standaloneTagResponse = await api.post("/api/tags", {
     headers: authHeaders,
-    data: { name: "未使用" },
+    data: { name: standaloneTagName },
   });
-  if (!standaloneTagResponse.ok()) {
+  if (!standaloneTagResponse.ok() && standaloneTagResponse.status() !== 409) {
     throw new Error(
       `キャプチャ用タグの作成に失敗しました: ${standaloneTagResponse.status()} ${await standaloneTagResponse.text()}`,
     );
   }
 
   await api.dispose();
-  return { email };
+  return { username: captureUsername };
 }
 
 async function createContext(browser, storageState) {
@@ -116,17 +120,17 @@ async function createContext(browser, storageState) {
   });
 
   await context.addInitScript(() => {
-    window.localStorage.setItem("readstack.locale", "ja");
+    window.localStorage.setItem("articleshelf.locale", "ja");
   });
 
   return context;
 }
 
-async function loginCaptureUser(page, email) {
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+async function loginCaptureUser(page, username) {
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("form", { timeout: 30000 });
-  await page.getByLabel("メールアドレス").fill(email);
-  await page.getByLabel("パスワード").fill("password123");
+  await page.getByLabel("ユーザー名").fill(username);
+  await page.getByLabel("パスワード").fill(capturePassword);
   await page.locator("form").getByRole("button", { name: "ログイン" }).click();
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForSelector(".article-card", { timeout: 30000 });
@@ -134,7 +138,7 @@ async function loginCaptureUser(page, email) {
 
 async function openArticleList(page) {
   await page.setViewportSize(desktopViewport);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForSelector(".article-card", { timeout: 30000 });
   await page.waitForTimeout(700);
@@ -151,7 +155,7 @@ async function saveScreenshot(page, filename, options = {}) {
 async function captureAuthLogin(browser) {
   const context = await createContext(browser);
   const page = await context.newPage();
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("form", { timeout: 30000 });
   await page.waitForTimeout(500);
   await saveScreenshot(page, "auth_login.png");
@@ -163,12 +167,24 @@ async function captureDesktopList(page) {
   await saveScreenshot(page, "desktop_article_list.png");
 }
 
-async function captureDesktopDetail(page) {
+async function openFirstArticleDetail(page) {
   await openArticleList(page);
   await page.locator(".article-card").first().click();
   await page.waitForSelector(".detail-page", { timeout: 30000 });
   await page.waitForTimeout(700);
-  await saveScreenshot(page, "desktop_article_detail_light.png");
+}
+
+async function captureDesktopDetailView(page) {
+  await openFirstArticleDetail(page);
+  await saveScreenshot(page, "desktop_article_detail_view.png");
+}
+
+async function captureDesktopDetailEdit(page) {
+  await openFirstArticleDetail(page);
+  await page.getByRole("button", { name: "編集", exact: true }).click();
+  await page.waitForSelector(".detail-page.is-editing", { timeout: 30000 });
+  await page.waitForTimeout(700);
+  await saveScreenshot(page, "desktop_article_detail_edit.png");
 }
 
 async function captureCalendarView(page) {
@@ -233,7 +249,7 @@ async function captureTagDeleteDialog(page) {
   await page.waitForSelector(".tag-management-view", { timeout: 30000 });
   await page
     .locator(".tag-management-row")
-    .filter({ hasText: "未使用" })
+    .filter({ hasText: standaloneTagName })
     .getByRole("button", { name: "削除" })
     .click();
   await page.waitForSelector(".tag-management-dialog", { timeout: 30000 });
@@ -251,9 +267,17 @@ async function captureDeleteArticleDialog(page) {
   await saveScreenshot(page, "delete_article_dialog.png");
 }
 
+async function captureAccountSettingsDialog(page) {
+  await openArticleList(page);
+  await page.getByRole("button", { name: "アカウント", exact: true }).click();
+  await page.waitForSelector(".account-settings-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "account_settings_dialog.png");
+}
+
 async function captureMobileList(page) {
   await page.setViewportSize(mobileViewport);
-  await page.goto(baseUrl, { waitUntil: "networkidle" });
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForTimeout(700);
   await saveScreenshot(page, "mobile_article_list.png", { fullPage: true });
@@ -262,18 +286,28 @@ async function captureMobileList(page) {
 async function main() {
   await mkdir(outputDir, { recursive: true });
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    args: ["--host-resolver-rules=MAP localhost 127.0.0.1"],
+    headless: true,
+  });
 
   try {
-    await captureAuthLogin(browser);
-
     const captureData = await createCaptureData();
     const context = await createContext(browser);
     const page = await context.newPage();
-    await loginCaptureUser(page, captureData.email);
+    await loginCaptureUser(page, captureData.username);
 
+    if (captureTarget === "account-settings-dialog") {
+      await captureAccountSettingsDialog(page);
+      await context.close();
+      console.log(`Captured account settings screenshot in ${outputDir}`);
+      return;
+    }
+
+    await captureAuthLogin(browser);
     await captureDesktopList(page);
-    await captureDesktopDetail(page);
+    await captureDesktopDetailView(page);
+    await captureDesktopDetailEdit(page);
     await captureCalendarView(page);
     await captureTagManagement(page);
     await captureAddModal(page);
@@ -282,6 +316,7 @@ async function main() {
     await captureTagMergeDialog(page);
     await captureTagDeleteDialog(page);
     await captureDeleteArticleDialog(page);
+    await captureAccountSettingsDialog(page);
     await captureMobileList(page);
 
     await context.close();

@@ -1,19 +1,13 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
-import DateField from '../../../shared/components/DateField.vue'
-import StarRating from '../../../shared/components/StarRating.vue'
+import { ArrowLeft, ChevronDown, ExternalLink, Eye, Heart, Pencil, Save, Trash2 } from 'lucide-vue-next'
+import ArticleDeleteDialog from './ArticleDeleteDialog.vue'
+import ArticleDetailMetaPanel from './ArticleDetailMetaPanel.vue'
 import MarkdownViewer from './MarkdownViewer.vue'
 import TagEditor from './TagEditor.vue'
-import {
-  articleToDetailForm,
-  createEmptyArticleDetailForm,
-  detailFormToArticleInput,
-  favoriteToggleInput,
-  hasArticleDetailFormChanges
-} from '../domain/articleForms'
-import type { Article, ArticleInput, ArticleStatus, Tag } from '../types'
+import { useArticleDetailForm } from '../composables/useArticleDetailForm'
+import type { Article, ArticleInput, Tag } from '../types'
 import { formatDateTime } from '../../../shared/utils/dateFormat'
 
 const props = withDefaults(defineProps<{
@@ -38,81 +32,40 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const form = reactive(createEmptyArticleDetailForm())
-const deleteDialogOpen = ref(false)
-const isEditing = ref(false)
-const articleDetailsOpen = ref(false)
-const submitted = ref(false)
-const detailMode = computed<'view' | 'edit'>({
-  get: () => (isEditing.value ? 'edit' : 'view'),
-  set: (value) => {
-    if (value === 'edit') {
-      startEditing()
-      return
-    }
-
-    if (isEditing.value) {
-      cancelEditing()
-    }
-  }
-})
-const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
-const statusOptions = computed<Array<{ label: string, value: Exclude<ArticleStatus, 'ALL'> }>>(() => [
-  { label: t('articles.statusUnread'), value: 'UNREAD' },
-  { label: t('articles.statusRead'), value: 'READ' }
-])
-const summaryText = computed(() => props.article?.summary?.trim() || t('detail.emptySummary'))
-const notesText = computed(() => props.article?.notes?.trim() || '')
-const hasUnsavedChanges = computed(() => Boolean(
-  props.article && isEditing.value && hasArticleDetailFormChanges(form, props.article)
-))
-const urlError = computed(() => (form.url.trim() ? '' : t('articleForm.validation.urlRequired')))
-const titleError = computed(() => (form.title.trim() ? '' : t('detail.titleRequired')))
-const readDateError = computed(() => (form.status === 'READ' && !form.readDate ? t('detail.readDateRequired') : ''))
-const formValid = computed(() => !urlError.value && !titleError.value && !readDateError.value)
-
-watch(
-  () => props.article,
-  (article) => {
-    Object.assign(form, article ? articleToDetailForm(article) : createEmptyArticleDetailForm())
-    isEditing.value = false
-    articleDetailsOpen.value = false
-    submitted.value = false
-  },
-  { immediate: true }
+const notesPreviewOpen = ref(false)
+const {
+  form,
+  deleteDialogOpen,
+  isEditing,
+  articleDetailsOpen,
+  submitted,
+  detailMode,
+  tagOptions,
+  statusOptions,
+  summaryText,
+  notesText,
+  urlError,
+  titleError,
+  readDateError,
+  createSubmitInput,
+  createFavoriteInput,
+} = useArticleDetailForm(
+  toRef(props, 'article'),
+  toRef(props, 'tags'),
+  t,
+  (value) => emit('update:dirty', value),
 )
 
-watch(hasUnsavedChanges, (value) => {
-  emit('update:dirty', value)
-}, { immediate: true })
-
 function submit(): void {
-  submitted.value = true
-  if (!formValid.value || props.saving) return
-  emit('save', detailFormToArticleInput(form))
-}
-
-function startEditing(): void {
-  if (!props.article) return
-  Object.assign(form, articleToDetailForm(props.article))
-  isEditing.value = true
-  submitted.value = false
-}
-
-function cancelEditing(): void {
-  Object.assign(form, props.article ? articleToDetailForm(props.article) : createEmptyArticleDetailForm())
-  isEditing.value = false
-  submitted.value = false
+  const input = createSubmitInput(props.saving)
+  if (!input) return
+  emit('save', input)
 }
 
 function toggleFavorite(): void {
-  if (!props.article) return
-  if (isEditing.value) {
-    form.favorite = !form.favorite
-    return
-  }
-
-  emit('save', favoriteToggleInput(props.article))
+  const input = createFavoriteInput()
+  if (!input) return
+  emit('save', input)
 }
 
 function confirmDelete(): void {
@@ -210,10 +163,31 @@ function confirmDelete(): void {
           <template v-if="isEditing">
             <section class="detail-section detail-edit-notes-section">
               <div class="detail-section-header detail-notes-header">
-                <h3>{{ t('common.notes') }}</h3>
-                <span>{{ t('detail.notesHelp') }}</span>
+                <div class="detail-notes-heading-copy">
+                  <h3>{{ t('common.notes') }}</h3>
+                  <span>{{ t('detail.notesHelp') }}</span>
+                </div>
+                <VBtn
+                  class="detail-notes-preview-button"
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  type="button"
+                  @click="notesPreviewOpen = !notesPreviewOpen"
+                >
+                  <template #prepend>
+                    <Pencil v-if="notesPreviewOpen" :size="16" />
+                    <Eye v-else :size="16" />
+                  </template>
+                  {{ notesPreviewOpen ? t('detail.notesEdit') : t('detail.notesPreview') }}
+                </VBtn>
+              </div>
+              <div v-if="notesPreviewOpen" class="detail-notes-preview">
+                <MarkdownViewer v-if="form.notes.trim()" :source="form.notes" />
+                <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
               </div>
               <VTextarea
+                v-else
                 v-model="form.notes"
                 class="detail-edit-notes-field"
                 counter="2000"
@@ -307,64 +281,22 @@ function confirmDelete(): void {
           </template>
         </section>
 
-        <VCard class="detail-meta" variant="flat">
-          <VCardText class="detail-meta-content">
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">{{ t('common.status') }}</span>
-              <VSelect
-                v-model="form.status"
-                class="readstack-select detail-meta-control"
-                :items="statusOptions"
-                item-title="label"
-                item-value="value"
-                density="comfortable"
-                :disabled="!isEditing"
-                hide-details
-                variant="outlined"
-              />
-            </div>
-
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">{{ t('common.readDate') }}</span>
-              <DateField
-                v-model="form.readDate"
-                class="readstack-date-field detail-meta-control"
-                density="comfortable"
-                :disabled="!isEditing"
-                :clearable="isEditing"
-                :error-messages="submitted && readDateError ? [readDateError] : []"
-              />
-            </div>
-
-            <div class="detail-meta-block">
-              <span class="detail-meta-label">{{ t('common.rating') }}</span>
-              <div class="rating-field detail-rating-field">
-                <template v-if="isEditing">
-                  <StarRating v-model="form.rating" :size="20" />
-                </template>
-                <template v-else>
-                  <StarRating :model-value="article.rating" readonly :size="20" />
-                </template>
-              </div>
-            </div>
-          </VCardText>
-        </VCard>
+        <ArticleDetailMetaPanel
+          :form="form"
+          :article-rating="article.rating"
+          :is-editing="isEditing"
+          :submitted="submitted"
+          :status-options="statusOptions"
+          :read-date-error="readDateError"
+        />
       </div>
 
-      <VDialog v-model="deleteDialogOpen" max-width="420">
-        <VCard class="delete-confirm-dialog" :title="t('dialogs.deleteArticleTitle')">
-          <VCardText>
-            <p>
-              {{ t('dialogs.deleteArticleBody', { title: article.title }) }}
-            </p>
-          </VCardText>
-          <VCardActions>
-            <VSpacer />
-            <VBtn class="action-button action-button-secondary" variant="outlined" @click="deleteDialogOpen = false">{{ t('common.cancel') }}</VBtn>
-            <VBtn class="action-button action-button-danger" color="error" variant="flat" :loading="props.deleting" :disabled="props.deleting" @click="confirmDelete">{{ t('common.deleteAction') }}</VBtn>
-          </VCardActions>
-        </VCard>
-      </VDialog>
+      <ArticleDeleteDialog
+        v-model:open="deleteDialogOpen"
+        :title="article.title"
+        :deleting="props.deleting"
+        @confirm="confirmDelete"
+      />
     </VForm>
   </main>
 </template>

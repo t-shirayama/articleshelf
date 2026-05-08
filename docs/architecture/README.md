@@ -1,0 +1,34 @@
+# ArticleShelf Architecture
+
+ArticleShelf のアーキテクチャ全体像と、詳細文書への入口です。
+
+## システム構成
+
+- フロントエンド: Vue.js アプリ（Vue 3 + TypeScript + Pinia + Vuetify）
+- バックエンド: Spring Boot アプリ（Spring Web, Spring Data JPA）
+- データベース: PostgreSQL
+- 実行基盤: Docker / Docker Compose
+- 通信: REST API（JSON）
+
+## 詳細文書
+
+- [フロントエンド詳細](frontend.md): feature 構成、shared 層、UI / API adapter の責務
+- [バックエンド詳細](backend.md): DDD / クリーンアーキテクチャ、依存関係ルール、パッケージ構成
+- [データモデル](data-model.md): PostgreSQL の主要テーブルと関連
+- [API / クライアントフロー](api-flow.md): 認証、記事 / タグ API、OGP 画像取得の流れ
+- [セキュリティ境界](security.md): Markdown 表示、HTML sanitization、トークン境界。具体的な対策仕様は [../specification/security.md](../specification/security.md)
+- [実行環境](runtime.md): Docker Compose、開発環境、コンテナ方針
+
+## 層構造の基本方針
+
+- フロントエンドは `features/*` を機能単位の中心にし、横断部品は `shared` と `styles` に分ける
+- バックエンドは `domain` を中心に置き、`application`、`infrastructure`、`adapter`、`config` を外側の層として扱う
+- API 入出力は DTO / adapter で受け止め、ドメインモデルや永続化実装の詳細を直接露出しない
+- 永続化は PostgreSQL を正とし、記事 / タグ / ユーザー / refresh token を user scoped に扱う
+- Markdown はフロントエンドだけで HTML 化し、保存値は元のメモ本文を維持する
+
+## 依存関係チェック
+
+- `backend/src/test/java/com/articleshelf/architecture/CleanArchitectureDependencyTest.java` で、バックエンドのクリーンアーキテクチャ依存関係を検査する
+- GitHub Actions の `backend-check` job は `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest` を実行する
+- Maven を使う確認はローカル `mvn` ではなく Docker 経由で実行する

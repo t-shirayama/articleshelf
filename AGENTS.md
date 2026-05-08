@@ -1,6 +1,6 @@
-# ReadStack Agents
+# ArticleShelf Agents
 
-このドキュメントは、ReadStackプロジェクトで想定されるエージェントや役割を整理したものです。
+このドキュメントは、ArticleShelfプロジェクトで想定されるエージェントや役割を整理したものです。
 
 ## 目的
 
@@ -56,7 +56,7 @@
 
 ## Codex運用ルール
 
-この章は、Codex で ReadStack を開発・更新するときの共通ルールです。
+この章は、Codex で ArticleShelf を開発・更新するときの共通ルールです。
 既存の役割説明とは別に、実装・修正・レビュー時の判断基準として扱います。
 
 ### 1. 基本原則
@@ -71,20 +71,21 @@
 - コードを変更した場合は、その変更に影響するドキュメントも同じ作業内で更新する
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
 - 今後追加したい機能や構想段階のアイデアは、まず `docs/requirements/future-considerations.md` に整理する
-- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification.md` または `docs/specification/` 配下へ反映する
+- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
-  - 要件や目的の変更: `docs/requirements.md`
+  - 要件や目的の変更: `docs/requirements/README.md`
   - 構想段階の追加候補や将来案: `docs/requirements/future-considerations.md`
-  - 機能仕様や API 契約の変更: `docs/specification.md`
-  - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture.md`
-  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/design.md`
-  - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/project-status.md`
+  - 機能仕様や API 契約の変更: `docs/specification/README.md`
+  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security.md` を必ず更新し、必要に応じて `docs/specification/authentication.md`、`docs/architecture/security.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
+  - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
+  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md`
+  - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/status/project-status.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
 
 ### 3. 実装とドキュメントの差分ルール
 
 - 実装とドキュメントに差分を見つけた場合は、どちらを正とするかを確認する
-- その場で確認できない場合は、差分を放置せず、少なくとも `docs/project-status.md` などに現状との差分を明記する
+- その場で確認できない場合は、差分を放置せず、少なくとも `docs/status/project-status.md` などに現状との差分を明記する
 - 仕様書や設計書に未反映の実装を追加した場合は、後続タスク扱いにせず、可能な限り同一作業で同期する
 
 ### 4. テストと確認
@@ -94,6 +95,7 @@
 - 既存の UT / IT / E2E が対象機能やUIを検証している場合、コード修正に合わせてテストも同じ作業内で追従させる。UI部品の種類、アクセシブル名、文言、操作フロー、APIレスポンス、エラー文言を変えたときは、関連するセレクタ・期待値・ヘルパーが古い前提のまま残っていないか確認する
 - ただし、挙動変更を伴う修正では確認手順または確認結果を残す
 - コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI変更時は関連ドキュメント更新の注意喚起を行う
+- 画面表示、見た目、レイアウト、文言、操作フロー、スクリーンショット対象コンポーネントに影響するコード変更をした場合は、同じ作業内で `docs/designs/screenshots/` を現行実装に合わせて更新する
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
 - Spring Data JPA の `@Query`、JPQL、native SQL、Repository の検索条件、Flyway migration、DB 制約を変更した場合は、H2 だけでなく PostgreSQL 実体を使う Docker 経由テストを実行する。特に `LIKE`、`concat`、`coalesce`、nullable parameter、enum、UUID、日付、JOIN を含む条件は PostgreSQL との型推論差が出やすいため、`JpaArticleRepositoryPostgresIntegrationTest` などの persistence IT を追加または更新して確認する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
@@ -101,26 +103,30 @@
 
 ### 5. 変更種別ごとの追加ルール
 
-- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification.md` に反映する
-- データモデルや永続化方針を変更した場合は、`docs/architecture.md` と必要に応じて `docs/specification.md` を更新する
-- UI や操作フローを変更した場合は、`docs/design.md` を確認し、差分があるなら更新する
-- UI や見た目を修正する場合は、実装前に `docs/design.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
+- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification/README.md` に反映する
+- セキュリティ対策を追加・変更した場合は、`docs/specification/security.md` と関連するテスト観点を同じ作業内で更新する
+- データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書と、必要に応じて `docs/specification/README.md` を更新する
+- UI や操作フローを変更した場合は、`docs/designs/README.md` を確認し、差分があるなら更新する
+- UI や見た目を修正する場合は、実装前に `docs/designs/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
-- UI スクリーンショットや `docs/designs/` を更新する場合は、古い画像を `docs/designs/archive/<YYYY-MM-DD>/` に退避し、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
+- UI や操作フローに影響するコード変更では、`docs/designs/screenshots/` の該当スクリーンショットも同じ作業内で更新し、差分があるのに古い画像を残さない
+- UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
+- UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する。`127.0.0.1` と `localhost` を混在させない
+- UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認し、アプリ本体のコードを疑う前に起動経路とブラウザ依存を切り分ける
 - UI 文言を変更する場合は表記揺れを確認し、非破壊のモーダル終了は「閉じる」、削除確認など確認操作の中止は「キャンセル」と表記する
 - UI 表示言語は日本語 / English に対応し、表示文言を追加・変更する場合は `vue-i18n` の翻訳辞書へ反映する。未対応言語は英語へフォールバックする
 - Vuetify のUIロケールは現在の表示言語に追従し、日付表示は画面上では `ja-JP` / `en-US` に応じた表示、APIや永続化で扱う値は既存契約に合わせて `YYYY-MM-DD` を使う。日付ピッカーは各ロケールに追従し、日曜は赤系、土曜は青系で表示する
 - 新規作成・編集・絞り込みなど操作完了を伴うモーダルは、タイトルと主要アクションを同じヘッダー行に置き、本文末尾に同じアクションを重複配置しない
 - Markdown や `v-html` を扱う場合は raw HTML を無効化し、DOMPurify などでサニタイズし、リンク/画像の許可スキームとコード非実行の前提を崩さない
-- UI や見た目を修正する場合は、必要に応じて `.codex/skills/readstack-ui-polish/SKILL.md` を参照する
-- コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/readstack-change-sync/SKILL.md` を参照する
+- UI や見た目を修正する場合は、必要に応じて `.codex/skills/articleshelf-ui-polish/SKILL.md` を参照する
+- コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/articleshelf-change-sync/SKILL.md` を参照する
 - 新機能や大きな仕様変更では、実装前に影響範囲を確認し、必要な更新対象を整理してから着手する
 
 ### 6. project-status.md の扱い
 
-- 一時対応、妥協実装、既知の制約を入れた場合は、理由と残課題を `docs/project-status.md` に反映する
-- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/project-status.md` に追記候補として残す
-- `docs/project-status.md` は、実装済み機能の棚卸し、仕様との差分、残作業の記録先として扱う
+- 一時対応、妥協実装、既知の制約を入れた場合は、理由と残課題を `docs/status/project-status.md` に反映する
+- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/status/project-status.md` に追記候補として残す
+- `docs/status/project-status.md` は、実装済み機能の棚卸し、仕様との差分、残作業の記録先として扱う
 
 ### 7. README の扱い
 

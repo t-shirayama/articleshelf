@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { ApiRequestError } from "../../../shared/api/client";
+import AccountSettingsDialog from "../../auth/components/AccountSettingsDialog.vue";
 import { useAuthStore } from "../../auth/stores/auth";
 import ArticleDetail from "../components/ArticleDetail.vue";
 import ArticleFormModal from "../components/ArticleFormModal.vue";
@@ -13,46 +13,24 @@ import FilterDialog from "../components/FilterDialog.vue";
 import StatusUndoSnackbar from "../components/StatusUndoSnackbar.vue";
 import TagManagementView from "../components/TagManagementView.vue";
 import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
+import { useArticleActions } from "../composables/useArticleActions";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
+import { useArticleModalState } from "../composables/useArticleModalState";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
+import { useStatusUndo } from "../composables/useStatusUndo";
+import { useTagActions } from "../composables/useTagActions";
+import { useWorkspaceNavigation } from "../composables/useWorkspaceNavigation";
 import { useArticlesStore } from "../stores/articles";
-import type {
-  Article,
-  ArticleInput,
-  ArticleSort,
-  ArticleStatus,
-} from "../types";
-
-type PersistedArticleStatus = Exclude<ArticleStatus, "ALL">;
-type ViewMode = "list" | "calendar" | "detail" | "tags";
-
-interface StatusUndoState {
-  articleId: string;
-  status: PersistedArticleStatus;
-  readDate: string | null;
-}
+import type { ArticleSort, ArticleStatus } from "../types";
 
 const authStore = useAuthStore();
 const store = useArticlesStore();
 const { t } = useI18n();
-const modalOpen = ref(false);
 const filterDialogOpen = ref(false);
-const articleFormError = ref("");
+const accountDialogOpen = ref(false);
+const accountDialogError = ref("");
 const detailFormError = ref("");
-const duplicateArticleId = ref("");
 const searchDraft = ref("");
-const viewMode = ref<ViewMode>("list");
-const deleteCandidate = ref<Article | null>(null);
-const statusUndo = ref<StatusUndoState | null>(null);
-const statusSnackbarOpen = ref(false);
-const statusSnackbarMessage = ref("");
-const detailHasUnsavedChanges = ref(false);
-const unsavedChangesDialogOpen = ref(false);
-const pendingNavigation = ref<(() => void) | null>(null);
-const isCreatingArticle = ref(false);
-const isSavingDetail = ref(false);
-const isDeletingArticle = ref(false);
-const isSavingTag = ref(false);
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
@@ -62,7 +40,75 @@ const filters = computed(() => store.filters);
 const { activeFilterCount, activeFilterSummary, pageTitle } =
   useArticleFilterPresentation(filters);
 const { currentMotivation, rotateMotivation } = useMotivationRotation();
-const isListMode = computed(() => viewMode.value === "list");
+const {
+  viewMode,
+  detailHasUnsavedChanges,
+  unsavedChangesDialogOpen,
+  isListMode,
+  isCalendarActive,
+  isTagsActive,
+  requestNavigation,
+  navigateToList: navigateWorkspaceToList,
+  navigateToCalendar,
+  navigateToTags,
+  cancelPendingNavigation,
+  confirmPendingNavigation,
+  resetNavigation,
+} = useWorkspaceNavigation(rotateMotivation);
+const {
+  modalOpen,
+  articleFormError,
+  duplicateArticleId,
+  openArticleModal,
+  closeArticleModal: closeArticleModalState,
+  closeForDuplicateOpen,
+} = useArticleModalState();
+const {
+  deleteCandidate,
+  isCreatingArticle,
+  isSavingDetail,
+  isDeletingArticle,
+  createArticle,
+  saveArticle,
+  deleteArticle,
+  requestDeleteArticle,
+  confirmListDelete,
+  openArticle,
+  toggleFavorite,
+  openDuplicateArticle,
+} = useArticleActions({
+  store,
+  t,
+  viewMode,
+  detailHasUnsavedChanges,
+  articleFormError,
+  detailFormError,
+  duplicateArticleId,
+  modalOpen,
+  rotateMotivation,
+  navigateToList,
+  closeForDuplicateOpen,
+});
+const {
+  statusSnackbarOpen,
+  statusSnackbarMessage,
+  toggleArticleStatus,
+  undoArticleStatus,
+} = useStatusUndo(store, t);
+const {
+  isSavingTag,
+  renameTag,
+  addTag,
+  mergeTag,
+  deleteTag,
+  openTagArticles,
+} = useTagActions({
+  store,
+  t,
+  searchDraft,
+  navigateToList,
+  requestNavigation,
+});
 const isAllArticlesActive = computed(
   () =>
     isListMode.value &&
@@ -79,8 +125,6 @@ const isReadActive = computed(
 const isFavoriteActive = computed(
   () => isListMode.value && store.filters.favorite,
 );
-const isCalendarActive = computed(() => viewMode.value === "calendar");
-const isTagsActive = computed(() => viewMode.value === "tags");
 
 watch(searchDraft, (value) => {
   if (searchTimer) window.clearTimeout(searchTimer);
@@ -98,117 +142,47 @@ onBeforeUnmount(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
 });
 
-async function createArticle(article: ArticleInput): Promise<void> {
-  if (isCreatingArticle.value) return;
-  articleFormError.value = "";
-  duplicateArticleId.value = "";
-  isCreatingArticle.value = true;
-  try {
-    await store.createArticle(article);
-    rotateMotivation();
-    modalOpen.value = false;
-    viewMode.value = "list";
-  } catch (error: unknown) {
-    articleFormError.value =
-      error instanceof Error ? error.message : t("articles.saveError");
-    duplicateArticleId.value =
-      error instanceof ApiRequestError ? error.existingArticleId || "" : "";
-  } finally {
-    isCreatingArticle.value = false;
-  }
-}
-
-async function saveArticle(article: ArticleInput): Promise<void> {
-  if (isSavingDetail.value) return;
-  detailFormError.value = "";
-  isSavingDetail.value = true;
-  try {
-    await store.updateArticle(article);
-  } catch (error: unknown) {
-    detailFormError.value =
-      error instanceof Error ? error.message : t("articles.saveError");
-  } finally {
-    isSavingDetail.value = false;
-  }
-}
-
 async function logout(): Promise<void> {
   await authStore.logout();
-  store.resetState();
-  detailHasUnsavedChanges.value = false;
-  viewMode.value = "list";
+  resetUserScopedState();
 }
 
-async function deleteArticle(articleId: string): Promise<void> {
-  if (isDeletingArticle.value) return;
-  detailFormError.value = "";
-  isDeletingArticle.value = true;
+async function changePassword(input: { currentPassword: string; newPassword: string }): Promise<void> {
+  accountDialogError.value = "";
   try {
-    await store.deleteArticle(articleId);
-    detailHasUnsavedChanges.value = false;
-    navigateToList();
-  } catch (error: unknown) {
-    detailFormError.value =
-      error instanceof Error ? error.message : t("articles.deleteError");
-  } finally {
-    isDeletingArticle.value = false;
+    await authStore.changePassword(input);
+    resetUserScopedState();
+    accountDialogOpen.value = false;
+  } catch {
+    accountDialogError.value = authStore.error;
   }
 }
 
-function requestDeleteArticle(article: Article): void {
-  deleteCandidate.value = article;
+async function logoutAll(): Promise<void> {
+  accountDialogError.value = "";
+  try {
+    await authStore.logoutAll();
+    resetUserScopedState();
+    accountDialogOpen.value = false;
+  } catch {
+    accountDialogError.value = authStore.error;
+  }
 }
 
-async function confirmListDelete(): Promise<void> {
-  if (!deleteCandidate.value) return;
-  const articleId = deleteCandidate.value.id;
-  deleteCandidate.value = null;
-  await store.deleteArticle(articleId);
+async function deleteAccount(input: { currentPassword: string }): Promise<void> {
+  accountDialogError.value = "";
+  try {
+    await authStore.deleteAccount(input);
+    resetUserScopedState();
+    accountDialogOpen.value = false;
+  } catch {
+    accountDialogError.value = authStore.error;
+  }
 }
 
-async function openArticle(article: Article): Promise<void> {
-  detailFormError.value = "";
-  await store.selectArticle(article);
-  rotateMotivation();
-  viewMode.value = "detail";
-}
-
-async function toggleFavorite(article: Article): Promise<void> {
-  await store.toggleFavorite(article);
-}
-
-async function toggleArticleStatus(article: Article): Promise<void> {
-  const previousStatus = article.status;
-  const previousReadDate = article.readDate || null;
-  const nextStatus: PersistedArticleStatus =
-    article.status === "READ" ? "UNREAD" : "READ";
-  const nextReadDate = nextStatus === "READ" ? todayString() : null;
-  const updated = await store.updateArticleStatus(
-    article,
-    nextStatus,
-    nextReadDate,
-  );
-  if (!updated) return;
-
-  statusUndo.value = {
-    articleId: article.id,
-    status: previousStatus,
-    readDate: previousReadDate,
-  };
-  statusSnackbarMessage.value =
-    nextStatus === "READ" ? t("articles.statusReadDone") : t("articles.statusUnreadDone");
-  statusSnackbarOpen.value = true;
-}
-
-async function undoArticleStatus(): Promise<void> {
-  if (!statusUndo.value) return;
-  const undo = statusUndo.value;
-  const article = store.articles.find((item) => item.id === undo.articleId);
-  if (!article) return;
-
-  statusSnackbarOpen.value = false;
-  statusUndo.value = null;
-  await store.updateArticleStatus(article, undo.status, undo.readDate);
+function resetUserScopedState(): void {
+  store.resetState();
+  resetNavigation();
 }
 
 function showList(): void {
@@ -251,17 +225,8 @@ function setSort(sort: ArticleSort): void {
   store.setSort(sort);
 }
 
-function openArticleModal(): void {
-  articleFormError.value = "";
-  duplicateArticleId.value = "";
-  modalOpen.value = true;
-}
-
 function closeArticleModal(): void {
-  if (isCreatingArticle.value) return;
-  articleFormError.value = "";
-  duplicateArticleId.value = "";
-  modalOpen.value = false;
+  closeArticleModalState(isCreatingArticle.value);
 }
 
 async function loadInitialData(): Promise<void> {
@@ -270,68 +235,6 @@ async function loadInitialData(): Promise<void> {
 
 async function retryInitialLoad(): Promise<void> {
   await loadInitialData();
-}
-
-async function renameTag(id: string, name: string): Promise<void> {
-  if (isSavingTag.value) return;
-  isSavingTag.value = true;
-  store.error = "";
-  try {
-    await store.renameTag(id, name);
-  } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : t("tags.renameError");
-  } finally {
-    isSavingTag.value = false;
-  }
-}
-
-async function addTag(name: string): Promise<void> {
-  if (isSavingTag.value) return;
-  isSavingTag.value = true;
-  store.error = "";
-  try {
-    await store.createTag(name);
-  } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : t("tags.addError");
-  } finally {
-    isSavingTag.value = false;
-  }
-}
-
-async function mergeTag(sourceId: string, targetId: string): Promise<void> {
-  if (isSavingTag.value) return;
-  isSavingTag.value = true;
-  store.error = "";
-  try {
-    await store.mergeTag(sourceId, targetId);
-  } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : t("tags.mergeError");
-  } finally {
-    isSavingTag.value = false;
-  }
-}
-
-async function deleteTag(id: string): Promise<void> {
-  if (isSavingTag.value) return;
-  isSavingTag.value = true;
-  store.error = "";
-  try {
-    await store.deleteTag(id);
-  } catch (error: unknown) {
-    store.error = error instanceof Error ? error.message : t("tags.deleteError");
-  } finally {
-    isSavingTag.value = false;
-  }
-}
-
-function openTagArticles(tagName: string): void {
-  requestNavigation(() => {
-    navigateToList();
-    searchDraft.value = "";
-    store.setSearch("");
-    void store.setAllArticles();
-    store.setTags([tagName]);
-  });
 }
 
 function applyAdvancedFilters(filters: {
@@ -351,60 +254,9 @@ function applyAdvancedFilters(filters: {
   });
 }
 
-async function openDuplicateArticle(articleId: string): Promise<void> {
-  articleFormError.value = "";
-  duplicateArticleId.value = "";
-  modalOpen.value = false;
-  await store.selectArticleById(articleId);
-  rotateMotivation();
-  viewMode.value = "detail";
-}
-
-function todayString(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function requestNavigation(action: () => void): void {
-  if (viewMode.value === "detail" && detailHasUnsavedChanges.value) {
-    pendingNavigation.value = action;
-    unsavedChangesDialogOpen.value = true;
-    return;
-  }
-
-  action();
-}
-
 function navigateToList(): void {
-  if (viewMode.value !== "list") rotateMotivation();
   detailFormError.value = "";
-  viewMode.value = "list";
-}
-
-function navigateToCalendar(): void {
-  if (viewMode.value !== "calendar") rotateMotivation();
-  viewMode.value = "calendar";
-}
-
-function navigateToTags(): void {
-  if (viewMode.value !== "tags") rotateMotivation();
-  viewMode.value = "tags";
-}
-
-function cancelPendingNavigation(): void {
-  pendingNavigation.value = null;
-  unsavedChangesDialogOpen.value = false;
-}
-
-function confirmPendingNavigation(): void {
-  const action = pendingNavigation.value;
-  pendingNavigation.value = null;
-  unsavedChangesDialogOpen.value = false;
-  detailHasUnsavedChanges.value = false;
-  action?.();
+  navigateWorkspaceToList();
 }
 
 function handleBeforeUnload(event: BeforeUnloadEvent): void {
@@ -425,12 +277,13 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       :is-favorite-active="isFavoriteActive"
       :is-calendar-active="isCalendarActive"
       :is-tags-active="isTagsActive"
-      :user-name="authStore.user?.displayName || authStore.user?.email || ''"
+      :user-name="authStore.user?.displayName || authStore.user?.username || ''"
       @all-articles="setAllArticles"
       @status="setStatus"
       @favorite-only="setFavoriteOnly"
       @calendar="showCalendar"
       @tags="showTags"
+      @account="accountDialogOpen = true"
       @logout="logout"
     />
 
@@ -533,5 +386,15 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
     :open="unsavedChangesDialogOpen"
     @cancel="cancelPendingNavigation"
     @confirm="confirmPendingNavigation"
+  />
+
+  <AccountSettingsDialog
+    :open="accountDialogOpen"
+    :loading="authStore.loading"
+    :error="accountDialogError || authStore.error"
+    @close="accountDialogOpen = false"
+    @change-password="changePassword"
+    @logout-all="logoutAll"
+    @delete-account="deleteAccount"
   />
 </template>

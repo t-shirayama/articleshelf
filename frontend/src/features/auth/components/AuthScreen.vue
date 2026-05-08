@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { LogIn, UserPlus } from "lucide-vue-next";
+import { errorMessage } from "../../../shared/errors";
 import { useAuthStore } from "../stores/auth";
 
 type AuthMode = "login" | "register";
@@ -9,7 +10,7 @@ type AuthMode = "login" | "register";
 const authStore = useAuthStore();
 const { t } = useI18n();
 const mode = ref<AuthMode>("login");
-const email = ref("");
+const username = ref("");
 const password = ref("");
 const displayName = ref("");
 const localError = ref("");
@@ -18,12 +19,12 @@ const isRegister = computed(() => mode.value === "register");
 const title = computed(() => (isRegister.value ? t("auth.registerTitle") : t("auth.login")));
 const submitLabel = computed(() => (isRegister.value ? t("auth.submitRegister") : t("auth.login")));
 const submitted = ref(false);
-const emailError = computed(() => {
-  const value = email.value.trim();
-  if (!value) return t("auth.errors.emailRequired");
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+const usernameError = computed(() => {
+  const value = username.value.trim().toLowerCase();
+  if (!value) return t("auth.errors.usernameRequired");
+  return /^[a-z0-9._-]{3,32}$/.test(value)
     ? ""
-    : t("auth.errors.emailInvalid");
+    : t("auth.errors.usernameInvalid");
 });
 const displayNameError = computed(() => {
   if (!isRegister.value) return "";
@@ -37,7 +38,7 @@ const passwordError = computed(() => {
   return "";
 });
 const formValid = computed(
-  () => !emailError.value && !displayNameError.value && !passwordError.value,
+  () => !usernameError.value && !displayNameError.value && !passwordError.value,
 );
 
 async function submit(): Promise<void> {
@@ -47,16 +48,16 @@ async function submit(): Promise<void> {
   try {
     if (isRegister.value) {
       await authStore.register({
-        email: email.value,
+        username: username.value.trim().toLowerCase(),
         password: password.value,
         displayName: displayName.value,
       });
       return;
     }
-    await authStore.login({ email: email.value, password: password.value });
+    await authStore.login({ username: username.value.trim().toLowerCase(), password: password.value });
   } catch (error: unknown) {
     localError.value =
-      error instanceof Error ? error.message : t("auth.errors.authFailed");
+      errorMessage(error, t("auth.errors.authFailed"));
   }
 }
 
@@ -109,15 +110,15 @@ function handleModeUpdate(value: unknown): void {
 
       <form class="auth-form" @submit.prevent="submit">
         <div class="auth-field">
-          <label class="auth-field-label" for="auth-email">{{ t("auth.email") }}</label>
+          <label class="auth-field-label" for="auth-username">{{ t("auth.username") }}</label>
           <VTextField
-            id="auth-email"
-            v-model="email"
-            type="email"
+            id="auth-username"
+            v-model="username"
+            type="text"
             autocomplete="username"
-            placeholder="name@example.com"
+            :placeholder="t('auth.usernamePlaceholder')"
             required
-            :error-messages="submitted && emailError ? [emailError] : []"
+            :error-messages="submitted && usernameError ? [usernameError] : []"
           />
         </div>
         <div v-if="isRegister" class="auth-field">

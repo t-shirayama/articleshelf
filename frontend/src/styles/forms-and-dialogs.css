@@ -174,9 +174,9 @@
   padding: 0;
 }
 
-.readstack-date-field,
-.readstack-date-field .v-input__control,
-.readstack-date-field .v-field {
+.articleshelf-date-field,
+.articleshelf-date-field .v-input__control,
+.articleshelf-date-field .v-field {
   min-height: 64px;
 }
 
@@ -184,31 +184,31 @@
   min-width: 0;
 }
 
-.readstack-date-field .v-field {
+.articleshelf-date-field .v-field {
   align-items: center;
 }
 
-.readstack-date-field .v-field__field,
-.readstack-date-field .v-field__input {
+.articleshelf-date-field .v-field__field,
+.articleshelf-date-field .v-field__input {
   align-items: center;
 }
 
-.readstack-date-field .v-field__input {
+.articleshelf-date-field .v-field__input {
   min-height: 64px;
   padding-top: 0;
   padding-bottom: 0;
 }
 
-.readstack-date-field .v-field__append-inner {
+.articleshelf-date-field .v-field__append-inner {
   align-items: center;
   padding-inline-start: 6px;
 }
 
-.readstack-date-field input {
+.articleshelf-date-field input {
   cursor: pointer;
 }
 
-.readstack-date-field .v-field--disabled input {
+.articleshelf-date-field .v-field--disabled input {
   cursor: not-allowed;
 }
 
@@ -251,45 +251,45 @@
   box-shadow: 0 18px 42px rgba(27, 41, 39, 0.18);
 }
 
-.readstack-date-picker {
+.articleshelf-date-picker {
   border: 1px solid rgba(222, 217, 206, 0.78);
   border-radius: 10px;
   overflow: hidden;
 }
 
-.readstack-date-picker .v-date-picker-controls--variant-docked {
+.articleshelf-date-picker .v-date-picker-controls--variant-docked {
   gap: 8px;
 }
 
-.readstack-date-picker .v-date-picker-controls__year {
+.articleshelf-date-picker .v-date-picker-controls__year {
   order: 1;
 }
 
-.readstack-date-picker .v-spacer {
+.articleshelf-date-picker .v-spacer {
   order: 2;
 }
 
-.readstack-date-picker .v-date-picker-controls__month {
+.articleshelf-date-picker .v-date-picker-controls__month {
   order: 3;
 }
 
-.readstack-date-picker .v-date-picker-month__weekday:first-child {
+.articleshelf-date-picker .v-date-picker-month__weekday:first-child {
   color: #b33b2f;
   font-weight: 700;
 }
 
-.readstack-date-picker .v-date-picker-month__weekday:nth-child(7) {
+.articleshelf-date-picker .v-date-picker-month__weekday:nth-child(7) {
   color: #2467a6;
   font-weight: 700;
 }
 
-.readstack-date-picker
+.articleshelf-date-picker
   .v-date-picker-month__day--week-start:not(.v-date-picker-month__day--adjacent):not(.v-date-picker-month__day--selected)
   .v-btn {
   color: #b33b2f;
 }
 
-.readstack-date-picker
+.articleshelf-date-picker
   .v-date-picker-month__day--week-end:not(.v-date-picker-month__day--adjacent):not(.v-date-picker-month__day--selected)
   .v-btn {
   color: #2467a6;
@@ -571,4 +571,51 @@
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
+}
+
+.account-settings-dialog {
+  width: min(560px, 100%);
+}
+
+.account-settings-header {
+  padding-bottom: 8px;
+}
+
+.account-settings-body {
+  display: grid;
+  gap: 18px;
+  padding: 10px 24px 24px;
+}
+
+.account-settings-section {
+  display: grid;
+  gap: 12px;
+}
+
+.account-settings-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.account-settings-section-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text);
+}
+
+.account-settings-section-heading svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.account-settings-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.account-settings-danger .account-settings-section-heading svg {
+  color: var(--danger);
 }
