@@ -1,6 +1,7 @@
 package com.readstack.adapter.web;
 
 import com.readstack.application.auth.AuthException;
+import com.readstack.application.auth.AuthRateLimitExceededException;
 import com.readstack.domain.article.DuplicateArticleUrlException;
 import com.readstack.domain.article.DuplicateTagNameException;
 import com.readstack.domain.user.PasswordPolicyException;
@@ -72,6 +73,15 @@ class ApiExceptionHandlerTest {
         assertThat(invalidCredentials.messages()).containsExactly("Username or password is incorrect.");
         assertThat(invalidRefresh.messages()).containsExactly("Session is invalid. Please log in again.");
         assertThat(inactiveUser.messages()).containsExactly("Username or password is incorrect.");
+    }
+
+    @Test
+    void authRateLimitResponseUsesGenericMessage() {
+        ApiExceptionHandler.ErrorResponse response = handler.handleAuthRateLimit(
+                new AuthRateLimitExceededException("internal key should not leak")
+        );
+
+        assertThat(response.messages()).containsExactly("Too many authentication attempts. Please wait and try again.");
     }
 
     @Test

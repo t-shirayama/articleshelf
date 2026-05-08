@@ -46,7 +46,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "readstack.auth.csrf-enabled=false",
         "readstack.auth.initial-user-enabled=true",
         "readstack.auth.initial-username=owner-test",
-        "readstack.auth.initial-user-password=password123"
+        "readstack.auth.initial-user-password=password123",
+        "readstack.auth-rate-limit.enabled=false"
 })
 class AuthAndArticleIntegrationTest {
     @Autowired

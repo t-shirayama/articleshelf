@@ -132,6 +132,8 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-BE-010 | P1 | ProductionEnvironmentValidator | 本番 CSRF / cookie 設定 | prod で CSRF 無効や `SameSite=None; Secure=false` を拒否する |
 | UT-BE-011 | P1 | JwtTokenService | JWT 発行 / 検証 | HS256 token を発行し、改ざん、期限切れ、想定外 alg を拒否する |
 | UT-BE-012 | P0 | UsernamePolicy | username 正規化 / 形式 | 3〜32文字、許可文字、小文字正規化を検証する |
+| UT-BE-013 | P1 | AuthRateLimiter | 登録 / ログイン試行制限 | login は `IP + username`、register は IP 単位で超過時に拒否し、window 後に再許可する |
+| IT-BE-006 | P1 | Auth rate limit API | 429 応答 | `X-Forwarded-For` の IP を使い、register / login の超過時に統一 JSON エラーを返す |
 | UT-FE-001 | P0 | API adapter | Article response 変換 | UI が必要な型に変換される |
 | UT-FE-002 | P0 | store | お気に入り楽観更新成功 | 一覧全体 reload なしで状態維持 |
 | UT-FE-003 | P0 | store | お気に入り保存失敗 | 元状態へ戻しエラー表示 |

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.readstack.adapter.web.AuthController.CsrfValidationException;
 import com.readstack.application.auth.AccountNotFoundException;
 import com.readstack.application.auth.AuthException;
+import com.readstack.application.auth.AuthRateLimitExceededException;
 import com.readstack.application.auth.DuplicateUsernameException;
 import com.readstack.domain.article.ArticleNotFoundException;
 import com.readstack.domain.article.ArticleStatus;
@@ -95,6 +96,12 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleCsrf(RuntimeException exception) {
         return ErrorResponse.of(message("error.auth.csrf"));
+    }
+
+    @ExceptionHandler(AuthRateLimitExceededException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ErrorResponse handleAuthRateLimit(AuthRateLimitExceededException exception) {
+        return ErrorResponse.of(message("error.auth.rateLimited"));
     }
 
     @ExceptionHandler(DuplicateUsernameException.class)

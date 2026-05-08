@@ -3,6 +3,7 @@ package com.readstack.adapter.web;
 import com.readstack.application.auth.AuthResponse;
 import com.readstack.application.auth.AuthResult;
 import com.readstack.application.auth.AuthException;
+import com.readstack.application.auth.AuthRateLimiter;
 import com.readstack.application.auth.AuthSessionSettings;
 import com.readstack.application.auth.AuthService;
 import com.readstack.application.auth.CurrentUser;
@@ -37,10 +38,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final AuthSessionSettings settings;
+    private final AuthRateLimiter rateLimiter;
 
-    public AuthController(AuthService authService, AuthSessionSettings settings) {
+    public AuthController(AuthService authService, AuthSessionSettings settings, AuthRateLimiter rateLimiter) {
         this.authService = authService;
         this.settings = settings;
+        this.rateLimiter = rateLimiter;
     }
 
     @PostMapping("/register")
@@ -49,6 +52,7 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
+        rateLimiter.checkRegister(clientIp(servletRequest));
         AuthResult result = authService.register(
                 request.username(),
                 request.password(),
@@ -66,6 +70,7 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
+        rateLimiter.checkLogin(clientIp(servletRequest), request.username());
         AuthResult result = authService.login(
                 request.username(),
                 request.password(),
@@ -127,6 +132,14 @@ public class AuthController {
         if (csrfCookie == null || csrfCookie.isBlank() || !csrfCookie.equals(csrfHeader)) {
             throw new CsrfValidationException();
         }
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",", 2)[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 
     private void setSessionCookies(HttpServletResponse response, AuthResult result) {

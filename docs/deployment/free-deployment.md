@@ -192,6 +192,11 @@ management:
 | `READSTACK_INITIAL_USER_ENABLED` | `false` | 初期 ADMIN の自動作成。通常は `false`、検証環境で必要な場合のみ `true` |
 | `READSTACK_INITIAL_USERNAME` | `owner` | 初期 ADMIN を有効化した場合の username |
 | `READSTACK_INITIAL_USER_PASSWORD` | `********` | 初期 ADMIN を有効化した場合の password |
+| `READSTACK_AUTH_RATE_LIMIT_ENABLED` | `true` | 登録 / ログイン API の in-memory レート制限 |
+| `READSTACK_LOGIN_RATE_LIMIT_CAPACITY` | `5` | `IP + username` 単位のログイン許可回数 |
+| `READSTACK_LOGIN_RATE_LIMIT_WINDOW_SECONDS` | `60` | ログイン許可回数の window 秒 |
+| `READSTACK_REGISTER_RATE_LIMIT_CAPACITY` | `3` | IP 単位の登録許可回数 |
+| `READSTACK_REGISTER_RATE_LIMIT_WINDOW_SECONDS` | `600` | 登録許可回数の window 秒 |
 | `SPRING_PROFILES_ACTIVE` | `prod` | 本番 profile |
 
 秘密情報は Git にコミットしない。

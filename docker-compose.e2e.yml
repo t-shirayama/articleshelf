@@ -27,6 +27,7 @@ services:
       READSTACK_INITIAL_USER_ENABLED: "true"
       READSTACK_INITIAL_USERNAME: owner
       READSTACK_INITIAL_USER_PASSWORD: password123
+      READSTACK_AUTH_RATE_LIMIT_ENABLED: "false"
     ports:
       - "8080:8080"
     depends_on:
