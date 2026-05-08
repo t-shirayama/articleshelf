@@ -1,6 +1,6 @@
 # 無料枠を中心にした公開・CI/CD構成案
 
-最終更新: 2026-05-07
+最終更新: 2026-05-08
 
 ## 1. 目的
 
@@ -185,10 +185,28 @@ management:
 | `SPRING_DATASOURCE_PASSWORD` | `********` | DB パスワード |
 | `FRONTEND_ORIGIN` | `https://readstack.pages.dev` | CORS 許可 origin |
 | `JWT_ACCESS_SECRET` | `********` | 認証追加後の JWT 署名鍵 |
+| `AUTH_REFRESH_TOKEN_HASH_SECRET` | `********` | refresh token HMAC 署名用 secret |
+| `AUTH_CSRF_ENABLED` | `true` | 本番必須。`prod` profile では `false` を指定すると起動エラー |
+| `AUTH_COOKIE_SECURE` | `true` | HTTPS cookie 必須。`SameSite=None` の場合も必須 |
+| `AUTH_COOKIE_SAME_SITE` | `None` | frontend と API が別 site の場合。same-site 配信なら `Lax` も検討可 |
 | `SPRING_PROFILES_ACTIVE` | `prod` | 本番 profile |
 
 秘密情報は Git にコミットしない。
 GitHub Actions Secrets、Render Environment Variables、各 hosting provider の環境変数に登録する。
+
+本番必須の認証設定:
+
+```text
+AUTH_CSRF_ENABLED=true
+AUTH_COOKIE_SECURE=true
+AUTH_COOKIE_SAME_SITE=None
+FRONTEND_ORIGIN=https://your-frontend.example.com
+JWT_ACCESS_SECRET=<long-random-secret>
+AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
+```
+
+`AUTH_COOKIE_SAME_SITE=None` は frontend と API が別 site の場合に使う。
+同一 site 配信に寄せる場合は `Lax` も選べるが、`prod` profile では refresh / logout の cookie 認証を守るため CSRF は常に有効にする。
 
 ## 8. GitHub Actions CI/CD
 
@@ -291,6 +309,10 @@ Environment variable:
 
 - [ ] DB 接続情報を環境変数に登録した
 - [ ] `FRONTEND_ORIGIN` を公開 URL に設定した
+- [ ] `AUTH_CSRF_ENABLED=true` を設定した
+- [ ] `AUTH_COOKIE_SECURE=true` を設定した
+- [ ] frontend と API が別 site の場合は `AUTH_COOKIE_SAME_SITE=None` を設定した
+- [ ] `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` に十分長いランダム値を設定した
 - [x] health check endpoint を用意した
 - [ ] Render health check path を設定した
 - [ ] 無料枠の期限、容量、休眠条件を確認した

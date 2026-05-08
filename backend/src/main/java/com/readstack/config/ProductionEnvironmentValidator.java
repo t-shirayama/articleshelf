@@ -31,6 +31,9 @@ public class ProductionEnvironmentValidator {
         if ("None".equalsIgnoreCase(authProperties.cookieSameSite()) && !authProperties.csrfEnabled()) {
             throw new IllegalStateException("AUTH_COOKIE_SAME_SITE=None の場合は AUTH_CSRF_ENABLED=true が必要です");
         }
+        if (isProd(environment) && !authProperties.csrfEnabled()) {
+            throw new IllegalStateException("production profile では AUTH_CSRF_ENABLED=true が必要です");
+        }
         if (isProd(environment) && (frontendOrigin == null || frontendOrigin.isBlank() || frontendOrigin.contains("localhost"))) {
             throw new IllegalStateException("production profile では FRONTEND_ORIGIN に公開フロントエンドURLを設定してください");
         }
