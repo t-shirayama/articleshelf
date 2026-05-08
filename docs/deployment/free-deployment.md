@@ -129,7 +129,7 @@ https://readstack-api.onrender.com/actuator/health
 | P0 | CORS を本番 frontend origin に限定 | 公開環境で安全に API 通信する |
 | P0 | DB SSL 接続の確認 | managed PostgreSQL が TLS を要求する場合に必要 |
 | P0 | `ddl-auto=update` から migration へ移行検討 | 本番 DB の予期せぬ schema 変更を避ける |
-| P1 | OGP 取得の timeout / User-Agent / SSRF 対策 | 公開 API から外部 URL を取得するため |
+| 完了 | OGP 取得の timeout / User-Agent / SSRF 対策 | 公開 API から外部 URL を取得するため |
 | P1 | 本番 profile の logging 調整 | SQL や secret を出しすぎない |
 | P1 | graceful shutdown | deploy 時の中断を減らす |
 
@@ -184,8 +184,8 @@ management:
 | `SPRING_DATASOURCE_USERNAME` | `readstack` | DB ユーザー |
 | `SPRING_DATASOURCE_PASSWORD` | `********` | DB パスワード |
 | `FRONTEND_ORIGIN` | `https://readstack.pages.dev` | CORS 許可 origin |
-| `JWT_ACCESS_SECRET` | `********` | 認証追加後の JWT 署名鍵 |
-| `AUTH_REFRESH_TOKEN_HASH_SECRET` | `********` | refresh token HMAC 署名用 secret |
+| `JWT_ACCESS_SECRET` | `********` | 認証追加後の JWT 署名鍵。本番必須、32文字以上、dev値不可 |
+| `AUTH_REFRESH_TOKEN_HASH_SECRET` | `********` | refresh token HMAC 署名用 secret。本番必須、32文字以上、dev値不可 |
 | `AUTH_CSRF_ENABLED` | `true` | 本番必須。`prod` profile では `false` を指定すると起動エラー |
 | `AUTH_COOKIE_SECURE` | `true` | HTTPS cookie 必須。`SameSite=None` の場合も必須 |
 | `AUTH_COOKIE_SAME_SITE` | `None` | frontend と API が別 site の場合。same-site 配信なら `Lax` も検討可 |
@@ -201,6 +201,7 @@ management:
 
 秘密情報は Git にコミットしない。
 GitHub Actions Secrets、Render Environment Variables、各 hosting provider の環境変数に登録する。
+`prod` profile では secret が未設定、短すぎる、`dev-` 始まり、`change-me` を含む場合は起動エラーになる。
 
 本番必須の認証設定:
 

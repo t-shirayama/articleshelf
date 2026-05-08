@@ -10,9 +10,11 @@ ReadStack の品質属性と運用上守るべき仕様を定義する。
 - access token は短命 JWT とし、発行 / 検証は Spring Security JOSE に委譲する
 - refresh token は HttpOnly cookie として扱い、DB には HMAC-SHA256 hash のみ保存する
 - production profile では `AUTH_CSRF_ENABLED=true` を必須にする
+- production profile では `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` を必須にし、32文字未満、`dev-` 始まり、`change-me` を含む値は起動時に拒否する
 - frontend と API が別 site の公開構成では `SameSite=None; Secure` と CSRF token を必須にする
 - `FRONTEND_ORIGIN` は明示的な origin を指定し、CORS で `*` は使わない
 - Markdown 表示は raw HTML を無効化し、DOMPurify でサニタイズする
+- OGP 取得は SSRF 対策として `http` / `https` のみ許可し、DNS 解決後に loopback、private、link-local、multicast、metadata endpoint、IPv6 unique local を拒否する。redirect 先も再検証し、redirect は最大3回、本文は最大1MB、`Content-Type` は `text/html` のみ処理する
 - 詳細な認証、Cookie、CSRF、CORS 仕様は [authentication.md](authentication.md) に従う
 
 ## 2. 入力検証とエラー応答

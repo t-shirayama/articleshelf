@@ -37,9 +37,23 @@ public class ProductionEnvironmentValidator {
         if (isProd(environment) && (frontendOrigin == null || frontendOrigin.isBlank() || frontendOrigin.contains("localhost"))) {
             throw new IllegalStateException("production profile では FRONTEND_ORIGIN に公開フロントエンドURLを設定してください");
         }
+        if (isProd(environment)) {
+            validateProductionSecret("JWT_ACCESS_SECRET", authProperties.accessTokenSecret());
+            validateProductionSecret("AUTH_REFRESH_TOKEN_HASH_SECRET", authProperties.refreshTokenHashSecret());
+        }
     }
 
     private boolean isProd(Environment environment) {
         return Arrays.stream(environment.getActiveProfiles()).anyMatch("prod"::equals);
+    }
+
+    private void validateProductionSecret(String name, String value) {
+        if (value == null || value.isBlank() || value.length() < 32) {
+            throw new IllegalStateException("production profile では " + name + " に32文字以上のsecretを設定してください");
+        }
+        String normalized = value.toLowerCase();
+        if (normalized.startsWith("dev-") || normalized.contains("change-me")) {
+            throw new IllegalStateException("production profile では " + name + " にdev用secretは使用できません");
+        }
     }
 }

@@ -7,6 +7,8 @@ spring:
 readstack:
   frontend-origin: ${FRONTEND_ORIGIN}
   auth:
+    access-token-secret: ${JWT_ACCESS_SECRET}
+    refresh-token-hash-secret: ${AUTH_REFRESH_TOKEN_HASH_SECRET}
     cookie-secure: ${AUTH_COOKIE_SECURE:true}
     cookie-same-site: ${AUTH_COOKIE_SAME_SITE:None}
     csrf-enabled: ${AUTH_CSRF_ENABLED:true}

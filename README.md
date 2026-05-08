@@ -156,7 +156,7 @@ npm run seed:sample
 ## テスト
 
 - バックエンド UT / IT: `docker compose run --rm backend mvn test`
-- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
+- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - バックエンド静的解析: `docker compose run --rm backend mvn clean compile spotbugs:check`
 - フロントエンド UT: `cd frontend && npm run test:unit`
 - フロントエンド UT coverage: `cd frontend && npm run test:unit:coverage`

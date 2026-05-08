@@ -47,7 +47,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - バックエンド: Java 21 + Spring Boot + Spring Data JPA
 - DB: PostgreSQL
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
-- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,ApiExceptionHandlerTest,JwtTokenServiceTest,ProductionEnvironmentValidatorTest'`
+- バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - 既存 CI: `.github/workflows/ci.yml` でフロントエンド UT / build、バックエンド UT / IT、E2E を実行する
 
 ## 3. UT: Unit Test
@@ -133,6 +133,7 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 | UT-BE-011 | P1 | JwtTokenService | JWT 発行 / 検証 | HS256 token を発行し、改ざん、期限切れ、想定外 alg を拒否する |
 | UT-BE-012 | P0 | UsernamePolicy | username 正規化 / 形式 | 3〜32文字、許可文字、小文字正規化を検証する |
 | UT-BE-013 | P1 | AuthRateLimiter | 登録 / ログイン試行制限 | login は `IP + username`、register は IP 単位で超過時に拒否し、window 後に再許可する |
+| UT-BE-014 | P0 | OgpRequestGuard | SSRF 対策 | scheme、localhost、loopback、private、link-local、multicast、metadata endpoint、IPv6 unique local を拒否する |
 | IT-BE-006 | P1 | Auth rate limit API | 429 応答 | `X-Forwarded-For` の IP を使い、register / login の超過時に統一 JSON エラーを返す |
 | IT-API-010 | P1 | ArticleRequest validation | API 境界の入力制約 | `rating` 範囲外や長すぎる `title` を 400 で拒否する |
 | UT-FE-001 | P0 | API adapter | Article response 変換 | UI が必要な型に変換される |
