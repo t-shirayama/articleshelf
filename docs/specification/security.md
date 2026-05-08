@@ -8,7 +8,7 @@
 ReadStack では、非機能仕様のうち具体的なセキュリティ対策をこの文書に切り出し、認証、入力、外部通信、表示、運用、テストの横断仕様として管理する。
 
 セキュリティ対策を追加または更新した場合は、この文書を必ず更新する。
-必要に応じて [authentication.md](authentication.md)、[non-functional.md](non-functional.md)、[../architecture/security.md](../architecture/security.md)、[../deployment/free-deployment.md](../deployment/free-deployment.md)、[../testing/README.md](../testing/README.md) も同期する。
+必要に応じて [authentication.md](authentication.md)、[non-functional.md](non-functional.md)、[../architecture/security.md](../architecture/security.md)、[../deployment/README.md](../deployment/README.md)、[../testing/README.md](../testing/README.md) も同期する。
 
 ## 2. 認証とトークン
 

@@ -56,4 +56,4 @@
 
 - 実装済み機能、既知差分、技術的注意点は `docs/status/project-status.md` を正とする
 - 構想段階でまだ優先度を上げない案は `docs/requirements/future-considerations.md` に置き、具体化したらこの backlog へ移す
-- UI の具体タスクは `docs/designs/mobile-responsive.md`、公開構成の具体タスクは `docs/deployment/free-deployment.md` も併せて参照する
+- UI の具体タスクは `docs/designs/mobile-responsive.md`、公開構成の具体タスクは `docs/deployment/README.md` も併せて参照する
