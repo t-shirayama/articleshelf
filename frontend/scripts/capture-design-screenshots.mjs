@@ -73,13 +73,31 @@ async function createCaptureData() {
     },
   });
 
-  if (!loginResponse.ok()) {
+  let auth;
+  if (loginResponse.ok()) {
+    auth = await loginResponse.json();
+  } else if (loginResponse.status() === 401) {
+    const registerResponse = await api.post("/api/auth/register", {
+      data: {
+        username: captureUsername,
+        password: capturePassword,
+        displayName: "Capture User",
+      },
+    });
+
+    if (!registerResponse.ok()) {
+      throw new Error(
+        `キャプチャ用ユーザーの作成に失敗しました: ${registerResponse.status()} ${await registerResponse.text()}`,
+      );
+    }
+
+    auth = await registerResponse.json();
+  } else {
     throw new Error(
       `キャプチャ用ログインに失敗しました: ${loginResponse.status()} ${await loginResponse.text()}`,
     );
   }
 
-  const auth = await loginResponse.json();
   const accessToken = auth.accessToken;
   const authHeaders = { Authorization: `Bearer ${accessToken}` };
 
@@ -301,6 +319,13 @@ async function main() {
       await captureAccountSettingsDialog(page);
       await context.close();
       console.log(`Captured account settings screenshot in ${outputDir}`);
+      return;
+    }
+
+    if (captureTarget === "add-article-modal") {
+      await captureAddModal(page);
+      await context.close();
+      console.log(`Captured add article modal screenshot in ${outputDir}`);
       return;
     }
 

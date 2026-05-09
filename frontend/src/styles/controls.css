@@ -28,20 +28,26 @@
 .articleshelf-select .v-field__append-inner {
   position: relative;
   display: grid;
+  align-self: stretch;
   width: 34px;
   min-width: 34px;
+  min-height: 100%;
   place-items: center;
-  padding-inline-start: 6px;
+  padding: 0;
   color: var(--accent-strong);
 }
 
 .articleshelf-select .v-field__append-inner::after {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 8px;
   height: 8px;
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
   content: "";
-  transform: translateY(-2px) rotate(45deg);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .articleshelf-select .v-field__append-inner .v-select__menu-icon {
