@@ -1,14 +1,14 @@
 # 非機能仕様
 
 ArticleShelf の品質属性と運用上守るべき仕様を定義する。
-採用技術、推奨バージョン、開発環境は [../architecture/technology.md](../architecture/technology.md) に分ける。
+採用技術、推奨バージョン、開発環境は [../../architecture/technology.md](../../architecture/technology.md) に分ける。
 
 ## 1. セキュリティ
 
 - セキュリティは ArticleShelf の非機能要件として扱う
-- セキュリティ要件は [../requirements/non-functional/security.md](../requirements/non-functional/security.md) に従う
-- 認証、認可、CSRF、CORS、secret、rate limit、SSRF、Markdown sanitization などの具体的な実装仕様は [security.md](security.md) に従う
-- 詳細な認証、Cookie、CSRF、CORS 仕様は [authentication.md](authentication.md) に従う
+- セキュリティ要件は [../../requirements/non-functional/security.md](../../requirements/non-functional/security.md) に従う
+- 認証、認可、CSRF、CORS、secret、rate limit、SSRF、Markdown sanitization などの具体的な実装仕様は [../security/README.md](../security/README.md) に従う
+- 詳細な認証、Cookie、CSRF、CORS 仕様は [../auth/README.md](../auth/README.md) に従う
 
 ## 2. 入力検証とエラー応答
 
@@ -48,4 +48,4 @@ ArticleShelf の品質属性と運用上守るべき仕様を定義する。
 - backend unit と frontend unit は coverage を確認する
 - backend coverage は JaCoCo CSV を使い、domain / application 層の line coverage が 80% 未満なら CI を失敗させる。長期目標は 100% とし、未カバー分は機能追加や修正時に段階的に埋める
 - Spring Data JPA の `@Query`、JPQL、native SQL、DB 制約を変更した場合は PostgreSQL 実体を使う integration test で確認する
-- テスト範囲、具体的なコマンド、CI の job 構成は [docs/testing/README.md](../testing/README.md) に従う
+- テスト範囲、具体的なコマンド、CI の job 構成は [テスト戦略](../../testing/README.md) に従う

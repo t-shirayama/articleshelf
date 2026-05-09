@@ -13,8 +13,8 @@ Use this skill to avoid implementation/documentation drift in ArticleShelf.
 2. Check `AGENTS.md` for project rules before editing.
 3. Update only directly affected documentation:
    - Requirements or purpose: `docs/requirements/README.md` or `docs/requirements/*`
-   - Feature or API behavior: `docs/specification/README.md` or `docs/specification/*`
-   - UI behavior or visual rules: `docs/designs/README.md` and usually `docs/specification/ui.md`
+   - Feature or API behavior: `docs/specification/features/README.md`, `docs/specification/api/README.md`, or `docs/specification/auth/account-api.md`
+   - UI behavior or visual rules: `docs/designs/README.md` and usually `docs/specification/ui/README.md`
    - Architecture, persistence, or responsibility boundaries: `docs/architecture/README.md` or `docs/architecture/*`
    - Future tasks, known gaps, temporary workarounds, or technical debt: `docs/requirements/backlog.md`
    - Setup, scripts, or onboarding: `README.md`

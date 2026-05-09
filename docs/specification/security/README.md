@@ -4,11 +4,11 @@
 
 ## 1. 位置づけ
 
-セキュリティ要件は [../requirements/non-functional/security.md](../requirements/non-functional/security.md) を正とする。
+セキュリティ要件は [../../requirements/non-functional/security.md](../../requirements/non-functional/security.md) を正とする。
 この文書では、現在の実装における具体的なセキュリティ仕様を、認証、入力、外部通信、表示、運用、テストの横断仕様として管理する。
 
 セキュリティ対策を追加または更新した場合は、この文書を必ず更新する。
-必要に応じて [authentication.md](authentication.md)、[non-functional.md](non-functional.md)、[../requirements/non-functional/security.md](../requirements/non-functional/security.md)、[../deployment/README.md](../deployment/README.md)、[../testing/README.md](../testing/README.md) も同期する。
+必要に応じて [認証仕様](../auth/README.md)、[品質仕様](../quality/README.md)、[../../requirements/non-functional/security.md](../../requirements/non-functional/security.md)、[../../deployment/README.md](../../deployment/README.md)、[../../testing/README.md](../../testing/README.md) も同期する。
 
 ## 2. 認証とトークン
 
@@ -19,7 +19,7 @@
 - refresh token は HttpOnly cookie として扱い、DB には `HMAC-SHA256(AUTH_REFRESH_TOKEN_HASH_SECRET, raw_refresh_token)` の hash のみ保存する
 - refresh token は rotation し、失効済み token の再利用時は同一 family の未失効 token をすべて失効する
 - protected API では JWT の署名と期限だけでなく、ユーザーが `ACTIVE` であり token が `token_valid_after` より古くないことも確認する
-- 認証、Cookie、CSRF、CORS の詳細仕様は [authentication.md](authentication.md) に従う
+- 認証、Cookie、CSRF、CORS の詳細仕様は [認証仕様](../auth/README.md) と [Token / Cookie / CSRF](../auth/tokens.md) に従う
 
 ## 3. 本番起動ガード
 

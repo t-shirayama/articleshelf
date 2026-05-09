@@ -1,7 +1,7 @@
 # セキュリティの非機能要件
 
 ArticleShelf はユーザーごとの記事、タグ、メモ、既読履歴を扱うため、認証、認可、入力検証、外部通信、表示安全性を非機能要件として扱います。
-現在の実装仕様は [../../specification/security.md](../../specification/security.md) を正とします。
+現在の実装仕様は [../../specification/security/README.md](../../specification/security/README.md) を正とします。
 
 ## 要件
 

@@ -2,14 +2,15 @@
 
 ## 概要
 
-ArticleShelfの機能仕様、データモデル、API仕様、UI仕様、非機能仕様をまとめる入口文書です。詳細は肥大化を防ぐため、`docs/specification/` 配下の項目別ファイルに分割します。
+ArticleShelf の現在の実装仕様をまとめる入口文書です。
+詳細は肥大化を防ぐため、`docs/specification/` 配下の責務別フォルダに分割します。
 
 ## 目次
 
-- [機能仕様](features.md): 記事一覧、記事詳細、カレンダー、記事追加、タグ管理、検索・フィルター
-- [データモデル](data-model.md): User、RefreshToken、Article、Tag、ArticleTag
-- [API仕様](api.md): 記事API、タグAPI
-- [ユーザー登録・ログイン・JWT認証設計](authentication.md): 認証方式、トークン、ユーザースコープ、API、移行方針
-- [セキュリティ仕様](security.md): 認証・認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization
-- [UI仕様](ui.md): 共通、記事一覧画面、記事詳細画面、追加モーダル
-- [非機能仕様](non-functional.md): セキュリティの位置づけ、入力検証、信頼性、性能、保守性、テストとCI
+- [機能仕様](features/README.md): 記事、カレンダー、タグ、検索・フィルター
+- [API仕様](api/README.md): API 共通方針、記事 API、タグ API、エラーレスポンス
+- [認証仕様](auth/README.md): 認証方式、トークン、アカウント API、フロントエンド認証状態
+- [データモデル](data/README.md): User、RefreshToken、Article、Tag、ArticleTag
+- [UI仕様](ui/README.md): 画面挙動、レスポンシブ、表示言語、エラー表示
+- [セキュリティ仕様](security/README.md): 認証・認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization
+- [品質仕様](quality/README.md): 入力検証、信頼性、性能、保守性、テストと CI
