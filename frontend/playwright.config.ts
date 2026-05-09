@@ -19,7 +19,13 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
+      testIgnore: /mobile-responsive\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] }
+    },
+    {
+      name: 'mobile',
+      testMatch: /mobile-responsive\.spec\.ts/,
+      use: { ...devices['Pixel 5'] }
     }
   ],
   webServer: useExistingServerOnly

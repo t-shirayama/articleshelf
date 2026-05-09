@@ -7,17 +7,57 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDir = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(frontendDir, "..");
-const outputDir = path.join(repoRoot, "docs", "designs", "screenshots");
+const commandName =
+  process.env.ARTICLESHELF_SCREENSHOT_COMMAND || "capture-designs";
+const officialOutputRoot = path.join(
+  repoRoot,
+  "docs",
+  "designs",
+  "screenshots",
+  "capture-designs",
+);
 const baseUrl =
   process.env.ARTICLESHELF_SCREENSHOT_BASE_URL || "http://localhost:5173";
 const apiBaseUrl =
   process.env.ARTICLESHELF_SCREENSHOT_API_BASE_URL ||
   process.env.E2E_API_BASE_URL ||
-  "http://127.0.0.1:8080";
-const desktopViewport = { width: 1920, height: 1080 };
-const mobileViewport = { width: 430, height: 932 };
+  "http://localhost:8080";
+const viewportPresets = {
+  desktop: { width: 1920, height: 1080 },
+  "desktop-xl": { width: 1920, height: 1080 },
+  macbook: { width: 1440, height: 900 },
+  laptop: { width: 1366, height: 768 },
+  tablet: { width: 820, height: 1180 },
+  mobile: { width: 430, height: 932 },
+  "mobile-md": { width: 390, height: 844 },
+  "mobile-sm": { width: 375, height: 667 },
+};
+const defaultDesktopViewport = viewportPresets.desktop;
+const defaultMobileViewport = viewportPresets.mobile;
+const captureViewportName = process.env.ARTICLESHELF_SCREENSHOT_VIEWPORT || "";
+const requestedViewport = captureViewportName
+  ? viewportPresets[captureViewportName]
+  : undefined;
+const isResponsiveCapture = Boolean(captureViewportName);
+if (captureViewportName && !requestedViewport) {
+  throw new Error(
+    `Unknown ARTICLESHELF_SCREENSHOT_VIEWPORT "${captureViewportName}". Available presets: ${Object.keys(viewportPresets).join(", ")}`,
+  );
+}
+const outputDir =
+  process.env.ARTICLESHELF_SCREENSHOT_OUTPUT_DIR ||
+  (isResponsiveCapture
+    ? path.join(
+        frontendDir,
+        "test-results",
+        "responsive-screenshots",
+        commandName,
+        captureViewportName,
+      )
+    : officialOutputRoot);
 const captureId = Date.now().toString(36);
-const captureTarget = process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all";
+const captureTarget =
+  process.env.ARTICLESHELF_SCREENSHOT_TARGET || process.argv[2] || "all";
 const captureUsername =
   process.env.ARTICLESHELF_CAPTURE_USERNAME || "owner";
 const capturePassword =
@@ -134,7 +174,7 @@ async function createContext(browser, storageState) {
     locale: "ja-JP",
     reducedMotion: "reduce",
     storageState,
-    viewport: desktopViewport,
+    viewport: requestedViewport || defaultDesktopViewport,
   });
 
   await context.addInitScript(() => {
@@ -155,7 +195,7 @@ async function loginCaptureUser(page, username) {
 }
 
 async function openArticleList(page) {
-  await page.setViewportSize(desktopViewport);
+  await page.setViewportSize(requestedViewport || defaultDesktopViewport);
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForSelector(".article-card", { timeout: 30000 });
@@ -163,9 +203,17 @@ async function openArticleList(page) {
 }
 
 async function saveScreenshot(page, filename, options = {}) {
+  const outputFilename = isResponsiveCapture
+    ? `${captureViewportName}_${filename}`
+    : filename;
+  const viewport = page.viewportSize() || defaultDesktopViewport;
+  const screenshotDir = isResponsiveCapture
+    ? outputDir
+    : path.join(outputDir, `${viewport.width}x${viewport.height}`);
+  await mkdir(screenshotDir, { recursive: true });
   await page.screenshot({
     animations: "disabled",
-    path: path.join(outputDir, filename),
+    path: path.join(screenshotDir, outputFilename),
     ...options,
   });
 }
@@ -294,11 +342,211 @@ async function captureAccountSettingsDialog(page) {
 }
 
 async function captureMobileList(page) {
-  await page.setViewportSize(mobileViewport);
+  await page.setViewportSize(requestedViewport || defaultMobileViewport);
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForTimeout(700);
-  await saveScreenshot(page, "mobile_article_list.png", { fullPage: true });
+  await saveScreenshot(page, "mobile_article_list.png");
+}
+
+async function openMobileArticleList(page) {
+  await page.setViewportSize(requestedViewport || defaultMobileViewport);
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".article-list", { timeout: 30000 });
+  await page.waitForSelector(".mobile-app-header", { timeout: 30000 });
+  await page.waitForTimeout(700);
+}
+
+async function captureMobileDrawer(page) {
+  await openMobileArticleList(page);
+  await page.locator(".mobile-menu-button").click();
+  await page.waitForSelector(".mobile-navigation-drawer", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_drawer.png");
+}
+
+async function captureMobileAddModal(page) {
+  await openMobileArticleList(page);
+  await page.locator(".mobile-bottom-nav").getByRole("button", { name: "追加" }).click();
+  await page.waitForSelector(".article-modal", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_add_article_modal.png");
+}
+
+async function captureMobileDetailView(page) {
+  await openMobileArticleList(page);
+  await page.locator(".article-card").first().click();
+  await page.waitForSelector(".detail-page", { timeout: 30000 });
+  await page.waitForTimeout(700);
+  await saveScreenshot(page, "mobile_detail_view.png", { fullPage: true });
+}
+
+async function captureMobileDetailEdit(page) {
+  await openMobileArticleList(page);
+  await page.locator(".article-card").first().click();
+  await page.waitForSelector(".detail-page", { timeout: 30000 });
+  await page.getByRole("button", { name: "編集", exact: true }).click();
+  await page.waitForSelector(".detail-page.is-editing", { timeout: 30000 });
+  await page.waitForTimeout(700);
+  await saveScreenshot(page, "mobile_detail_edit.png", { fullPage: true });
+}
+
+async function captureMobileFilterDialog(page) {
+  await openMobileArticleList(page);
+  await page.getByRole("button", { name: "フィルタ" }).click();
+  await page.waitForSelector(".filter-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_filter_dialog.png");
+}
+
+async function captureMobileCalendarDaySheet(page) {
+  await openMobileArticleList(page);
+  await page.locator(".mobile-bottom-nav").getByRole("button", { name: "カレンダー" }).click();
+  await page.waitForSelector(".calendar-view", { timeout: 30000 });
+  await page.locator(".calendar-day.has-articles").first().locator(".calendar-day-header").click();
+  await page.waitForSelector(".calendar-day-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_calendar_day_sheet.png");
+}
+
+function targetMatches(...groups) {
+  return captureTarget === "all" || groups.includes(captureTarget);
+}
+
+function usesMobileNavigation() {
+  return Boolean(requestedViewport && requestedViewport.width < 960);
+}
+
+function usesBottomNavigation() {
+  return Boolean(requestedViewport && requestedViewport.width < 600);
+}
+
+async function captureOfficialTargets(browser, page) {
+  if (captureTarget === "account-settings-dialog") {
+    await captureAccountSettingsDialog(page);
+    return;
+  }
+
+  if (captureTarget === "add-article-modal") {
+    await captureAddModal(page);
+    return;
+  }
+
+  if (captureTarget === "desktop-article-detail-edit") {
+    await captureDesktopDetailEdit(page);
+    return;
+  }
+
+  if (targetMatches("auth", "dialogs")) {
+    await captureAuthLogin(browser);
+  }
+  if (targetMatches("list", "desktop")) {
+    await captureDesktopList(page);
+  }
+  if (targetMatches("detail", "desktop")) {
+    await captureDesktopDetailView(page);
+    await captureDesktopDetailEdit(page);
+  }
+  if (targetMatches("calendar", "desktop")) {
+    await captureCalendarView(page);
+  }
+  if (targetMatches("tags", "desktop")) {
+    await captureTagManagement(page);
+  }
+  if (targetMatches("dialogs", "desktop")) {
+    await captureAddModal(page);
+    await captureFilterDialog(page);
+    await captureTagAddDialog(page);
+    await captureTagMergeDialog(page);
+    await captureTagDeleteDialog(page);
+    await captureDeleteArticleDialog(page);
+    await captureAccountSettingsDialog(page);
+  }
+  if (targetMatches("mobile")) {
+    await captureMobileList(page);
+    await captureMobileDrawer(page);
+    await captureMobileAddModal(page);
+    await captureMobileDetailView(page);
+    await captureMobileDetailEdit(page);
+    await captureMobileFilterDialog(page);
+    await captureMobileCalendarDaySheet(page);
+  }
+}
+
+async function captureResponsiveTargets(page) {
+  const mobileNavigation = usesMobileNavigation();
+  const bottomNavigation = usesBottomNavigation();
+
+  if (targetMatches("list", "desktop", "mobile")) {
+    if (mobileNavigation) {
+      await captureMobileList(page);
+    } else {
+      await captureDesktopList(page);
+    }
+  }
+  if (targetMatches("detail", "desktop", "mobile")) {
+    if (mobileNavigation) {
+      await captureMobileDetailView(page);
+      await captureMobileDetailEdit(page);
+    } else {
+      await captureDesktopDetailView(page);
+      await captureDesktopDetailEdit(page);
+    }
+  }
+  if (targetMatches("calendar", "desktop", "mobile")) {
+    if (mobileNavigation) {
+      await openMobileArticleList(page);
+    } else {
+      await openArticleList(page);
+    }
+    if (bottomNavigation) {
+      await page.locator(".mobile-bottom-nav").getByRole("button", { name: "カレンダー" }).click();
+    } else if (mobileNavigation) {
+      await page.locator(".mobile-menu-button").click();
+      await page.getByLabel("ナビゲーションメニュー").getByRole("button", { name: "カレンダー" }).click();
+    } else {
+      await page.getByRole("button", { name: "カレンダー" }).click();
+    }
+    await page.waitForSelector(".calendar-view", { timeout: 30000 });
+    await page.waitForTimeout(700);
+    await saveScreenshot(page, "calendar_view.png");
+  }
+  if (targetMatches("tags", "desktop", "mobile")) {
+    if (mobileNavigation) {
+      await openMobileArticleList(page);
+      await page.locator(".mobile-menu-button").click();
+      await page.getByLabel("ナビゲーションメニュー").getByRole("button", { name: "タグ管理" }).click();
+    } else {
+      await openArticleList(page);
+      await page.getByRole("button", { name: "タグ管理", exact: true }).click();
+    }
+    await page.waitForSelector(".tag-management-view", { timeout: 30000 });
+    await page.waitForTimeout(700);
+    await saveScreenshot(page, "tag_management.png");
+  }
+  if (targetMatches("dialogs", "desktop", "mobile")) {
+    if (mobileNavigation) {
+      if (bottomNavigation) {
+        await captureMobileAddModal(page);
+      } else {
+        await openMobileArticleList(page);
+        await page.getByRole("button", { name: "記事を追加", exact: true }).click();
+        await page.waitForSelector(".article-modal", { timeout: 30000 });
+        await page.waitForTimeout(500);
+        await saveScreenshot(page, "mobile_add_article_modal.png");
+      }
+      await captureMobileFilterDialog(page);
+    } else {
+      await captureAddModal(page);
+      await captureFilterDialog(page);
+    }
+  }
+  if (targetMatches("mobile") && mobileNavigation) {
+    await captureMobileDrawer(page);
+    if (bottomNavigation) {
+      await captureMobileCalendarDaySheet(page);
+    }
+  }
 }
 
 async function main() {
@@ -315,44 +563,14 @@ async function main() {
     const page = await context.newPage();
     await loginCaptureUser(page, captureData.username);
 
-    if (captureTarget === "account-settings-dialog") {
-      await captureAccountSettingsDialog(page);
-      await context.close();
-      console.log(`Captured account settings screenshot in ${outputDir}`);
-      return;
+    if (isResponsiveCapture) {
+      await captureResponsiveTargets(page);
+    } else {
+      await captureOfficialTargets(browser, page);
     }
-
-    if (captureTarget === "add-article-modal") {
-      await captureAddModal(page);
-      await context.close();
-      console.log(`Captured add article modal screenshot in ${outputDir}`);
-      return;
-    }
-
-    if (captureTarget === "desktop-article-detail-edit") {
-      await captureDesktopDetailEdit(page);
-      await context.close();
-      console.log(`Captured desktop detail edit screenshot in ${outputDir}`);
-      return;
-    }
-
-    await captureAuthLogin(browser);
-    await captureDesktopList(page);
-    await captureDesktopDetailView(page);
-    await captureDesktopDetailEdit(page);
-    await captureCalendarView(page);
-    await captureTagManagement(page);
-    await captureAddModal(page);
-    await captureFilterDialog(page);
-    await captureTagAddDialog(page);
-    await captureTagMergeDialog(page);
-    await captureTagDeleteDialog(page);
-    await captureDeleteArticleDialog(page);
-    await captureAccountSettingsDialog(page);
-    await captureMobileList(page);
 
     await context.close();
-    console.log(`Captured design screenshots in ${outputDir}`);
+    console.log(`Captured screenshots in ${outputDir}`);
   } finally {
     await browser.close();
   }

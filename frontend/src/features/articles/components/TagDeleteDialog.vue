@@ -16,7 +16,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <VDialog :model-value="Boolean(candidate)" max-width="420" @update:model-value="!$event && emit('cancel')">
+  <VDialog :model-value="Boolean(candidate)" max-width="420" content-class="tag-dialog-overlay" @update:model-value="!$event && emit('cancel')">
     <VCard class="tag-management-dialog">
       <VCardTitle>{{ t("tags.deleteUnusedTitle") }}</VCardTitle>
       <VCardText>

@@ -17,7 +17,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <VDialog :model-value="open" max-width="420" @update:model-value="!$event && emit('cancel')">
+  <VDialog :model-value="open" max-width="420" content-class="tag-dialog-overlay" @update:model-value="!$event && emit('cancel')">
     <VCard class="tag-management-dialog">
       <VCardTitle>{{ t("tags.addTitle") }}</VCardTitle>
       <VCardText class="tag-management-dialog-body">

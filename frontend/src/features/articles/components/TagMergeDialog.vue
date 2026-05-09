@@ -19,7 +19,7 @@ const { t } = useI18n();
 </script>
 
 <template>
-  <VDialog :model-value="Boolean(source)" max-width="460" @update:model-value="!$event && emit('cancel')">
+  <VDialog :model-value="Boolean(source)" max-width="460" content-class="tag-dialog-overlay" @update:model-value="!$event && emit('cancel')">
     <VCard class="tag-management-dialog">
       <VCardTitle>{{ t("tags.mergeTitle") }}</VCardTitle>
       <VCardText class="tag-management-dialog-body">

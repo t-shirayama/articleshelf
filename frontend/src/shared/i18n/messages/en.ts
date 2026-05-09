@@ -92,6 +92,13 @@ export const en = {
       account: 'Account',
       logout: 'Log out'
     },
+    mobile: {
+      menu: 'Navigation menu',
+      openMenu: 'Open menu',
+      bottomNavigation: 'Mobile bottom navigation',
+      allArticles: 'All',
+      addArticle: 'Add'
+    },
     articles: {
       add: 'Add article',
       firstAdd: 'Add first article',
@@ -219,6 +226,8 @@ export const en = {
       read: 'Read',
       backlogDiff: 'Backlog diff',
       articleCount: '{count}',
+      dayArticles: 'Articles for {date}',
+      noDayArticles: 'No articles for this day',
       weekdays: {
         sun: 'Sun',
         mon: 'Mon',
