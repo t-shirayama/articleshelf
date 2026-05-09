@@ -288,10 +288,12 @@ Markdown:
 
 ### Phase 5: 検証（継続）
 
-- 375px、390px、600px、820px、960px、1366px、1920px で表示確認する
+- `375x667`、`390x844`、`430x932`、`820x1180`、`1366x768`、`1440x900`、`1920x1080` で表示確認する
 - Playwright に mobile project と mobile responsive smoke test を追加済み
 - `npm run build` と `npm run capture:designs` で実装とスクリーンショットを確認する
 - 主要モバイル画面は `docs/designs/screenshots/` にキャプチャを保存する
+- サイズ別の崩れ確認は `npm run capture:responsive` で `frontend/test-results/responsive-screenshots/` に分割出力する
+- ノート PC / MacBook / タブレット / スマホだけを確認する場合は、`npm run capture:responsive:laptop`、`npm run capture:responsive:macbook`、`npm run capture:responsive:tablet`、`npm run capture:responsive:mobile` を使う
 
 ## 12. 受け入れ条件
 
