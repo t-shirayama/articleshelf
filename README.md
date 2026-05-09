@@ -66,11 +66,12 @@ docker compose up --build
 | 公開構成       | Cloudflare Pages / Render / Supabase PostgreSQL |
 | テスト         | Vitest / Playwright / JUnit / Spring Boot Test  |
 
+主要技術だけを README に載せています。採用技術、推奨バージョン、開発環境、テストツールの詳細は [docs/architecture/technology.md](docs/architecture/technology.md) を参照してください。
 現在の公開構成は Cloudflare Pages + Render + Supabase PostgreSQL を基本にしています。Render Free Web Service の休眠抑制は、Cloudflare Worker から Render の health check へ定期 ping する運用です。構成、環境変数、デプロイ運用の詳細は [docs/deployment/README.md](docs/deployment/README.md) に整理しています。
 
 ## 開発者向け情報
 
-よく使うコマンドだけを README にまとめます。詳しいテスト方針や CI は [docs/testing/README.md](docs/testing/README.md)、開発環境や採用技術の詳細は [docs/specification/technology.md](docs/specification/technology.md) を参照してください。
+よく使うコマンドだけを README にまとめます。詳しいテスト方針や CI は [docs/testing/README.md](docs/testing/README.md)、開発環境や採用技術の詳細は [docs/architecture/technology.md](docs/architecture/technology.md) を参照してください。
 
 | 用途                         | コマンド                                    |
 | ---------------------------- | ------------------------------------------- |

@@ -39,13 +39,11 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 ### 2.3 現在の前提
 
-- フロントエンド: Vue 3 + TypeScript + Pinia + Vuetify
+- 採用技術と推奨バージョンは [技術スタック](../architecture/technology.md) に従う
 - フロントエンド確認: `npm run build`
 - フロントエンド UT: `npm run test:unit`
 - フロントエンド UT coverage: `npm run test:unit:coverage`
 - ブラウザ E2E: `npm run test:e2e`
-- バックエンド: Java 21 + Spring Boot + Spring Data JPA
-- DB: PostgreSQL
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - 既存 CI: `.github/workflows/ci.yml` でフロントエンド UT / build、バックエンド UT / IT、E2E を実行する
@@ -103,15 +101,10 @@ UT は、外部 I/O に依存しない小さな単位で仕様を固定する。
 - CSS のピクセル完全一致
 - GitHub Actions や Render など外部サービスの実通信
 
-### 3.4 推奨ツール
+### 3.4 実行方法
 
-| 領域 | 推奨 |
-| --- | --- |
-| バックエンド | JUnit 5, Mockito または Spring Boot 標準 test starter |
-| フロントエンド | Vitest, Vue Test Utils, Pinia testing helper |
-| TypeScript 型 | `vue-tsc --noEmit` |
-
-現行実装では `frontend/package.json` に `vitest` と `jsdom` を追加し、`npm run test:unit` で実行する。
+テストツールの採用一覧は [技術スタック](../architecture/technology.md) に集約する。
+現行実装では `frontend/package.json` の `npm run test:unit` でフロントエンド UT を実行する。
 coverage 確認は `npm run test:unit:coverage` で実行し、text summary と `frontend/coverage/` の HTML / lcov report を確認する。
 バックエンドは `spring-boot-starter-test`, `spring-security-test`, `h2` を追加し、`docker compose run --rm backend mvn test` で実行する。
 Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`backend/target/site/jacoco/` に report を出力する。CI では JaCoCo CSV から domain / application 層の line coverage を集計し、80% 未満なら失敗させる。長期目標は 100% とし、未カバーの分岐や例外系は段階的にテストを追加する。
