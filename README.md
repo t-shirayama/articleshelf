@@ -127,6 +127,7 @@ npm run seed:sample
 
 現在の公開構成は Cloudflare Pages + Render + Supabase PostgreSQL を基本にしています。
 構成の詳細、環境変数、公開後の運用メモは [docs/deployment/README.md](docs/deployment/README.md) に整理しています。
+実際のデプロイ手順は「`main` にマージすると Cloudflare Pages / Render が自動デプロイし、その反映確認後にタグ作成と GitHub Release を行う」流れです。公開作業の全体手順は [docs/deployment/README.md のデプロイ運用フロー](docs/deployment/README.md) を参照してください。
 
 本番公開は完了しており、以後は無料枠構成での安定運用と CI 改善を進める前提です。
 
