@@ -6,7 +6,7 @@
 
 - 開発・設計の方向性を共有する
 - 機能追加やタスク分担のためのエージェントを明確にする
-- 今後の改善やレビューに活用する
+- 継続的な改善やレビューに活用する
 
 ## 想定エージェント
 
@@ -65,6 +65,9 @@
 - 実装・設計・ドキュメントの整合を保ち、変更の意図があとから追える状態を維持する
 - 実装だけを先行させず、必要な仕様・設計・運用文書を同じ作業内で同期する
 - 置き換えや仕様変更で不要になったコード、設定、スクリプト、ドキュメント参照は同じ作業内で削除し、未使用のまま残さない
+- `docs/<area>/` 直下は原則として `README.md` と責務別フォルダだけを置き、画像・スクリーンショット・生成キャプチャなどの資産専用フォルダだけを例外とする
+- `docs/<area>/<responsibility>/` 配下は、小さな責務なら `README.md` のみ、複数の読者・更新理由・正本が混ざる場合は `README.md` を索引にして詳細 `.md` を分割する
+- ドキュメントの正本は、要件 = 何を満たすか、specs = 現行仕様、architecture = 構造と責務、designs = 見た目とレイアウト判断、testing = 検証観点、Backlog = 今後のタスクとして分ける
 
 ### 2. コード変更時のドキュメント更新
 
@@ -72,22 +75,22 @@
 - Codex は、コード修正だけで作業を完了してはいけない。関連ドキュメントの更新有無まで確認してから完了報告する
 - ドキュメント更新が不要だと判断した場合も、完了報告で「なぜ不要だったか」を一言添える
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
-- 今後追加したい機能や構想段階のアイデアは、まず `docs/requirements/future-considerations.md` に整理する
-- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
+- 追加したい機能、構想段階のアイデア、残作業、TODO、技術的負債は `docs/requirements/backlog/` 配下へ集約する
+- Backlog タスクは1ファイル1タスクで管理し、未対応は `docs/requirements/backlog/pending/`、対応中は `docs/requirements/backlog/in-progress/`、完了は `docs/requirements/backlog/archive/YYYY-MM.md` の要約へ移す
+- Backlog に書いた内容は、実装時期や仕様が具体化した段階で `docs/specs/README.md` または `docs/specs/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
   - 要件や目的の変更: `docs/requirements/README.md`
-  - 構想段階の追加候補や将来案: `docs/requirements/future-considerations.md`
-  - 機能仕様や API 契約の変更: `docs/specification/README.md`
-  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security.md` を必ず更新し、必要に応じて `docs/specification/authentication.md`、`docs/architecture/security.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
+  - 構想段階の追加案、残作業、TODO、技術的負債: `docs/requirements/backlog/pending/`
+  - 機能仕様や API 契約の変更: `docs/specs/features/README.md` または `docs/specs/api/README.md`
+  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specs/security/README.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specs/auth/README.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
-  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md`
-  - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/status/project-status.md`
+  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md` と、必要に応じて `docs/designs/components/README.md` / `docs/designs/responsive/README.md` / `docs/designs/responsive/mobile.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
 
 ### 3. 実装とドキュメントの差分ルール
 
 - 実装とドキュメントに差分を見つけた場合は、どちらを正とするかを確認する
-- その場で確認できない場合は、差分を放置せず、少なくとも `docs/status/project-status.md` などに現状との差分を明記する
+- その場で確認できない場合は、差分を放置せず、関連する仕様・設計・運用文書へ現状との差分を明記する
 - 仕様書や設計書に未反映の実装を追加した場合は、後続タスク扱いにせず、可能な限り同一作業で同期する
 
 ### 4. テストと確認
@@ -105,14 +108,14 @@
 
 ### 5. 変更種別ごとの追加ルール
 
-- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification/README.md` に反映する
-- セキュリティ対策を追加・変更した場合は、`docs/specification/security.md` と関連するテスト観点を同じ作業内で更新する
-- データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書と、必要に応じて `docs/specification/README.md` を更新する
-- UI や操作フローを変更した場合は、`docs/designs/README.md` を確認し、差分があるなら更新する
+- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specs/api/README.md` または `docs/specs/auth/account-api.md` に反映する
+- セキュリティ対策を追加・変更した場合は、`docs/specs/security/README.md` と関連するテスト観点を同じ作業内で更新する
+- データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書と、必要に応じて `docs/specs/data/README.md` を更新する
+- UI や操作フローを変更した場合は、`docs/designs/README.md` から関連する design docs を確認し、差分があるなら更新する
 - UI や見た目を修正する場合は、実装前に `docs/designs/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
 - UI や操作フローに影響するコード変更では、`docs/designs/screenshots/` の該当スクリーンショットも同じ作業内で更新し、差分があるのに古い画像を残さない
-- UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
+- UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件、`docs/designs/screenshots/README.md`、現行 UI 仕様がずれていないか確認する
 - UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する。`127.0.0.1` と `localhost` を混在させない
 - UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認し、アプリ本体のコードを疑う前に起動経路とブラウザ依存を切り分ける
 - UI 文言を変更する場合は表記揺れを確認し、非破壊のモーダル終了は「閉じる」、削除確認など確認操作の中止は「キャンセル」と表記する
@@ -122,23 +125,31 @@
 - Markdown や `v-html` を扱う場合は raw HTML を無効化し、DOMPurify などでサニタイズし、リンク/画像の許可スキームとコード非実行の前提を崩さない
 - UI や見た目を修正する場合は、必要に応じて `.codex/skills/articleshelf-ui-polish/SKILL.md` を参照する
 - コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/articleshelf-change-sync/SKILL.md` を参照する
+- docs リンク、旧パス、構成ルール、責務重複、AGENTS / skills の同期を確認する場合は、必要に応じて `.codex/skills/articleshelf-docs-audit/SKILL.md` を参照する
 - 新機能や大きな仕様変更では、実装前に影響範囲を確認し、必要な更新対象を整理してから着手する
 
-### 6. project-status.md の扱い
+### 6. Backlog の扱い
 
-- 一時対応、妥協実装、既知の制約を入れた場合は、理由と残課題を `docs/status/project-status.md` に反映する
-- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/status/project-status.md` に追記候補として残す
-- `docs/status/project-status.md` は、実装済み機能の棚卸し、仕様との差分、残作業の記録先として扱う
+- `docs/requirements/backlog/` は、タスク、残作業、構想段階の案、TODO、技術的負債の唯一の記録先として扱う
+- Backlog タスクは1ファイル1タスクとし、ファイル名は英小文字 kebab-case の短い名前にする
+- タスク本文は `# タスク名`、`## 状態`、`## 優先度`、`## 目的`、`## 対象`、`## 対応内容`、`## 完了条件`、`## 根拠` を標準見出しにする
+- 状態変更はファイル移動で表す。未対応は `pending/`、対応中は `in-progress/` に置く
+- 完了時は `archive/YYYY-MM.md` へ要約を追記し、タスクファイルは削除する
+- `docs/requirements/backlog/README.md` と各状態フォルダの `README.md` は必ず索引として更新する
+- 各仕様書、設計書、運用文書には現在の仕様・設計・運用だけを書き、追加対応や構想段階の事項は Backlog タスクへ集約する
+- 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ Backlog タスクにする
+- ドキュメント内に TODO、TBD、要確認、残作業 が出た場合は、原則 Backlog の具体的なタスクへ変換する
+- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/requirements/backlog/pending/` への追記候補として残す
 
 ### 7. README の扱い
 
 - `README.md` は初見の開発者が最初に読む前提で保守する
 - 起動方法、構成、主要機能、現状説明が古くなった場合は、関連作業の中で更新する
-- 「将来こうする予定」の表現が現状とずれた場合は、実態に合わせて見直す
+- 現状とずれた予定表現が残っている場合は、実態に合わせて見直す
 
 ### 8. 作業完了時の報告
 
 - 作業完了時は、少なくとも以下を簡潔に報告する
   - 変更内容
   - 更新したドキュメント
-  - 未対応事項または今後のフォローが必要な点
+  - 未対応事項またはフォローが必要な点

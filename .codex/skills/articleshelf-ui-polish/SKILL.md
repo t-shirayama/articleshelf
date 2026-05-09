@@ -5,12 +5,12 @@ description: Apply ArticleShelf-specific UI design rules when changing Vue compo
 
 # ArticleShelf UI Polish
 
-Use this skill to keep ArticleShelf UI changes intentional instead of one-off. Always read `docs/designs/README.md` before changing user-facing UI.
+Use this skill to keep ArticleShelf UI changes intentional instead of one-off. Always read `docs/designs/README.md` and the relevant detailed design doc before changing user-facing UI.
 
 ## Workflow
 
 1. Identify the affected surface: article list, article detail, add modal, sidebar, search/sort controls, common buttons, forms, cards, or responsive layout.
-2. Check `docs/designs/README.md` for the current design rule and update it if the intended UI behavior changes.
+2. Check `docs/designs/README.md`, then `docs/designs/components/README.md`, `docs/designs/responsive/README.md`, or `docs/designs/responsive/mobile.md` as relevant for the current design rule and update it if the intended UI behavior changes.
 3. Apply the four design principles:
    - Proximity: keep helper text close to the field it explains; separate unrelated groups with clear spacing or dividers.
    - Alignment: preserve shared left edges, fixed slots, and consistent control widths.
