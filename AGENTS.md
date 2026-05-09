@@ -6,7 +6,7 @@
 
 - 開発・設計の方向性を共有する
 - 機能追加やタスク分担のためのエージェントを明確にする
-- 今後の改善やレビューに活用する
+- 継続的な改善やレビューに活用する
 
 ## 想定エージェント
 
@@ -72,22 +72,21 @@
 - Codex は、コード修正だけで作業を完了してはいけない。関連ドキュメントの更新有無まで確認してから完了報告する
 - ドキュメント更新が不要だと判断した場合も、完了報告で「なぜ不要だったか」を一言添える
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
-- 今後追加したい機能や構想段階のアイデアは、まず `docs/requirements/future-considerations.md` に整理する
-- `docs/requirements/future-considerations.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
+- 追加したい機能、構想段階のアイデア、残作業、技術的負債は `docs/requirements/backlog.md` に集約する
+- `docs/requirements/backlog.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
   - 要件や目的の変更: `docs/requirements/README.md`
-  - 構想段階の追加候補や将来案: `docs/requirements/future-considerations.md`
+  - 構想段階の追加案、残作業、技術的負債: `docs/requirements/backlog.md`
   - 機能仕様や API 契約の変更: `docs/specification/README.md`
   - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security.md` を必ず更新し、必要に応じて `docs/specification/authentication.md`、`docs/architecture/security.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
   - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md`
-  - 現在の実装状況、残作業、暫定対応、技術的負債の整理: `docs/status/project-status.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
 
 ### 3. 実装とドキュメントの差分ルール
 
 - 実装とドキュメントに差分を見つけた場合は、どちらを正とするかを確認する
-- その場で確認できない場合は、差分を放置せず、少なくとも `docs/status/project-status.md` などに現状との差分を明記する
+- その場で確認できない場合は、差分を放置せず、関連する仕様・設計・運用文書へ現状との差分を明記する
 - 仕様書や設計書に未反映の実装を追加した場合は、後続タスク扱いにせず、可能な限り同一作業で同期する
 
 ### 4. テストと確認
@@ -124,21 +123,22 @@
 - コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/articleshelf-change-sync/SKILL.md` を参照する
 - 新機能や大きな仕様変更では、実装前に影響範囲を確認し、必要な更新対象を整理してから着手する
 
-### 6. project-status.md の扱い
+### 6. Backlog の扱い
 
-- 一時対応、妥協実装、既知の制約を入れた場合は、理由と残課題を `docs/status/project-status.md` に反映する
-- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/status/project-status.md` に追記候補として残す
-- `docs/status/project-status.md` は、実装済み機能の棚卸し、仕様との差分、残作業の記録先として扱う
+- `docs/requirements/backlog.md` は、タスク、残作業、構想段階の案、技術的負債の唯一の記録先として扱う
+- 各仕様書、設計書、運用文書には現在の仕様・設計・運用だけを書き、追加対応や構想段階の事項は `docs/requirements/backlog.md` へ集約する
+- 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ `docs/requirements/backlog.md` に記録する
+- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/requirements/backlog.md` に追記候補として残す
 
 ### 7. README の扱い
 
 - `README.md` は初見の開発者が最初に読む前提で保守する
 - 起動方法、構成、主要機能、現状説明が古くなった場合は、関連作業の中で更新する
-- 「将来こうする予定」の表現が現状とずれた場合は、実態に合わせて見直す
+- 現状とずれた予定表現が残っている場合は、実態に合わせて見直す
 
 ### 8. 作業完了時の報告
 
 - 作業完了時は、少なくとも以下を簡潔に報告する
   - 変更内容
   - 更新したドキュメント
-  - 未対応事項または今後のフォローが必要な点
+  - 未対応事項またはフォローが必要な点

@@ -35,7 +35,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 | --- | --- | --- |
 | P0 | リリース判定に必須。壊れるとデータ消失、情報漏えい、主要導線停止につながる | 記事追加、保存、編集、削除、認証、ユーザースコープ、CI |
 | P1 | MVP の信頼性に必要。壊れると体験品質が大きく落ちる | 検索、フィルタ、タグ、カレンダー、Markdown 表示 |
-| P2 | 使い勝手や将来拡張の品質を上げる | 細かな表示状態、境界値、アクセシビリティ補助 |
+| P2 | 使い勝手や追加機能の品質を上げる | 細かな表示状態、境界値、アクセシビリティ補助 |
 
 ### 2.3 現在の前提
 
@@ -409,23 +409,12 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 
 `main` / `develop` では全ジョブを実行し、それ以外のブランチでは変更パスに応じて backend / frontend / E2E の関連ジョブだけを実行する。
 
-### 6.2 段階的な拡張
-
-| 段階 | 追加内容 | 目的 |
-| --- | --- | --- |
-| Phase 1 | backend に `spring-boot-starter-test` を追加し、Docker 経由の backend test を実行 | 実装済み |
-| Phase 2 | frontend に Vitest を追加し `npm run test:unit` を実行 | 実装済み |
-| Phase 3 | Playwright script を追加し P0 E2E を実行 | 実装済み |
-| Phase 3.5 | CI を check / unit / integration / e2e に分割し、feature branch では変更パス別に実行 | 実装済み |
-| Phase 5 | 必要に応じて手動またはデプロイ基盤側で health check / smoke test を実施 | 公開環境の疎通確認 |
-
-### 6.3 推奨 workflow 構成
+### 6.2 Workflow 構成
 
 - `ci.yml`
   - pull request / push で frontend build, backend test, unit test を実行
 - `e2e.yml`
   - pull request / main push で P0 E2E を実行
-  - 実行時間が伸びたら main push と手動実行に絞る
 
 ## 7. 完了条件
 
@@ -437,10 +426,3 @@ OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `htt
 - 認証追加後、ユーザー A がユーザー B の記事を参照・更新・削除できないことを IT / E2E で確認する: 達成
 - DB 初期化、テストデータ、stub の運用が文書化されている: 達成。通常起動では自動投入せず、テスト用一意データで確認する
 - CI 失敗時もデプロイ連携そのものは停止しないため、main 反映前のレビューと CI 成功確認を運用で徹底する
-
-## 8. 未決事項
-
-- フロントエンド UT は Vitest を採用済み。コンポーネントテストを Vitest で増やすか、Playwright component / E2E に寄せるか
-- バックエンド IT は H2 PostgreSQL mode で開始済み。本番互換性を上げるため Testcontainers PostgreSQL に移行するか
-- E2E は PR ごとに P0 を実行する構成。件数が増えたら P0 のみ PR、全件は main / nightly にするか
-- OGP stub は IT では application port の `@MockBean` 差し替え済み。E2E で HTTP stub server を立てるか

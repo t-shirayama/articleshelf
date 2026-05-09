@@ -236,9 +236,3 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 - `ADMIN` のみ管理者パスワードリセットを実行できることを検証する
 - フロントエンドでは auth API adapter、auth store、アカウント操作後の state clear を検証する
 - E2E では username 登録/ログイン、パスワード変更、全端末ログアウト、退会、管理者リセットを確認する
-
-## 12. 未決事項
-
-- access token 即時失効の秒単位精度で足りない場合に token version 方式へ拡張するか
-- 退会済みユーザーのデータを一定期間後に物理削除するか
-- `displayName` 変更 API を追加するか

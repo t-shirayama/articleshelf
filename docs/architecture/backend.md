@@ -61,9 +61,7 @@
 - 認証ユースケースは `AuthService` に閉じ、JPA Entity、Spring Data Repository、JWT発行、refresh token hash、password encoder は application 層のポート越しに扱う。JWT の署名・検証・`exp` 検証・`alg` 扱いは自前実装せず、`spring-security-oauth2-jose` の encoder / decoder に委譲する
 - API層は DTO を受け取り、アプリケーションサービスに変換して処理する
 
-## 拡張ポイント
+## 実装上の分離ポイント
 
-- URLからOGP取得はバックエンドで実装済み。今後は手動再取得や保存済み画像の扱いを拡張できる
+- URLからOGP取得はバックエンドで実装済みで、外部取得は `ArticleMetadataProvider` ポート越しに扱う
 - ユーザー認証を追加し、記事 / タグ API は user scoped repository で分離済み。`article_tags.user_id` と複合 FK も導入し、DB レベルでも article / tag の user mismatch を拒否する
-- 画像アップロードは将来的な拡張として検討
-- AI要約やメタ情報抽出をバックエンドで行う

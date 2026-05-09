@@ -117,7 +117,7 @@ https://articleshelf-api.onrender.com
 Render Free Web Service は、一定時間 inbound traffic がないと spin down し、次回アクセス時に起動待ちが発生する。
 現行運用では Cloudflare Worker から 10 分ごとに Render の health check URL へ ping し、15 分間アクセスがない場合の停止を抑制している。
 Worker 側の cron trigger、送信先 URL、失敗時ログは Cloudflare dashboard で管理し、secret や管理 token は Git へ置かない。
-README やアプリ画面では、次のような注意書きを表示候補にする。
+README やアプリ画面で表示する注意書き例:
 
 ```text
 無料ホスティングを利用しているため、初回アクセス時に API 起動まで時間がかかる場合があります。
@@ -184,7 +184,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 ```
 
 `verify-full` を使う場合は Supabase の CA certificate を取得し、JDBC / runtime に証明書設定を追加する。
-現行運用では最低限 `sslmode=require` を必須にし、証明書検証の強化は今後の改善項目として扱う。
+現行運用では最低限 `sslmode=require` を必須にする。
 
 ### 6.2 Free plan の注意
 
@@ -311,7 +311,7 @@ git push origin v0.4.2
 ```
 
 直前に `main` へマージされた最新 commit を公開版として扱うなら、上の流れで十分です。
-特定 commit を明示してタグを付けたい場合は、次のように commit SHA を指定できます。
+特定 commit を明示してタグを付けたい場合は、commit SHA を指定できます。
 
 ```bash
 git tag -a v0.4.2 <commit-sha> -m "Release v0.4.2"
@@ -360,15 +360,10 @@ gh release create v0.4.2 --draft --generate-notes --title "v0.4.2"
 - `main` へマージして自動デプロイする
 - 公開確認後、必要なら patch version のタグと GitHub Release を追加する
 
-ロールバックが必要な場合は、Cloudflare Pages / Render の dashboard から直前 deploy の再反映を検討する。
+ロールバックが必要な場合は、Cloudflare Pages / Render の dashboard から直前 deploy を再反映する。
 ただし DB migration を含む変更では、アプリだけ戻しても整合しない可能性があるため、事前に影響を確認する。
 
-## 10. 未決事項
-
-- custom domain を初期から設定するか
-- `sslmode=verify-full` と Supabase CA certificate の導入をいつ行うか
-
-## 11. 公式参照
+## 10. 公式参照
 
 - Cloudflare Pages build configuration: https://developers.cloudflare.com/pages/configuration/build-configuration/
 - Cloudflare Pages redirects: https://developers.cloudflare.com/pages/configuration/redirects/
