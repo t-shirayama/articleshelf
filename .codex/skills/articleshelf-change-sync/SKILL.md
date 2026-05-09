@@ -19,6 +19,7 @@ Use this skill to avoid implementation/documentation drift in ArticleShelf.
    - Future tasks, known gaps, temporary workarounds, or technical debt: `docs/requirements/backlog/README.md`
    - Setup, scripts, or onboarding: `README.md`
    - Agent or workflow rules: `AGENTS.md`
+   Keep source-of-truth ownership clear: requirements describe what must be true, specs describe current behavior and contracts, architecture describes structure and responsibility boundaries, designs describe visual layout, testing describes verification, and Backlog keeps future work.
 4. Remove obsolete code, config, or docs references made unnecessary by the change.
 5. Choose verification based on risk:
    - Frontend Vue/CSS changes: run `npm run build` in `frontend`.
@@ -31,5 +32,6 @@ Use this skill to avoid implementation/documentation drift in ArticleShelf.
 - Do not run local `mvn`; Maven checks should go through Docker.
 - Do not add tests automatically during MVP iteration unless the user asks or the risk is high.
 - Keep `docs/<area>/` direct children to `README.md` plus responsibility folders, except asset-only folders such as images and generated screenshots. In responsibility folders, keep small topics in `README.md`; split detailed `.md` files only when readers, update reasons, or source-of-truth boundaries differ.
+- For docs integrity audits, old path checks, structure checks, and responsibility overlap cleanup, use `.codex/skills/articleshelf-docs-audit/SKILL.md`.
 - If docs and implementation disagree, either ask which is authoritative or update the relevant specs, design, or architecture doc. Future follow-up work belongs in `docs/requirements/backlog/README.md`.
 - Keep final reports concise, but always mention documentation updates and verification.

@@ -67,6 +67,7 @@
 - 置き換えや仕様変更で不要になったコード、設定、スクリプト、ドキュメント参照は同じ作業内で削除し、未使用のまま残さない
 - `docs/<area>/` 直下は原則として `README.md` と責務別フォルダだけを置き、画像・スクリーンショット・生成キャプチャなどの資産専用フォルダだけを例外とする
 - `docs/<area>/<responsibility>/` 配下は、小さな責務なら `README.md` のみ、複数の読者・更新理由・正本が混ざる場合は `README.md` を索引にして詳細 `.md` を分割する
+- ドキュメントの正本は、要件 = 何を満たすか、specs = 現行仕様、architecture = 構造と責務、designs = 見た目とレイアウト判断、testing = 検証観点、Backlog = 今後のタスクとして分ける
 
 ### 2. コード変更時のドキュメント更新
 
@@ -123,6 +124,7 @@
 - Markdown や `v-html` を扱う場合は raw HTML を無効化し、DOMPurify などでサニタイズし、リンク/画像の許可スキームとコード非実行の前提を崩さない
 - UI や見た目を修正する場合は、必要に応じて `.codex/skills/articleshelf-ui-polish/SKILL.md` を参照する
 - コード変更とドキュメント・確認観点を同期する場合は、必要に応じて `.codex/skills/articleshelf-change-sync/SKILL.md` を参照する
+- docs リンク、旧パス、構成ルール、責務重複、AGENTS / skills の同期を確認する場合は、必要に応じて `.codex/skills/articleshelf-docs-audit/SKILL.md` を参照する
 - 新機能や大きな仕様変更では、実装前に影響範囲を確認し、必要な更新対象を整理してから着手する
 
 ### 6. Backlog の扱い

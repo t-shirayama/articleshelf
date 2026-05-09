@@ -1,0 +1,54 @@
+---
+name: articleshelf-docs-audit
+description: Audit ArticleShelf documentation consistency. Use when Codex needs to check or fix docs links, old docs paths, docs directory structure rules, source-of-truth ownership, responsibility overlap, or whether AGENTS.md and ArticleShelf skills are aligned with docs changes.
+---
+
+# ArticleShelf Docs Audit
+
+Use this skill for documentation integrity checks and responsibility cleanup.
+
+## Workflow
+
+1. Read `AGENTS.md`, `docs/README.md`, and `.codex/skills/articleshelf-change-sync/SKILL.md`.
+2. Check link and path integrity:
+   - Run a Markdown relative link existence check across `README.md`, `docs`, `AGENTS.md`, and `.codex`.
+   - Run old-path searches for the legacy specification folder, the old Backlog file path, moved architecture direct `.md` paths, and moved product direct `.md` paths.
+   - Run `git diff --check`.
+3. Check docs structure:
+   - `docs/` direct children should be `README.md` plus major folders.
+   - Each `docs/<area>/` direct child should be `README.md`, a responsibility folder, or an asset-only folder such as images or generated screenshots.
+   - Non-asset responsibility folders should have a `README.md`.
+4. Check source-of-truth ownership:
+   - Requirements: what must be true.
+   - Specs: current behavior, API contracts, data model, UI behavior, security behavior.
+   - Architecture: structure, responsibility boundaries, runtime and persistence design.
+   - Designs: visual layout, component appearance, responsive details, screenshots.
+   - Testing: verification strategy, cases, commands, CI test shape.
+   - Backlog: future tasks, gaps, ideas, and technical debt.
+5. If overlap exists, preserve information by moving details to the proper source of truth, then replace duplicates with concise links.
+6. Report updated docs, checks run, and any remaining intentional overlap.
+
+## Commands
+
+Use these checks as the default audit set:
+
+```powershell
+$legacy = @(
+  'docs' + '/specification',
+  'specification' + '/',
+  'requirements/backlog' + '.md',
+  'architecture/(technology|frontend|backend|data-model|api-flow|runtime|ci-cd)' + '\.md',
+  'product/(vision|glossary)' + '\.md'
+) -join '|'
+rg $legacy README.md docs AGENTS.md .codex
+git diff --check
+```
+
+For Markdown link validation, use a local script or shell snippet that resolves relative `.md` links from each source file and reports missing targets.
+
+## Guardrails
+
+- Do not turn requirements docs into implementation specs.
+- Do not duplicate detailed data model, API, UI, security, or test rules in multiple places.
+- Keep README files as indexes or short source-of-truth summaries.
+- Build / unit / integration / E2E are not required for docs-only audits unless scripts or executable behavior changed.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "ArticleShelf Docs Audit"
+  short_description: "Check ArticleShelf docs links and ownership"
+  default_prompt: "Use $articleshelf-docs-audit to check ArticleShelf docs links, structure, and source-of-truth ownership."
