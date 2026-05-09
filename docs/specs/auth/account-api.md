@@ -48,6 +48,12 @@
 - 認証: 必須
 - response: `id`, `username`, `displayName`, `roles`
 
+## `GET /api/auth/me`
+
+- 認証: 必須
+- response: `id`, `username`, `displayName`, `roles`
+- 位置づけ: `GET /api/users/me` と同じ現在ユーザー確認の互換エンドポイント。フロントエンドの通常導線は `GET /api/users/me` を使う
+
 ## `PATCH /api/users/me/password`
 
 - 認証: 必須

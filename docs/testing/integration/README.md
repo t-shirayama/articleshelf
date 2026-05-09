@@ -35,7 +35,7 @@ ArticleShelf では API、DB、JPA mapping、Spring 設定、CORS、認証、ト
 
 リリース前後の DB 互換性確認では、本番に近い PostgreSQL で検証できるよう Testcontainers の採用を推奨する。
 ただし Docker in Docker の CI 負荷が高い場合は、まず `docker compose run --rm backend mvn test` のように backend コンテナからテストを実行する方式に寄せる。
-現行 IT は H2 の PostgreSQL mode を使い、Spring Security / MockMvc / JPA / API 契約を軽量に検証する。
+現行 IT は H2 の PostgreSQL mode で Spring Security / MockMvc / API 契約を軽量に検証し、`JpaArticleRepositoryPostgresIntegrationTest` で PostgreSQL 実体の persistence 契約を検証する。
 
 ## 5. 動作確認方法
 

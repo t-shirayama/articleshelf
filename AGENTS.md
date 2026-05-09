@@ -75,11 +75,12 @@
 - Codex は、コード修正だけで作業を完了してはいけない。関連ドキュメントの更新有無まで確認してから完了報告する
 - ドキュメント更新が不要だと判断した場合も、完了報告で「なぜ不要だったか」を一言添える
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
-- 追加したい機能、構想段階のアイデア、残作業、技術的負債は `docs/requirements/backlog/README.md` に集約する
-- `docs/requirements/backlog/README.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specs/README.md` または `docs/specs/` 配下へ反映する
+- 追加したい機能、構想段階のアイデア、残作業、TODO、技術的負債は `docs/requirements/backlog/` 配下へ集約する
+- Backlog タスクは1ファイル1タスクで管理し、未対応は `docs/requirements/backlog/pending/`、対応中は `docs/requirements/backlog/in-progress/`、完了は `docs/requirements/backlog/archive/YYYY-MM.md` の要約へ移す
+- Backlog に書いた内容は、実装時期や仕様が具体化した段階で `docs/specs/README.md` または `docs/specs/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
   - 要件や目的の変更: `docs/requirements/README.md`
-  - 構想段階の追加案、残作業、技術的負債: `docs/requirements/backlog/README.md`
+  - 構想段階の追加案、残作業、TODO、技術的負債: `docs/requirements/backlog/pending/`
   - 機能仕様や API 契約の変更: `docs/specs/features/README.md` または `docs/specs/api/README.md`
   - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specs/security/README.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specs/auth/README.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
@@ -129,10 +130,16 @@
 
 ### 6. Backlog の扱い
 
-- `docs/requirements/backlog/README.md` は、タスク、残作業、構想段階の案、技術的負債の唯一の記録先として扱う
-- 各仕様書、設計書、運用文書には現在の仕様・設計・運用だけを書き、追加対応や構想段階の事項は `docs/requirements/backlog/README.md` へ集約する
-- 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ `docs/requirements/backlog/README.md` に記録する
-- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/requirements/backlog/README.md` に追記候補として残す
+- `docs/requirements/backlog/` は、タスク、残作業、構想段階の案、TODO、技術的負債の唯一の記録先として扱う
+- Backlog タスクは1ファイル1タスクとし、ファイル名は英小文字 kebab-case の短い名前にする
+- タスク本文は `# タスク名`、`## 状態`、`## 優先度`、`## 目的`、`## 対象`、`## 対応内容`、`## 完了条件`、`## 根拠` を標準見出しにする
+- 状態変更はファイル移動で表す。未対応は `pending/`、対応中は `in-progress/` に置く
+- 完了時は `archive/YYYY-MM.md` へ要約を追記し、タスクファイルは削除する
+- `docs/requirements/backlog/README.md` と各状態フォルダの `README.md` は必ず索引として更新する
+- 各仕様書、設計書、運用文書には現在の仕様・設計・運用だけを書き、追加対応や構想段階の事項は Backlog タスクへ集約する
+- 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ Backlog タスクにする
+- ドキュメント内に TODO、TBD、要確認、残作業 が出た場合は、原則 Backlog の具体的なタスクへ変換する
+- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/requirements/backlog/pending/` への追記候補として残す
 
 ### 7. README の扱い
 

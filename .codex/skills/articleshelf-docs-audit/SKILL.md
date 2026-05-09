@@ -24,7 +24,7 @@ Use this skill for documentation integrity checks and responsibility cleanup.
    - Architecture: structure, responsibility boundaries, runtime and persistence design.
    - Designs: visual layout, component appearance, responsive details, screenshots.
    - Testing: verification strategy, cases, commands, CI test shape.
-   - Backlog: future tasks, gaps, ideas, and technical debt.
+   - Backlog: future tasks, gaps, ideas, TODOs, and technical debt. Backlog uses one file per task under `pending/` or `in-progress/`; completed task summaries go to `archive/YYYY-MM.md`.
 5. If overlap exists, preserve information by moving details to the proper source of truth, then replace duplicates with concise links.
 6. Report updated docs, checks run, and any remaining intentional overlap.
 
@@ -51,4 +51,5 @@ For Markdown link validation, use a local script or shell snippet that resolves 
 - Do not turn requirements docs into implementation specs.
 - Do not duplicate detailed data model, API, UI, security, or test rules in multiple places.
 - Keep README files as indexes or short source-of-truth summaries.
+- For Backlog, verify `docs/requirements/backlog/README.md` and each state folder README stay updated, task filenames use lowercase kebab-case, and task files use the standard headings.
 - Build / unit / integration / E2E are not required for docs-only audits unless scripts or executable behavior changed.

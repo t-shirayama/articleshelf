@@ -20,8 +20,7 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 
 - `ci.yml`
   - pull request / push で frontend build、backend check、unit、integration、E2E を段階実行する
-- `e2e.yml`
-  - pull request / main push で P0 E2E を実行する
+  - P0 E2E も同じ workflow の `e2e` job として実行する
 
 ## 3. 品質ゲート
 
