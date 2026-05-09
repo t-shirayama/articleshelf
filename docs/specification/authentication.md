@@ -217,13 +217,12 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 - パスワード変更、全端末ログアウト、退会の成功時は auth state と article state をクリアし、ログイン画面へ戻す
 - 管理者パスワードリセットは API のみを提供し、管理者 UI は初期スコープ外とする
 
-## 10. 初期データ / サンプルデータ
+## 10. 初期データ
 
 - 通常の `docker compose up --build` ではユーザー、記事、タグを自動投入しない
 - `ARTICLESHELF_INITIAL_USER_ENABLED=true` の場合だけ、起動時に `ARTICLESHELF_INITIAL_USERNAME` / `ARTICLESHELF_INITIAL_USER_PASSWORD` の ADMIN ユーザーを作成または再利用する
-- 起動時初期ユーザー作成は管理者リセット検証や legacy 開発 DB の所有者補完用であり、サンプル記事投入には使わない
-- サンプル記事が必要な場合は `frontend` で `npm run seed:sample` を明示実行する
-- E2E はテストごとに一意 username / URL を作成し、通常のサンプル投入コマンドには依存しない
+- 起動時初期ユーザー作成は管理者リセット検証や legacy 開発 DB の所有者補完用であり、通常利用のデモデータ投入には使わない
+- E2E はテストごとに一意 username / URL を作成し、既存データには依存しない
 
 ## 11. テスト観点
 
