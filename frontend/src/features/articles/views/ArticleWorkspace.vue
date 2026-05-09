@@ -330,6 +330,10 @@ function navigateToDetailReturnView(): void {
   navigateWorkspaceToList();
 }
 
+function currentDetailReturnView(): DetailReturnView {
+  return viewMode.value === "calendar" ? "calendar" : "list";
+}
+
 function openArticleFromList(article: Article): Promise<void> {
   detailReturnView.value = "list";
   return openArticle(article);
@@ -338,6 +342,11 @@ function openArticleFromList(article: Article): Promise<void> {
 function openArticleFromCalendar(article: Article): Promise<void> {
   detailReturnView.value = "calendar";
   return openArticle(article);
+}
+
+function openDuplicateArticleFromCurrentView(articleId: string): Promise<void> {
+  detailReturnView.value = currentDetailReturnView();
+  return openDuplicateArticle(articleId);
 }
 
 function toMonthKey(date: Date): string {
@@ -659,7 +668,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
     :duplicate-article-id="duplicateArticleId"
     :saving="isCreatingArticle"
     @close="closeArticleModal"
-    @open-duplicate="openDuplicateArticle"
+    @open-duplicate="openDuplicateArticleFromCurrentView"
     @submit="createArticle"
   />
 
