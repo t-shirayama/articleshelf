@@ -4,7 +4,7 @@
 - データ永続化を前提とした信頼性を確保する
 - 機能追加時に既存構成を保ちやすい設計にする
 - 主要画面では操作中にレイアウトが不自然にずれず、長いコンテンツでも主要操作を継続できる状態を維持する
-- 一覧、カレンダー、詳細画面のスクロール領域や幅の安定性など具体的なレイアウトルールは `docs/designs/components/README.md` と `docs/specification/ui/README.md` に従う
+- 一覧、カレンダー、詳細画面のスクロール領域や幅の安定性など具体的なレイアウトルールは `docs/designs/components/README.md` と `docs/specs/ui/README.md` に従う
 - 学習継続のモチベーションが上がるよう、過度に事務的でないUI表現を取り入れる
 - 学習継続メッセージは固定表示にせず、複数のコメントと画像をアクションに合わせてローテーションする
 - レスポンシブ確認では `docs/designs/responsive/README.md` の標準確認サイズと `docs/designs/responsive/capture.md` の診断スクリーンショット手順を使う

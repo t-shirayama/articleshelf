@@ -75,12 +75,12 @@
 - ドキュメント更新が不要だと判断した場合も、完了報告で「なぜ不要だったか」を一言添える
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
 - 追加したい機能、構想段階のアイデア、残作業、技術的負債は `docs/requirements/backlog/README.md` に集約する
-- `docs/requirements/backlog/README.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
+- `docs/requirements/backlog/README.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specs/README.md` または `docs/specs/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
   - 要件や目的の変更: `docs/requirements/README.md`
   - 構想段階の追加案、残作業、技術的負債: `docs/requirements/backlog/README.md`
-  - 機能仕様や API 契約の変更: `docs/specification/features/README.md` または `docs/specification/api/README.md`
-  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security/README.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specification/auth/README.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
+  - 機能仕様や API 契約の変更: `docs/specs/features/README.md` または `docs/specs/api/README.md`
+  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specs/security/README.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specs/auth/README.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
   - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md` と、必要に応じて `docs/designs/components/README.md` / `docs/designs/responsive/README.md` / `docs/designs/responsive/mobile.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
@@ -106,9 +106,9 @@
 
 ### 5. 変更種別ごとの追加ルール
 
-- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification/api/README.md` または `docs/specification/auth/account-api.md` に反映する
-- セキュリティ対策を追加・変更した場合は、`docs/specification/security/README.md` と関連するテスト観点を同じ作業内で更新する
-- データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書と、必要に応じて `docs/specification/data/README.md` を更新する
+- API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specs/api/README.md` または `docs/specs/auth/account-api.md` に反映する
+- セキュリティ対策を追加・変更した場合は、`docs/specs/security/README.md` と関連するテスト観点を同じ作業内で更新する
+- データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書と、必要に応じて `docs/specs/data/README.md` を更新する
 - UI や操作フローを変更した場合は、`docs/designs/README.md` から関連する design docs を確認し、差分があるなら更新する
 - UI や見た目を修正する場合は、実装前に `docs/designs/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
