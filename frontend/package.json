@@ -21,8 +21,7 @@
     "capture:responsive:laptop": "node scripts/capture-responsive-screenshots.mjs laptop",
     "capture:responsive:macbook": "node scripts/capture-responsive-screenshots.mjs macbook",
     "capture:responsive:tablet": "node scripts/capture-responsive-screenshots.mjs tablet",
-    "capture:responsive:mobile": "node scripts/capture-responsive-screenshots.mjs mobile",
-    "seed:sample": "node scripts/seed-sample-data.mjs"
+    "capture:responsive:mobile": "node scripts/capture-responsive-screenshots.mjs mobile"
   },
   "dependencies": {
     "dompurify": "^3.4.2",
