@@ -27,11 +27,9 @@
 - 初期 ADMIN が必要な検証環境だけ `ARTICLESHELF_INITIAL_USER_ENABLED=true` を指定する
 - E2E 用 Compose は管理者リセットシナリオのために初期 ADMIN を明示的に有効化するが、各テストの記事データはテスト内で一意に作成する
 
-## 認証レート制限
+## 認証レート制限の運用前提
 
-- `/api/auth/login` は Spring が確定した client IP と正規化 username の組み合わせで in-memory レート制限する
-- `/api/auth/register` は Spring が確定した client IP で in-memory レート制限する
-- application code では `X-Forwarded-For` を直接読まず、forwarded header の解釈は Spring / servlet container 側へ寄せる
-- 既定値は login が `5回 / 60秒`、register が `3回 / 600秒` とし、環境変数で調整できる
-- Render 無料枠の単一 backend インスタンスを前提にした簡易防御であり、再起動やスリープ復帰でカウンタはリセットされる
-- 複数インスタンス構成では制限が分散するため、共有ストア、proxy、WAF 側 rate limit が必要になる
+- 現行 runtime は単一 backend インスタンスを前提に、backend in-memory の簡易制限を使う
+- 再起動やスリープ復帰でカウンタはリセットされる
+- 複数インスタンス構成へ移行する場合は、共有ストア、proxy、WAF 側 rate limit を導入する
+- 対象 API、制限 key、既定値、エラー応答は [アカウント API](../../specs/auth/account-api.md) を正本とする

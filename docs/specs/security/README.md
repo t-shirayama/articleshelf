@@ -10,16 +10,15 @@
 セキュリティ対策を追加または更新した場合は、この文書を必ず更新する。
 必要に応じて [認証仕様](../auth/README.md)、[品質仕様](../quality/README.md)、[../../requirements/non-functional/security.md](../../requirements/non-functional/security.md)、[../../deployment/README.md](../../deployment/README.md)、[../../testing/README.md](../../testing/README.md) も同期する。
 
-## 2. 認証とトークン
+## 2. 認証、トークン、CSRF
 
-- protected API は `Authorization: Bearer <accessToken>` を必須にする
-- access token は短命 JWT とし、フロントエンドのメモリ上に保持する
-- API client は `Authorization: Bearer` 付与、期限前 refresh、`401` 時の refresh / retry を担当する
-- JWT の発行 / 検証、署名、`alg` header、`exp` 検証は自前実装せず、Spring Security JOSE の `NimbusJwtEncoder` / `NimbusJwtDecoder` に委譲する
-- refresh token は HttpOnly cookie として扱い、DB には `HMAC-SHA256(AUTH_REFRESH_TOKEN_HASH_SECRET, raw_refresh_token)` の hash のみ保存する
-- refresh token は rotation し、失効済み token の再利用時は同一 family の未失効 token をすべて失効する
-- protected API では JWT の署名と期限だけでなく、ユーザーが `ACTIVE` であり token が `token_valid_after` より古くないことも確認する
-- 認証、Cookie、CSRF、CORS の詳細仕様は [認証仕様](../auth/README.md) と [Token / Cookie / CSRF](../auth/tokens.md) に従う
+認証 ID、protected API、access token、refresh token、Cookie、CSRF の詳細仕様は [認証仕様](../auth/README.md) と [Token / Cookie / CSRF](../auth/tokens.md) を正本とする。
+この文書では、セキュリティ横断で同期が必要な境界だけを扱う。
+
+- protected API は認証済みユーザーだけが利用できる
+- access token は短命 JWT、refresh token は HttpOnly cookie として扱う
+- Cookie 認証を使う refresh / logout 系 API は CSRF 保護の対象にする
+- JWT の発行 / 検証は Spring Security JOSE に委譲し、自前実装しない
 
 ## 3. 本番起動ガード
 
@@ -33,20 +32,19 @@
 ## 4. ユーザースコープとデータ保護
 
 - 記事、タグ、メモ、既読履歴は認証ユーザーの `user_id` で必ずスコープする
-- 一覧、詳細、更新、削除はすべて `currentUser.id` を条件に含める
-- 他ユーザーの記事 ID / タグ ID は存在しないものとして `404 Not Found` を返す
+- 他ユーザーの記事 ID / タグ ID は存在しないものとして扱う
 - application 層の検証に加え、DB の unique 制約や複合 FK で user mismatch を拒否する
 - managed PostgreSQL を使う公開構成では JDBC URL 側で TLS を有効化する
 
+ユーザー単位の所有データと制約は [データモデル](../data/README.md) を正本とする。
+
 ## 5. 公開エンドポイントのレート制限
 
-- `/api/auth/register` は Spring が確定した client IP 単位で制限する
-- `/api/auth/login` は Spring が確定した client IP と正規化 username の組み合わせで制限する
+登録 / ログインの rate limit 対象、制限 key、既定値、429 応答は [アカウント API](../auth/account-api.md) を正本とする。
+runtime 上の単一インスタンス前提と複数インスタンス移行時の考慮は [Runtime Architecture](../../architecture/runtime/README.md) に従う。
+
 - application code では `X-Forwarded-For` を直接読まず、forwarded header の解釈は Spring / servlet container 側に寄せる
 - backend へ外部から直接到達させず、Render などの trusted proxy 経路からのみ到達する構成を前提にする
-- 制限超過時は `429 Too Many Requests` と統一 JSON error body を返す
-- Render 無料枠の単一インスタンス運用を前提に、backend in-memory の簡易制限とする
-- 複数インスタンス構成では制限が分散するため、共有ストアまたは proxy 側 rate limit が必要になる
 
 ## 6. OGP 取得と SSRF 対策
 

@@ -1,68 +1,19 @@
-# Data Model
+# Data Architecture
 
 ArticleShelf の主要データは PostgreSQL に保存します。
-
-## テーブル構成
-
-- `articles`
-  - id: UUID
-  - user_id: UUID
-  - url: VARCHAR
-  - title: VARCHAR
-  - summary: TEXT
-  - thumbnail_url: VARCHAR
-  - status: VARCHAR
-  - read_date: DATE
-  - favorite: BOOLEAN
-  - rating: INTEGER
-  - notes: TEXT
-  - created_at: TIMESTAMP
-  - updated_at: TIMESTAMP
-
-- `tags`
-  - id: UUID
-  - user_id: UUID
-  - name: VARCHAR
-  - created_at: TIMESTAMP
-  - updated_at: TIMESTAMP
-
-- `article_tags`
-  - user_id: UUID
-  - article_id: UUID
-  - tag_id: UUID
-
-- `users`
-  - id: UUID
-  - username: VARCHAR
-  - email: VARCHAR (移行互換用 nullable legacy column)
-  - password_hash: VARCHAR
-  - display_name: VARCHAR
-  - role: VARCHAR
-  - status: VARCHAR
-  - created_at: TIMESTAMP
-  - updated_at: TIMESTAMP
-  - last_login_at: TIMESTAMP
-  - token_valid_after: TIMESTAMP
-
-- `refresh_tokens`
-  - id: UUID
-  - user_id: UUID
-  - token_hash: VARCHAR
-  - family_id: UUID
-  - expires_at: TIMESTAMP
-  - revoked_at: TIMESTAMP
-  - created_at: TIMESTAMP
-  - replaced_by_token_id: UUID
-  - user_agent: VARCHAR
-  - ip_address: VARCHAR
+カラム、制約、API 表現を含むデータモデルの正本は [データモデル仕様](../../specs/data/README.md) に集約します。
 
 ## 永続化方針
 
 - 記事、タグ、ユーザー、refresh token は user scoped に扱う
-- `users.username` はログイン ID として小文字正規化し、一意制約を持つ
-- `users.email` は新規 API では返さない移行互換用 column として扱う
-- `users.token_valid_after` より古い JWT access token は protected API で拒否する
+- `Article.url` と `Tag.name` は全体一意ではなくユーザー単位の一意性として扱う
 - `article_tags` は記事とタグの関連を保持し、`user_id` も主キーに含める
-- article / tag の user mismatch は DB レベルでも拒否する
-- 退会は `users.status = DELETED` の論理削除とし、記事・タグは保持するが参照不可にする
+- article / tag の user mismatch は application 層の検証に加え、複合 FK で DB レベルでも拒否する
+- 退会は `users.status = DELETED` の論理削除とし、記事・タグは保持するが protected API から参照不可にする
 - JPA Entity は infrastructure 層の実装詳細として扱い、application / domain へ漏らさない
+
+## スキーマ管理
+
+- DB schema は Flyway migration で管理する
+- Spring Data JPA は schema validation を行い、migration と Entity のずれを検知する
+- PostgreSQL を正とし、DB 方言差が出やすい検索条件や制約変更では PostgreSQL 実体で確認する

@@ -39,33 +39,40 @@
 
 ## Article
 
-- id: UUID
-- userId: UUID
-- url: string (必須、最大2048文字、ユーザー単位でユニーク)
-- title: string (必須、最大255文字)
-- summary: string (任意、API入力は最大5000文字)
-- thumbnailUrl: string (任意)
-- status: enum(`UNREAD`, `READ`)
-- readDate: date (任意)
-- favorite: boolean
-- rating: integer (`0` - `5`, 未指定時は `0`)
-- notes: text (任意、API入力は最大20000文字)
-- createdAt: timestamp
-- updatedAt: timestamp
+| API field | DB column | 型 | 制約 / 説明 |
+| --- | --- | --- | --- |
+| id | id | UUID | PK |
+| userId | user_id | UUID | 所有ユーザー。protected API では current user にスコープする |
+| url | url | string / VARCHAR | 必須、最大2048文字、ユーザー単位でユニーク |
+| title | title | string / VARCHAR | 必須、最大255文字 |
+| summary | summary | string / TEXT | 任意、API入力は最大5000文字 |
+| thumbnailUrl | thumbnail_url | string / VARCHAR | 任意 |
+| status | status | enum / VARCHAR | `UNREAD`, `READ` |
+| readDate | read_date | date / DATE | 任意、API では `YYYY-MM-DD` |
+| favorite | favorite | boolean / BOOLEAN | お気に入り |
+| rating | rating | integer / INTEGER | `0` - `5`、未指定時は `0` |
+| notes | notes | text / TEXT | 任意、API入力は最大20000文字 |
+| createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
+| updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
 
 ## Tag
 
-- id: UUID
-- userId: UUID
-- name: string
-- createdAt: timestamp
-- updatedAt: timestamp
-- articleCount: integer (一覧表示用の集計値)
+| API field | DB column | 型 | 制約 / 説明 |
+| --- | --- | --- | --- |
+| id | id | UUID | PK |
+| userId | user_id | UUID | 所有ユーザー |
+| name | name | string / VARCHAR | ユーザー単位でユニーク |
+| createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
+| updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
+| articleCount | - | integer | 一覧表示用の集計値。永続化カラムではない |
 
 ## ArticleTag
 
-- userId: UUID
-- articleId: UUID
-- tagId: UUID
-- 記事とタグは多対多で関連付ける
-- `userId`, `articleId`, `tagId` を主キーにし、複合 FK で article / tag の user mismatch を拒否する
+| API / model field | DB column | 型 | 制約 / 説明 |
+| --- | --- | --- | --- |
+| userId | user_id | UUID | 主キーの一部 |
+| articleId | article_id | UUID | 主キーの一部 |
+| tagId | tag_id | UUID | 主キーの一部 |
+
+記事とタグは多対多で関連付けます。
+`userId`, `articleId`, `tagId` を主キーにし、複合 FK で article / tag の user mismatch を拒否します。
