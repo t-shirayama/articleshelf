@@ -248,7 +248,7 @@ function confirmDelete(): void {
                 v-model="form.notes"
                 class="detail-edit-notes-field"
                 counter="20000"
-                :label="t('common.notes')"
+                :aria-label="t('common.notes')"
                 rows="13"
                 variant="outlined"
               />

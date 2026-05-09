@@ -41,7 +41,7 @@ export function useArticleDetailForm(
     { label: t("articles.statusRead"), value: "READ" },
   ]);
   const summaryText = computed(() => article.value?.summary?.trim() || t("detail.emptySummary"));
-  const notesText = computed(() => article.value?.notes?.trim() || "");
+  const notesText = computed(() => article.value?.notes?.trim() || t("detail.emptyNotes"));
   const hasUnsavedChanges = computed(() => Boolean(
     article.value && isEditing.value && hasArticleDetailFormChanges(form, article.value),
   ));

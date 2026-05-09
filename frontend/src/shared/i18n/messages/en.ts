@@ -171,6 +171,7 @@ export const en = {
       notesEdit: 'Back to edit',
       tagEdit: 'Edit tags',
       emptySummary: 'No summary yet',
+      emptyNotes: 'No notes yet',
       emptyTags: 'No tags yet',
       deleteTitle: 'Delete article?',
       deleteBody: 'Delete “{title}”. This cannot be undone.',

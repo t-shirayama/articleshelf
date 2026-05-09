@@ -171,6 +171,7 @@ export const ja = {
       notesEdit: '入力に戻る',
       tagEdit: 'タグ編集',
       emptySummary: '概要はまだありません',
+      emptyNotes: 'メモはまだありません',
       emptyTags: 'タグはまだありません',
       deleteTitle: '記事を削除しますか？',
       deleteBody: '「{title}」を削除します。この操作は取り消せません。',
