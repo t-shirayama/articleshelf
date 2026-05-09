@@ -69,7 +69,13 @@ Unit coverage は Maven の `coverage` profile で JaCoCo を有効にし、`bac
 CI では JaCoCo CSV から domain / application 層の line coverage を集計し、80% 未満なら失敗させる。
 長期目標は 100% とし、未カバーの分岐や例外系は段階的にテストを追加する。
 
-## 6. ルール
+## 6. CI での扱い
+
+- `backend-unit` / `frontend-unit` で backend domain / application UT と frontend UT を coverage 付きで実行する
+- frontend は Vitest coverage-v8 の text summary を出力する
+- backend は JaCoCo CSV から coverage summary を出力し、domain / application line coverage 80% 未満を失敗にする
+
+## 7. ルール
 
 - UT は外部サービスや実 DB に依存させない
 - API contract、DB 方言、認証 filter chain の結合確認は [Integration Test](../integration/README.md) に寄せる

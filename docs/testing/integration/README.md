@@ -43,7 +43,12 @@ ArticleShelf では API、DB、JPA mapping、Spring 設定、CORS、認証、ト
 - 対象 test class のみ確認: `docker compose run --rm backend mvn -Dtest=<TestClassName> test`
 - PostgreSQL 実体での persistence IT が必要な場合は、対象条件を `JpaArticleRepositoryPostgresIntegrationTest` などに追加して Docker 経由で実行する
 
-## 6. ルール
+## 6. CI での扱い
+
+- `backend-integration` / `frontend-integration` で backend の Spring Boot / PostgreSQL IT と frontend の `*.integration.test.ts` を分けて実行する
+- DB 方言差や migration 影響がある変更では、PostgreSQL 実体を使う確認を優先する
+
+## 7. ルール
 
 - Maven を使った確認はローカル `mvn` ではなく Docker 経由で実行する
 - OGP の外部通信は実外部サイトへ依存させず、test double や stub server を使う

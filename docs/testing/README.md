@@ -44,9 +44,19 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - ブラウザ E2E: `npm run test:e2e`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
-- 既存 CI: `.github/workflows/ci.yml` でフロントエンド UT / build、バックエンド UT / IT、E2E を実行する
+- CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd.md) に従う
 
-## 5. 詳細文書
+## 5. 完了条件
+
+リリース前の最小完了条件は達成済み。現在の基準は次の通り。
+
+- P0 UT が CI で実行される: 達成
+- P0 IT が CI で実行される: 達成
+- P0 E2E が main push 前後で実行できる: 達成
+- 認証追加後、ユーザー A がユーザー B の記事を参照・更新・削除できないことを IT / E2E で確認する: 達成
+- DB 初期化、テストデータ、stub の運用が文書化されている: 達成。通常起動では自動投入せず、テスト用一意データで確認する
+
+## 6. 詳細文書
 
 - [Unit Test](unit/README.md): UT の目的、スコープ、実装方針、実行方法、ルール
 - [Unit Test ケース](unit/cases.md): UT ケース一覧と実装済み UT
@@ -55,4 +65,3 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - [E2E Test](e2e/README.md): E2E の目的、スコープ、Playwright 実行方針、操作フローのルール
 - [E2E Test ケース](e2e/cases.md): E2E シナリオ一覧と実装済み E2E
 - [テストデータ](test-data.md): 通常起動、IT、E2E、初期 ADMIN のテストデータ方針
-- [CI](ci.md): CI 連携、workflow 構成、完了条件
