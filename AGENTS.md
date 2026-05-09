@@ -78,7 +78,7 @@
   - 要件や目的の変更: `docs/requirements/README.md`
   - 構想段階の追加案、残作業、技術的負債: `docs/requirements/backlog.md`
   - 機能仕様や API 契約の変更: `docs/specification/README.md`
-  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security.md` を必ず更新し、必要に応じて `docs/specification/authentication.md`、`docs/architecture/security.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
+  - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specification/authentication.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
   - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`

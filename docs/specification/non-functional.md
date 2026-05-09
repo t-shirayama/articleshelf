@@ -6,7 +6,8 @@ ArticleShelf の品質属性と運用上守るべき仕様を定義する。
 ## 1. セキュリティ
 
 - セキュリティは ArticleShelf の非機能要件として扱う
-- 認証、認可、CSRF、CORS、secret、rate limit、SSRF、Markdown sanitization などの具体的な対策は [security.md](security.md) に従う
+- セキュリティ要件は [../requirements/non-functional/security.md](../requirements/non-functional/security.md) に従う
+- 認証、認可、CSRF、CORS、secret、rate limit、SSRF、Markdown sanitization などの具体的な実装仕様は [security.md](security.md) に従う
 - 詳細な認証、Cookie、CSRF、CORS 仕様は [authentication.md](authentication.md) に従う
 
 ## 2. 入力検証とエラー応答
