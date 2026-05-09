@@ -230,15 +230,30 @@ test('user can sort articles by title', async ({ page }, testInfo) => {
   await expect(page.locator('.article-card h3').first()).toHaveText(firstTitle)
 })
 
-test('user can open articles from the calendar in created and read modes', async ({ page }, testInfo) => {
+test('user can open articles from the calendar in created and read modes', async ({ page, request }, testInfo) => {
   const username = uniqueUsername('calendar', testInfo)
   const articleTitle = `Calendar ${uniqueSuffix(testInfo)}`
+  const futureArticleTitle = `Calendar future ${uniqueSuffix(testInfo)}`
+  const futureReadDate = monthOffsetDateKey(1, 15)
 
   await register(page, username)
   await createArticle(page, {
     url: uniqueUrl('calendar', testInfo),
     title: articleTitle
   })
+  const apiUser = await loginByApi(request, username, 'password123')
+  await createArticleByApi(
+    request,
+    apiUser.accessToken,
+    uniqueUrl('calendar-future', testInfo),
+    futureArticleTitle,
+    {
+      status: 'READ',
+      readDate: futureReadDate
+    }
+  )
+  await page.reload()
+  await expect(articleCard(page, articleTitle)).toBeVisible()
   await articleCard(page, articleTitle).locator('.status-toggle-button').click()
   await expect(page.getByText('既読にしました')).toBeVisible()
 
@@ -251,6 +266,18 @@ test('user can open articles from the calendar in created and read modes', async
   await page.getByRole('button', { name: articleTitle }).click()
 
   await expect(page.getByRole('heading', { level: 2, name: articleTitle })).toBeVisible()
+  await page.getByRole('button', { name: '戻る' }).click()
+  await expect(page.getByRole('heading', { name: 'カレンダー' })).toBeVisible()
+  await expect(page.getByRole('button', { name: articleTitle })).toBeVisible()
+
+  await page.getByRole('button', { name: '次月' }).click()
+  await expect(page.getByRole('button', { name: futureArticleTitle })).toBeVisible()
+  await page.getByRole('button', { name: futureArticleTitle }).click()
+
+  await expect(page.getByRole('heading', { level: 2, name: futureArticleTitle })).toBeVisible()
+  await page.getByRole('button', { name: '戻る' }).click()
+  await expect(page.getByRole('heading', { name: 'カレンダー' })).toBeVisible()
+  await expect(page.getByRole('button', { name: futureArticleTitle })).toBeVisible()
 })
 
 test('user can render markdown notes safely in the detail view', async ({ page }, testInfo) => {
@@ -589,6 +616,15 @@ function uniqueSuffix(testInfo: TestInfo): string {
   return `${titleSlug.slice(0, 10)}-${RUN_ID}-w${testInfo.workerIndex}-r${testInfo.retry}`
 }
 
+function monthOffsetDateKey(offset: number, day: number): string {
+  const date = new Date()
+  date.setMonth(date.getMonth() + offset, day)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const normalizedDay = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${normalizedDay}`
+}
+
 function apiUrl(path: string): string {
   return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:8080'}${path}`
 }
@@ -643,7 +679,8 @@ async function createArticleByApi(
   request: APIRequestContext,
   accessToken: string,
   url: string,
-  title: string
+  title: string,
+  overrides: Partial<Record<string, unknown>> = {}
 ): Promise<{ id: string, payload: Record<string, unknown> }> {
   const payload = {
     url,
@@ -653,7 +690,8 @@ async function createArticleByApi(
     favorite: false,
     rating: 0,
     notes: 'Private note',
-    tags: ['private']
+    tags: ['private'],
+    ...overrides
   }
   const response = await request.post(apiUrl('/api/articles'), {
     headers: {

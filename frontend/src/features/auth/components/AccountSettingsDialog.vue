@@ -47,6 +47,7 @@ function submitDeleteAccount(): void {
   <VDialog
     :model-value="open"
     max-width="560"
+    content-class="account-dialog-overlay"
     @update:model-value="!$event && emit('close')"
   >
     <VCard class="account-settings-dialog">

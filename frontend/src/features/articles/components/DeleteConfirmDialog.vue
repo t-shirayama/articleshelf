@@ -18,6 +18,7 @@ const { t } = useI18n();
   <VDialog
     :model-value="Boolean(article)"
     max-width="420"
+    content-class="confirm-dialog-overlay"
     @update:model-value="(value) => { if (!value) emit('cancel') }"
   >
     <VCard class="delete-confirm-dialog" :title="t('dialogs.deleteArticleTitle')">

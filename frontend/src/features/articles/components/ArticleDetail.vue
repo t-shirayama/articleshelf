@@ -161,42 +161,6 @@ function confirmDelete(): void {
             <span>{{ props.error }}</span>
           </div>
           <template v-if="isEditing">
-            <section class="detail-section detail-edit-notes-section">
-              <div class="detail-section-header detail-notes-header">
-                <div class="detail-notes-heading-copy">
-                  <h3>{{ t('common.notes') }}</h3>
-                  <span>{{ t('detail.notesHelp') }}</span>
-                </div>
-                <VBtn
-                  class="detail-notes-preview-button"
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  type="button"
-                  @click="notesPreviewOpen = !notesPreviewOpen"
-                >
-                  <template #prepend>
-                    <Pencil v-if="notesPreviewOpen" :size="16" />
-                    <Eye v-else :size="16" />
-                  </template>
-                  {{ notesPreviewOpen ? t('detail.notesEdit') : t('detail.notesPreview') }}
-                </VBtn>
-              </div>
-              <div v-if="notesPreviewOpen" class="detail-notes-preview">
-                <MarkdownViewer v-if="form.notes.trim()" :source="form.notes" />
-                <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
-              </div>
-              <VTextarea
-                v-else
-                v-model="form.notes"
-                class="detail-edit-notes-field"
-                counter="20000"
-                :label="t('common.notes')"
-                rows="13"
-                variant="outlined"
-              />
-            </section>
-
             <section class="detail-section detail-edit-article-section">
               <button
                 class="detail-accordion-trigger"
@@ -247,6 +211,47 @@ function confirmDelete(): void {
                   </div>
                 </div>
               </Transition>
+            </section>
+
+            <section class="detail-section detail-edit-notes-section">
+              <div class="detail-section-header detail-notes-header">
+                <div class="detail-notes-heading-copy">
+                  <h3>{{ t('common.notes') }}</h3>
+                  <span>{{ t('detail.notesHelp') }}</span>
+                </div>
+                <VBtn
+                  class="detail-notes-preview-button"
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  type="button"
+                  @click="notesPreviewOpen = !notesPreviewOpen"
+                >
+                  <template #prepend>
+                    <Pencil v-if="notesPreviewOpen" :size="16" />
+                    <Eye v-else :size="16" />
+                  </template>
+                  {{ notesPreviewOpen ? t('detail.notesEdit') : t('detail.notesPreview') }}
+                </VBtn>
+              </div>
+              <template v-if="notesPreviewOpen">
+                <div class="detail-notes-preview-stack">
+                  <div class="detail-notes-preview">
+                    <MarkdownViewer v-if="form.notes.trim()" :source="form.notes" />
+                    <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
+                  </div>
+                  <div class="detail-notes-preview-details-spacer" aria-hidden="true" />
+                </div>
+              </template>
+              <VTextarea
+                v-else
+                v-model="form.notes"
+                class="detail-edit-notes-field"
+                counter="20000"
+                :aria-label="t('common.notes')"
+                rows="13"
+                variant="outlined"
+              />
             </section>
           </template>
           <template v-else>

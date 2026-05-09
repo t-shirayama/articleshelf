@@ -3,7 +3,7 @@
 最終更新: 2026-05-09
 
 このドキュメントは、ArticleShelf の残タスクを優先度ごとに追うための一覧です。  
-実装済み機能の棚卸しや仕様との差分は `docs/status/project-status.md` を参照し、このファイルでは「次に何を進めるか」を見やすく整理します。
+実装済み機能の棚卸しや現状メモは `docs/status/project-status.md` を参照し、このファイルでは「次に何を進めるか」を見やすく整理します。
 
 ## 1. 優先度高
 
@@ -16,11 +16,9 @@
 ### 2.1 UI / UX の拡張
 
 - お気に入り導線の強化
-- モバイル操作の磨き込み
-  - ハンバーガードロワー
-  - ボトムナビ
-  - 全画面追加モーダル
-  - スマホ向けカレンダー
+- レスポンシブ表示の実機磨き込み
+  - 実機での `375x667` / `390x844` / `430x932` / `820x1180` / `1366x768` / `1440x900` 表示の継続確認
+  - 長い日本語 / English 文言、タグ数が多いケース、Markdown 表示の追加確認
 
 ### 2.2 既存機能の補強
 
@@ -39,7 +37,7 @@
 
 - OGP stub server の採用検討
 - Testcontainers PostgreSQL の採用検討
-- スマホ UI 実装後の mobile project E2E 追加
+- mobile / responsive E2E の対象ケース拡充
 
 ### 3.2 将来拡張
 
@@ -54,4 +52,4 @@
 
 - 実装済み機能、既知差分、技術的注意点は `docs/status/project-status.md` を正とする
 - 構想段階でまだ優先度を上げない案は `docs/requirements/future-considerations.md` に置き、具体化したらこの backlog へ移す
-- UI の具体タスクは `docs/designs/mobile-responsive.md`、公開構成の具体タスクは `docs/deployment/README.md` も併せて参照する
+- UI の具体タスクは `docs/designs/responsive.md` と `docs/designs/mobile-responsive.md`、公開構成の具体タスクは `docs/deployment/README.md` も併せて参照する
