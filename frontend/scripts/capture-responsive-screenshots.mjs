@@ -26,7 +26,9 @@ const viewportGroups = {
 };
 
 const requestedGroup = process.argv[2] || "all";
+const requestedTarget = process.argv[3] || process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all";
 const viewports = viewportGroups[requestedGroup];
+const commandName = `capture-responsive-${requestedGroup}`;
 
 if (!viewports) {
   console.error(
@@ -40,9 +42,9 @@ for (const viewport of viewports) {
   const result = spawnSync(process.execPath, [captureScript], {
     env: {
       ...process.env,
+      ARTICLESHELF_SCREENSHOT_COMMAND: commandName,
       ARTICLESHELF_SCREENSHOT_VIEWPORT: viewport,
-      ARTICLESHELF_SCREENSHOT_TARGET:
-        process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all",
+      ARTICLESHELF_SCREENSHOT_TARGET: requestedTarget,
     },
     stdio: "inherit",
   });

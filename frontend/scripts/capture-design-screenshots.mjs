@@ -7,7 +7,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDir = path.resolve(__dirname, "..");
 const repoRoot = path.resolve(frontendDir, "..");
-const officialOutputDir = path.join(repoRoot, "docs", "designs", "screenshots");
+const commandName =
+  process.env.ARTICLESHELF_SCREENSHOT_COMMAND || "capture-designs";
+const officialOutputRoot = path.join(
+  repoRoot,
+  "docs",
+  "designs",
+  "screenshots",
+  "capture-designs",
+);
 const baseUrl =
   process.env.ARTICLESHELF_SCREENSHOT_BASE_URL || "http://localhost:5173";
 const apiBaseUrl =
@@ -43,11 +51,13 @@ const outputDir =
         frontendDir,
         "test-results",
         "responsive-screenshots",
+        commandName,
         captureViewportName,
       )
-    : officialOutputDir);
+    : officialOutputRoot);
 const captureId = Date.now().toString(36);
-const captureTarget = process.env.ARTICLESHELF_SCREENSHOT_TARGET || "all";
+const captureTarget =
+  process.env.ARTICLESHELF_SCREENSHOT_TARGET || process.argv[2] || "all";
 const captureUsername =
   process.env.ARTICLESHELF_CAPTURE_USERNAME || "owner";
 const capturePassword =
@@ -196,9 +206,14 @@ async function saveScreenshot(page, filename, options = {}) {
   const outputFilename = isResponsiveCapture
     ? `${captureViewportName}_${filename}`
     : filename;
+  const viewport = page.viewportSize() || defaultDesktopViewport;
+  const screenshotDir = isResponsiveCapture
+    ? outputDir
+    : path.join(outputDir, `${viewport.width}x${viewport.height}`);
+  await mkdir(screenshotDir, { recursive: true });
   await page.screenshot({
     animations: "disabled",
-    path: path.join(outputDir, outputFilename),
+    path: path.join(screenshotDir, outputFilename),
     ...options,
   });
 }

@@ -74,17 +74,17 @@ ArticleShelf をデスクトップ、ノート PC、MacBook、タブレット、
 
 ## 5. スクリーンショット確認
 
-公式デザインスクリーンショットは `docs/designs/screenshots/` に保存し、代表画像として扱う。
-レスポンシブ崩れ確認用のサイズ別スクリーンショットは、公式画像とは分けて `frontend/test-results/responsive-screenshots/` に出力する。
+公式デザインスクリーンショットは `docs/designs/screenshots/capture-designs/<viewport>/` に保存する。README の代表画像には `1920x1080` の画像だけを使う。
+レスポンシブ崩れ確認用のサイズ別スクリーンショットは、公式画像とは分けて `frontend/test-results/responsive-screenshots/<command>/<viewport>/` に出力する。
 
 実行コマンド:
 
-- `npm run capture:designs`: 公式デザインスクリーンショットを更新する
-- `npm run capture:responsive`: 標準確認サイズをまとめて撮影する
-- `npm run capture:responsive:laptop`: `1366x768` のみ撮影する
-- `npm run capture:responsive:macbook`: `1440x900` のみ撮影する
-- `npm run capture:responsive:tablet`: `820x1180` のみ撮影する
-- `npm run capture:responsive:mobile`: `430x932`、`390x844`、`375x667` を撮影する
+- `npm run capture:designs`: `docs/designs/screenshots/capture-designs/1920x1080/` に公式デザインスクリーンショットを更新する
+- `npm run capture:responsive`: `frontend/test-results/responsive-screenshots/capture-responsive-all/` に標準確認サイズをまとめて撮影する
+- `npm run capture:responsive:laptop`: `frontend/test-results/responsive-screenshots/capture-responsive-laptop/` に `1366x768` を撮影する
+- `npm run capture:responsive:macbook`: `frontend/test-results/responsive-screenshots/capture-responsive-macbook/` に `1440x900` を撮影する
+- `npm run capture:responsive:tablet`: `frontend/test-results/responsive-screenshots/capture-responsive-tablet/` に `820x1180` を撮影する
+- `npm run capture:responsive:mobile`: `frontend/test-results/responsive-screenshots/capture-responsive-mobile/` に `430x932`、`390x844`、`375x667` を撮影する
 
 対象画面だけ確認する場合は、`ARTICLESHELF_SCREENSHOT_TARGET=list|detail|dialogs|calendar|tags|mobile|all` を指定する。
 特定サイズだけ直接指定する場合は、`ARTICLESHELF_SCREENSHOT_VIEWPORT=desktop|macbook|laptop|tablet|mobile|mobile-md|mobile-sm` を使う。

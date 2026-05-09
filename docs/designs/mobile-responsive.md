@@ -294,8 +294,8 @@ Markdown:
 - 標準確認サイズは `docs/designs/responsive.md` の対象サイズに従う
 - Playwright に mobile project と mobile responsive smoke test を追加済み
 - `npm run build` と `npm run capture:designs` で実装とスクリーンショットを確認する
-- 主要モバイル画面は `docs/designs/screenshots/` にキャプチャを保存する
-- サイズ別の崩れ確認は `npm run capture:responsive` で `frontend/test-results/responsive-screenshots/` に分割出力する
+- 主要モバイル画面は `docs/designs/screenshots/capture-designs/430x932/` に公式キャプチャとして保存する
+- サイズ別の崩れ確認は `npm run capture:responsive` で `frontend/test-results/responsive-screenshots/<command>/<viewport>/` に分割出力する
 - ノート PC / MacBook / タブレット / スマホだけを確認する場合は、`npm run capture:responsive:laptop`、`npm run capture:responsive:macbook`、`npm run capture:responsive:tablet`、`npm run capture:responsive:mobile` を使う
 
 ## 12. 受け入れ条件
