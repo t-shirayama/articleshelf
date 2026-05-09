@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   CalendarDays,
@@ -23,15 +23,22 @@ interface CalendarCell {
 
 const props = defineProps<{
   articles: Article[];
+  visibleMonthKey: string;
+  mode: CalendarMode;
 }>();
 
 const emit = defineEmits<{
   "open-article": [article: Article];
+  "update:visibleMonthKey": [monthKey: string];
+  "update:mode": [mode: CalendarMode];
 }>();
 
 const { t, locale } = useI18n();
-const mode = ref<CalendarMode>("created");
-const visibleMonth = ref(startOfMonth(new Date()));
+const mode = computed({
+  get: () => props.mode,
+  set: (value: CalendarMode) => emit("update:mode", value),
+});
+const visibleMonth = computed(() => monthKeyToDate(props.visibleMonthKey));
 const weekdays = computed(() => [
   { label: t("calendar.weekdays.sun"), type: "sunday" },
   { label: t("calendar.weekdays.mon"), type: "weekday" },
@@ -128,11 +135,11 @@ function articlesForDate(key: string): Article[] {
 }
 
 function moveMonth(offset: number): void {
-  visibleMonth.value = new Date(
+  emit("update:visibleMonthKey", toMonthKey(new Date(
     visibleMonth.value.getFullYear(),
     visibleMonth.value.getMonth() + offset,
     1,
-  );
+  )));
 }
 
 function isInVisibleMonth(key: string): boolean {
@@ -152,6 +159,19 @@ function toDateKey(date: Date): string {
 
 function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function toMonthKey(date: Date): string {
+  const monthStart = startOfMonth(date);
+  const year = monthStart.getFullYear();
+  const month = String(monthStart.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
+function monthKeyToDate(monthKey: string): Date {
+  const [year, month] = monthKey.split("-").map(Number);
+  if (!year || !month || month < 1 || month > 12) return startOfMonth(new Date());
+  return new Date(year, month - 1, 1);
 }
 </script>
 

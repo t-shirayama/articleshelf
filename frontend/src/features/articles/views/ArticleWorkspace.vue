@@ -22,6 +22,10 @@ import { useTagActions } from "../composables/useTagActions";
 import { useWorkspaceNavigation } from "../composables/useWorkspaceNavigation";
 import { useArticlesStore } from "../stores/articles";
 import type { ArticleSort, ArticleStatus } from "../types";
+import type { Article } from "../types";
+
+type DetailReturnView = "list" | "calendar";
+type CalendarMode = "created" | "read";
 
 const authStore = useAuthStore();
 const store = useArticlesStore();
@@ -31,6 +35,9 @@ const accountDialogOpen = ref(false);
 const accountDialogError = ref("");
 const detailFormError = ref("");
 const searchDraft = ref("");
+const detailReturnView = ref<DetailReturnView>("list");
+const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
+const calendarMode = ref<CalendarMode>("created");
 let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
@@ -189,6 +196,10 @@ function showList(): void {
   requestNavigation(navigateToList);
 }
 
+function showDetailReturnView(): void {
+  requestNavigation(navigateToDetailReturnView);
+}
+
 function showCalendar(): void {
   requestNavigation(navigateToCalendar);
 }
@@ -259,6 +270,32 @@ function navigateToList(): void {
   navigateWorkspaceToList();
 }
 
+function navigateToDetailReturnView(): void {
+  detailFormError.value = "";
+  if (detailReturnView.value === "calendar") {
+    navigateToCalendar();
+    return;
+  }
+
+  navigateWorkspaceToList();
+}
+
+function openArticleFromList(article: Article): Promise<void> {
+  detailReturnView.value = "list";
+  return openArticle(article);
+}
+
+function openArticleFromCalendar(article: Article): Promise<void> {
+  detailReturnView.value = "calendar";
+  return openArticle(article);
+}
+
+function toMonthKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${year}-${month}`;
+}
+
 function handleBeforeUnload(event: BeforeUnloadEvent): void {
   if (!detailHasUnsavedChanges.value) return;
   event.preventDefault();
@@ -303,7 +340,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
         @update:sort="setSort"
         @open-filters="filterDialogOpen = true"
         @add="openArticleModal"
-        @open-article="openArticle"
+        @open-article="openArticleFromList"
         @delete-article="requestDeleteArticle"
         @toggle-status="toggleArticleStatus"
         @toggle-favorite="toggleFavorite"
@@ -313,7 +350,9 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
       <CalendarView
         v-else-if="viewMode === 'calendar'"
         :articles="store.articles"
-        @open-article="openArticle"
+        v-model:visible-month-key="calendarVisibleMonthKey"
+        v-model:mode="calendarMode"
+        @open-article="openArticleFromCalendar"
       />
 
       <TagManagementView
@@ -340,7 +379,7 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
     :deleting="isDeletingArticle"
     :error="detailFormError"
     @update:dirty="detailHasUnsavedChanges = $event"
-    @back="showList"
+    @back="showDetailReturnView"
     @save="saveArticle"
     @delete="deleteArticle"
   />
