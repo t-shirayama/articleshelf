@@ -175,14 +175,66 @@ npm run seed:sample
 
 ### 環境変数
 
-- 認証関連の主な環境変数は `JWT_ACCESS_SECRET`, `AUTH_REFRESH_TOKEN_HASH_SECRET`, `AUTH_COOKIE_SAME_SITE`, `AUTH_COOKIE_SECURE`, `AUTH_CSRF_ENABLED`, `ARTICLESHELF_INITIAL_USER_ENABLED`, `ARTICLESHELF_INITIAL_USERNAME`, `ARTICLESHELF_INITIAL_USER_PASSWORD`, `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED`, `ARTICLESHELF_LOGIN_RATE_LIMIT_CAPACITY`, `ARTICLESHELF_LOGIN_RATE_LIMIT_WINDOW_SECONDS`, `ARTICLESHELF_REGISTER_RATE_LIMIT_CAPACITY`, `ARTICLESHELF_REGISTER_RATE_LIMIT_WINDOW_SECONDS`
-- 初期管理者ユーザーは通常作成しない。管理者パスワードリセット検証などで必要な場合のみ `ARTICLESHELF_INITIAL_USER_ENABLED=true` を指定し、`ARTICLESHELF_INITIAL_USERNAME`, `ARTICLESHELF_INITIAL_USER_PASSWORD` で初期値を与える
-- 登録 / ログインの公開 API は backend の in-memory レート制限で保護する。Render 無料枠の単一インスタンス運用を前提とした簡易制限で、複数インスタンス化する場合は Redis、proxy、WAF 側の制限を別途検討する
-- 本番相当では `SPRING_PROFILES_ACTIVE=prod` と `FRONTEND_ORIGIN`, `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` を必須で与える
-- managed PostgreSQL を使う場合は `SPRING_DATASOURCE_URL=jdbc:postgresql://.../articleshelf?sslmode=require` のように JDBC URL 側で TLS を有効化する
-- 本番では refresh / logout が cookie 認証ベースになるため、`AUTH_CSRF_ENABLED=true` を必須にする。`prod` profile では `false` を指定すると起動エラーになる
-- フロントエンドと API が別 site になる公開構成では、`AUTH_COOKIE_SAME_SITE=None`, `AUTH_COOKIE_SECURE=true`, `AUTH_CSRF_ENABLED=true`, `FRONTEND_ORIGIN=https://your-frontend.example.com` をセットで指定する。同一 site 配信に寄せる場合のみ `SameSite=Lax` を検討できる
-- 本番 secret は `JWT_ACCESS_SECRET=<long-random-secret>` と `AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>` のように十分長いランダム値を使い、Git にはコミットしない
+本番相当では `SPRING_PROFILES_ACTIVE=prod` を指定し、DB 接続、frontend origin、認証 secret を必ず環境変数で与えます。
+secret や DB password は Git にコミットしないでください。
+
+#### Backend / DB
+
+| 変数 | 既定値・例 | 説明 |
+| --- | --- | --- |
+| `SPRING_PROFILES_ACTIVE` | 本番: `prod` | Spring profile。`prod` では本番向け validation が有効になります。 |
+| `SPRING_DATASOURCE_URL` | 開発: `jdbc:postgresql://localhost:5432/articleshelf` / 本番例: `jdbc:postgresql://.../articleshelf?sslmode=require` | PostgreSQL JDBC URL。managed PostgreSQL では JDBC URL 側で TLS を有効化します。 |
+| `SPRING_DATASOURCE_USERNAME` | 開発: `articleshelf` | PostgreSQL 接続ユーザー名。 |
+| `SPRING_DATASOURCE_PASSWORD` | 開発: `articleshelf` | PostgreSQL 接続パスワード。 |
+| `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` | 本番例: `3` | DB connection pool の最大数。Supabase Free など接続数が限られる環境では小さめにします。 |
+| `FRONTEND_ORIGIN` | 開発: `http://localhost:5173` / 本番例: `https://articleshelf-app.pages.dev` | CORS で許可する frontend origin。公開環境では `*` を使わず明示します。 |
+
+#### Auth / Cookie / CSRF
+
+| 変数 | 既定値・例 | 説明 |
+| --- | --- | --- |
+| `JWT_ACCESS_SECRET` | 開発用既定値あり / 本番: 32文字以上のランダム値 | JWT access token の署名 secret。`prod` では dev 用値や短い値を拒否します。 |
+| `AUTH_REFRESH_TOKEN_HASH_SECRET` | 開発用既定値あり / 本番: 32文字以上のランダム値 | refresh token を DB 保存前に HMAC hash 化するための secret。`prod` では dev 用値や短い値を拒否します。 |
+| `AUTH_CSRF_ENABLED` | 開発: `false` / 本番: `true` | refresh / logout など cookie 認証 API の CSRF 保護を有効化します。`prod` では `true` が必須です。 |
+| `AUTH_COOKIE_SECURE` | 開発: `false` / 本番: `true` | refresh token cookie を HTTPS のみ送信にします。`SameSite=None` の場合は `true` が必須です。 |
+| `AUTH_COOKIE_SAME_SITE` | 開発: `Lax` / 別 site 公開: `None` | refresh token cookie の SameSite 属性。Cloudflare Pages と Render のような別 site 構成では `None` を使います。 |
+
+フロントエンドと API が別 site になる公開構成では、`AUTH_COOKIE_SAME_SITE=None`、`AUTH_COOKIE_SECURE=true`、`AUTH_CSRF_ENABLED=true`、`FRONTEND_ORIGIN=https://your-frontend.example.com` をセットで指定します。
+同一 site 配信に寄せる場合のみ `SameSite=Lax` を検討できますが、`prod` profile では CSRF は常に有効にします。
+
+#### Initial Admin
+
+| 変数 | 既定値・例 | 説明 |
+| --- | --- | --- |
+| `ARTICLESHELF_INITIAL_USER_ENABLED` | `false` | 起動時に初期 ADMIN ユーザーを作成するか。通常起動では `false` のままにします。 |
+| `ARTICLESHELF_INITIAL_USERNAME` | `owner` | 初期 ADMIN を作る場合のユーザー名。管理者パスワードリセット検証などでのみ使います。 |
+| `ARTICLESHELF_INITIAL_USER_PASSWORD` | `password123` | 初期 ADMIN を作る場合のパスワード。公開環境では推測可能な値を使わないでください。 |
+
+初期管理者ユーザーは通常作成しません。管理者パスワードリセット検証などで必要な場合のみ `ARTICLESHELF_INITIAL_USER_ENABLED=true` を指定します。
+
+#### Auth Rate Limit
+
+登録 / ログインの公開 API は backend の in-memory レート制限で保護します。
+Render 無料枠の単一インスタンス運用を前提とした簡易制限なので、複数インスタンス化する場合は Redis、proxy、WAF 側の制限を別途検討します。
+
+| 変数 | 既定値 | 説明 |
+| --- | --- | --- |
+| `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED` | `true` | 登録 / ログイン API のレート制限を有効化します。 |
+| `ARTICLESHELF_LOGIN_RATE_LIMIT_CAPACITY` | `5` | ログイン試行を許可する回数。 |
+| `ARTICLESHELF_LOGIN_RATE_LIMIT_WINDOW_SECONDS` | `60` | ログイン試行回数を数える時間窓。 |
+| `ARTICLESHELF_REGISTER_RATE_LIMIT_CAPACITY` | `3` | ユーザー登録試行を許可する回数。 |
+| `ARTICLESHELF_REGISTER_RATE_LIMIT_WINDOW_SECONDS` | `600` | ユーザー登録試行回数を数える時間窓。 |
+
+#### Frontend / Utility Scripts
+
+| 変数 | 既定値・例 | 説明 |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | 例: `https://articleshelf-api.onrender.com` | frontend build 時に埋め込む backend API URL。Cloudflare Pages などで設定します。 |
+| `ARTICLESHELF_SAMPLE_API_BASE_URL` | `http://localhost:8080` | `npm run seed:sample` が使う API URL。 |
+| `ARTICLESHELF_SAMPLE_URL_BASE` | API URL と同じ | サンプル記事 URL の base。 |
+| `ARTICLESHELF_SAMPLE_USERNAME` | `sample` | サンプル投入用ユーザー名。 |
+| `ARTICLESHELF_SAMPLE_PASSWORD` | `password123` | サンプル投入用ユーザーパスワード。既存ユーザーを使う場合はそのパスワードに合わせます。 |
+| `ARTICLESHELF_SAMPLE_DISPLAY_NAME` | `Sample User` | サンプル投入用ユーザーの表示名。 |
 
 ## テスト
 
