@@ -1,7 +1,7 @@
 # CI / CD Architecture
 
 ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開環境への反映を分けて扱う。
-テストの目的、スコープ、ケース、実行方法は [テスト戦略](../testing/README.md) に従う。
+テストの目的、スコープ、ケース、実行方法は [テスト戦略](../../testing/README.md) に従う。
 
 ## 1. CI の段階構成
 
@@ -33,4 +33,4 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 ## 4. デプロイとの関係
 
 CI 失敗時もデプロイ連携そのものは停止しないため、main 反映前のレビューと CI 成功確認を運用で徹底する。
-公開構成、環境変数、デプロイ運用の詳細は [デプロイ構成](../deployment/README.md) に従う。
+公開構成、環境変数、デプロイ運用の詳細は [デプロイ構成](../../deployment/README.md) に従う。

@@ -9,7 +9,7 @@
 - バックエンドは Docker Compose 上の Spring Boot DevTools と Maven compile 監視により、Java / resources 変更時に自動再起動する
 - CORS 設定をバックエンドで許可
 
-採用技術とバージョン方針は [技術スタック](technology.md) に集約する。
+採用技術とバージョン方針は [技術スタック](../technology/README.md) に集約する。
 
 ## Docker 開発方針
 

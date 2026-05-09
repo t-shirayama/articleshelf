@@ -65,6 +65,8 @@
 - 実装・設計・ドキュメントの整合を保ち、変更の意図があとから追える状態を維持する
 - 実装だけを先行させず、必要な仕様・設計・運用文書を同じ作業内で同期する
 - 置き換えや仕様変更で不要になったコード、設定、スクリプト、ドキュメント参照は同じ作業内で削除し、未使用のまま残さない
+- `docs/<area>/` 直下は原則として `README.md` と責務別フォルダだけを置き、画像・スクリーンショット・生成キャプチャなどの資産専用フォルダだけを例外とする
+- `docs/<area>/<responsibility>/` 配下は、小さな責務なら `README.md` のみ、複数の読者・更新理由・正本が混ざる場合は `README.md` を索引にして詳細 `.md` を分割する
 
 ### 2. コード変更時のドキュメント更新
 
@@ -72,11 +74,11 @@
 - Codex は、コード修正だけで作業を完了してはいけない。関連ドキュメントの更新有無まで確認してから完了報告する
 - ドキュメント更新が不要だと判断した場合も、完了報告で「なぜ不要だったか」を一言添える
 - ドキュメント更新の対象は、変更に直接関係する文書のみとし、毎回すべての文書を更新する必要はない
-- 追加したい機能、構想段階のアイデア、残作業、技術的負債は `docs/requirements/backlog.md` に集約する
-- `docs/requirements/backlog.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
+- 追加したい機能、構想段階のアイデア、残作業、技術的負債は `docs/requirements/backlog/README.md` に集約する
+- `docs/requirements/backlog/README.md` に書いた内容は、実装時期や仕様が具体化した段階で `docs/specification/README.md` または `docs/specification/` 配下へ反映する
 - どの文書を更新すべきかは、以下を基準に判断する
   - 要件や目的の変更: `docs/requirements/README.md`
-  - 構想段階の追加案、残作業、技術的負債: `docs/requirements/backlog.md`
+  - 構想段階の追加案、残作業、技術的負債: `docs/requirements/backlog/README.md`
   - 機能仕様や API 契約の変更: `docs/specification/features/README.md` または `docs/specification/api/README.md`
   - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security/README.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specification/auth/README.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
@@ -125,10 +127,10 @@
 
 ### 6. Backlog の扱い
 
-- `docs/requirements/backlog.md` は、タスク、残作業、構想段階の案、技術的負債の唯一の記録先として扱う
-- 各仕様書、設計書、運用文書には現在の仕様・設計・運用だけを書き、追加対応や構想段階の事項は `docs/requirements/backlog.md` へ集約する
-- 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ `docs/requirements/backlog.md` に記録する
-- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/requirements/backlog.md` に追記候補として残す
+- `docs/requirements/backlog/README.md` は、タスク、残作業、構想段階の案、技術的負債の唯一の記録先として扱う
+- 各仕様書、設計書、運用文書には現在の仕様・設計・運用だけを書き、追加対応や構想段階の事項は `docs/requirements/backlog/README.md` へ集約する
+- 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ `docs/requirements/backlog/README.md` に記録する
+- 作業中に優先度の高い未実装事項や技術的負債を見つけた場合は、今回の対応範囲外でも `docs/requirements/backlog/README.md` に追記候補として残す
 
 ### 7. README の扱い
 

@@ -1,6 +1,6 @@
 ---
 name: articleshelf-change-sync
-description: Keep ArticleShelf implementation, documentation, and verification aligned when changing frontend, backend, API contracts, persistence, UI behavior, project setup, or operational rules. Use this for any code change that may require updates to docs/designs/README.md, docs/specification/README.md, docs/specification/*, docs/architecture/README.md, docs/architecture/*, docs/requirements/backlog.md, README.md, or AGENTS.md.
+description: Keep ArticleShelf implementation, documentation, and verification aligned when changing frontend, backend, API contracts, persistence, UI behavior, project setup, or operational rules. Use this for any code change that may require updates to docs/designs/README.md, docs/specification/README.md, docs/specification/*, docs/architecture/README.md, docs/architecture/*, docs/requirements/backlog/README.md, README.md, or AGENTS.md.
 ---
 
 # ArticleShelf Change Sync
@@ -16,7 +16,7 @@ Use this skill to avoid implementation/documentation drift in ArticleShelf.
    - Feature or API behavior: `docs/specification/features/README.md`, `docs/specification/api/README.md`, or `docs/specification/auth/account-api.md`
    - UI behavior or visual rules: `docs/designs/README.md` and usually `docs/specification/ui/README.md`
    - Architecture, persistence, or responsibility boundaries: `docs/architecture/README.md` or `docs/architecture/*`
-   - Future tasks, known gaps, temporary workarounds, or technical debt: `docs/requirements/backlog.md`
+   - Future tasks, known gaps, temporary workarounds, or technical debt: `docs/requirements/backlog/README.md`
    - Setup, scripts, or onboarding: `README.md`
    - Agent or workflow rules: `AGENTS.md`
 4. Remove obsolete code, config, or docs references made unnecessary by the change.
@@ -30,5 +30,6 @@ Use this skill to avoid implementation/documentation drift in ArticleShelf.
 
 - Do not run local `mvn`; Maven checks should go through Docker.
 - Do not add tests automatically during MVP iteration unless the user asks or the risk is high.
-- If docs and implementation disagree, either ask which is authoritative or update the relevant specification/design/architecture doc. Future follow-up work belongs in `docs/requirements/backlog.md`.
+- Keep `docs/<area>/` direct children to `README.md` plus responsibility folders, except asset-only folders such as images and generated screenshots. In responsibility folders, keep small topics in `README.md`; split detailed `.md` files only when readers, update reasons, or source-of-truth boundaries differ.
+- If docs and implementation disagree, either ask which is authoritative or update the relevant specification/design/architecture doc. Future follow-up work belongs in `docs/requirements/backlog/README.md`.
 - Keep final reports concise, but always mention documentation updates and verification.

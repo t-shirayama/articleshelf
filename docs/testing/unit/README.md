@@ -60,7 +60,7 @@ UT は、外部 I/O に依存しない小さな単位で仕様を固定する。
 
 ## 5. 実行方法
 
-テストツールの採用一覧は [技術スタック](../../architecture/technology.md) に集約する。
+テストツールの採用一覧は [技術スタック](../../architecture/technology/README.md) に集約する。
 現行実装では `frontend/package.json` の `npm run test:unit` でフロントエンド UT を実行する。
 coverage 確認は `npm run test:unit:coverage` で実行し、text summary と `frontend/coverage/` の HTML / lcov report を確認する。
 バックエンドは `spring-boot-starter-test`, `spring-security-test`, `h2` を使い、`docker compose run --rm backend mvn test` で実行する。

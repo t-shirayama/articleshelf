@@ -37,14 +37,14 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 ## 4. 現在の前提
 
-- 採用技術と推奨バージョンは [技術スタック](../architecture/technology.md) に従う
+- 採用技術と推奨バージョンは [技術スタック](../architecture/technology/README.md) に従う
 - フロントエンド確認: `npm run build`
 - フロントエンド UT: `npm run test:unit`
 - フロントエンド UT coverage: `npm run test:unit:coverage`
 - ブラウザ E2E: `npm run test:e2e`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
-- CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd.md) に従う
+- CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 
 ## 5. 完了条件
 

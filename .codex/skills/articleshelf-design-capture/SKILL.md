@@ -39,7 +39,7 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 4. Verify that the captures still represent the current product accurately.
    Check that the desktop list, account settings dialog, detail view mode, detail edit mode, add modal, and mobile list all render successfully.
    If the current implementation differs from the design docs, update `docs/designs/screenshots/README.md` and the relevant design doc in the same task.
-   If there are meaningful UI gaps that should not silently replace the intended design, record follow-up work in `docs/requirements/backlog.md`.
+   If there are meaningful UI gaps that should not silently replace the intended design, record follow-up work in `docs/requirements/backlog/README.md`.
 
 5. Run verification appropriate to the touched files.
    When only the screenshot script or docs change, run `npm run build` in `frontend/` after script edits.
@@ -85,5 +85,5 @@ If the script captures new screens or dialogs, add the filenames to `docs/design
 - `docs/designs/screenshots/**/*.png`
 - `docs/designs/screenshots/README.md`
 - the relevant `docs/designs/**/README.md` or detailed design file when there is an intentional UI spec change
-- `docs/requirements/backlog.md` when there is an intentional mismatch or follow-up
+- `docs/requirements/backlog/README.md` when there is an intentional mismatch or follow-up
 - `frontend/scripts/capture-design-screenshots.mjs` when capture steps or selectors need to change

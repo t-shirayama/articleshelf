@@ -1,7 +1,7 @@
 # 非機能仕様
 
 ArticleShelf の品質属性と運用上守るべき仕様を定義する。
-採用技術、推奨バージョン、開発環境は [../../architecture/technology.md](../../architecture/technology.md) に分ける。
+採用技術、推奨バージョン、開発環境は [../../architecture/technology/README.md](../../architecture/technology/README.md) に分ける。
 
 ## 1. セキュリティ
 

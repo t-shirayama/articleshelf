@@ -1,7 +1,7 @@
 # Technology Stack
 
 ArticleShelf の実装、開発環境、テストで採用する主要技術を定義する。
-公開インフラ、環境変数、デプロイ運用の詳細は [デプロイ構成](../deployment/README.md) に従う。
+公開インフラ、環境変数、デプロイ運用の詳細は [デプロイ構成](../../deployment/README.md) に従う。
 
 ## 1. アプリケーション構成
 
@@ -45,4 +45,4 @@ Docker、CI、lockfile 前提の `npm ci` も同じ基準に揃える。
 | バックエンド coverage | JaCoCo |
 | バックエンド静的解析 | SpotBugs |
 
-具体的なテスト範囲、コマンド、CI の段階実行は [テスト戦略](../testing/README.md) に従う。
+具体的なテスト範囲、コマンド、CI の段階実行は [テスト戦略](../../testing/README.md) に従う。
