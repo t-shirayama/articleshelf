@@ -329,6 +329,13 @@ async function main() {
       return;
     }
 
+    if (captureTarget === "desktop-article-detail-edit") {
+      await captureDesktopDetailEdit(page);
+      await context.close();
+      console.log(`Captured desktop detail edit screenshot in ${outputDir}`);
+      return;
+    }
+
     await captureAuthLogin(browser);
     await captureDesktopList(page);
     await captureDesktopDetailView(page);
