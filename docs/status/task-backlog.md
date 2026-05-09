@@ -17,10 +17,8 @@
 
 - お気に入り導線の強化
 - モバイル操作の磨き込み
-  - ハンバーガードロワー
-  - ボトムナビ
-  - 全画面追加モーダル
-  - スマホ向けカレンダー
+  - 実機での 375px / 390px / 600px / 820px 表示の継続確認
+  - 長い日本語 / English 文言、タグ数が多いケース、Markdown 表示の追加確認
 
 ### 2.2 既存機能の補強
 
@@ -39,7 +37,7 @@
 
 - OGP stub server の採用検討
 - Testcontainers PostgreSQL の採用検討
-- スマホ UI 実装後の mobile project E2E 追加
+- mobile project E2E の対象ケース拡充
 
 ### 3.2 将来拡張
 

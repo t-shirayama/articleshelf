@@ -96,7 +96,7 @@ function createDraft(value?: Partial<FilterDraft>): FilterDraft {
 </script>
 
 <template>
-  <VDialog :model-value="open" max-width="640" @update:model-value="value => { if (!value) emit('close') }">
+  <VDialog :model-value="open" max-width="640" content-class="filter-dialog-overlay" @update:model-value="value => { if (!value) emit('close') }">
     <VCard class="filter-dialog">
       <header class="article-modal-header filter-dialog-title-row">
         <h2>{{ t('filters.title') }}</h2>

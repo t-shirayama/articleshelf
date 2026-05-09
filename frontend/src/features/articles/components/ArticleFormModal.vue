@@ -74,7 +74,7 @@ function submit(): void {
 </script>
 
 <template>
-  <VDialog :model-value="props.open" max-width="640" @update:model-value="handleDialogUpdate">
+  <VDialog :model-value="props.open" max-width="640" content-class="article-modal-overlay" @update:model-value="handleDialogUpdate">
     <VCard class="article-modal">
       <header class="article-modal-header">
         <h2>{{ t('articleForm.titleAdd') }}</h2>

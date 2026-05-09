@@ -305,6 +305,27 @@
   padding: var(--shell-panel-padding);
 }
 
+.mobile-app-header,
+.mobile-bottom-nav {
+  display: none;
+}
+
+.mobile-navigation-drawer {
+  display: none;
+}
+
+.mobile-drawer-inner {
+  display: grid;
+  min-height: 100%;
+  gap: 22px;
+  padding: 18px;
+  background: rgba(255, 253, 250, 0.96);
+}
+
+.mobile-drawer-account {
+  margin-top: auto;
+}
+
 .page-header {
   flex: 0 0 auto;
   display: grid;

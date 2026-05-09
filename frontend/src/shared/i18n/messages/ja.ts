@@ -92,6 +92,13 @@ export const ja = {
       account: 'アカウント',
       logout: 'ログアウト'
     },
+    mobile: {
+      menu: 'ナビゲーションメニュー',
+      openMenu: 'メニューを開く',
+      bottomNavigation: 'モバイル下部ナビゲーション',
+      allArticles: 'すべて',
+      addArticle: '追加'
+    },
     articles: {
       add: '記事を追加',
       firstAdd: '最初の記事を追加',
@@ -219,6 +226,8 @@ export const ja = {
       read: '既読',
       backlogDiff: '積読差分',
       articleCount: '{count}件',
+      dayArticles: '{date}の記事',
+      noDayArticles: 'この日の記事はありません',
       weekdays: {
         sun: '日',
         mon: '月',

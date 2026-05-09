@@ -298,7 +298,67 @@ async function captureMobileList(page) {
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
   await page.waitForSelector(".article-list", { timeout: 30000 });
   await page.waitForTimeout(700);
-  await saveScreenshot(page, "mobile_article_list.png", { fullPage: true });
+  await saveScreenshot(page, "mobile_article_list.png");
+}
+
+async function openMobileArticleList(page) {
+  await page.setViewportSize(mobileViewport);
+  await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(".article-list", { timeout: 30000 });
+  await page.waitForSelector(".mobile-app-header", { timeout: 30000 });
+  await page.waitForTimeout(700);
+}
+
+async function captureMobileDrawer(page) {
+  await openMobileArticleList(page);
+  await page.locator(".mobile-menu-button").click();
+  await page.waitForSelector(".mobile-navigation-drawer", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_drawer.png");
+}
+
+async function captureMobileAddModal(page) {
+  await openMobileArticleList(page);
+  await page.locator(".mobile-bottom-nav").getByRole("button", { name: "追加" }).click();
+  await page.waitForSelector(".article-modal", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_add_article_modal.png");
+}
+
+async function captureMobileDetailView(page) {
+  await openMobileArticleList(page);
+  await page.locator(".article-card").first().click();
+  await page.waitForSelector(".detail-page", { timeout: 30000 });
+  await page.waitForTimeout(700);
+  await saveScreenshot(page, "mobile_detail_view.png", { fullPage: true });
+}
+
+async function captureMobileDetailEdit(page) {
+  await openMobileArticleList(page);
+  await page.locator(".article-card").first().click();
+  await page.waitForSelector(".detail-page", { timeout: 30000 });
+  await page.getByRole("button", { name: "編集", exact: true }).click();
+  await page.waitForSelector(".detail-page.is-editing", { timeout: 30000 });
+  await page.waitForTimeout(700);
+  await saveScreenshot(page, "mobile_detail_edit.png", { fullPage: true });
+}
+
+async function captureMobileFilterDialog(page) {
+  await openMobileArticleList(page);
+  await page.getByRole("button", { name: "フィルタ" }).click();
+  await page.waitForSelector(".filter-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_filter_dialog.png");
+}
+
+async function captureMobileCalendarDaySheet(page) {
+  await openMobileArticleList(page);
+  await page.locator(".mobile-bottom-nav").getByRole("button", { name: "カレンダー" }).click();
+  await page.waitForSelector(".calendar-view", { timeout: 30000 });
+  await page.locator(".calendar-day.has-articles").first().locator(".calendar-day-header").click();
+  await page.waitForSelector(".calendar-day-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "mobile_calendar_day_sheet.png");
 }
 
 async function main() {
@@ -350,6 +410,12 @@ async function main() {
     await captureDeleteArticleDialog(page);
     await captureAccountSettingsDialog(page);
     await captureMobileList(page);
+    await captureMobileDrawer(page);
+    await captureMobileAddModal(page);
+    await captureMobileDetailView(page);
+    await captureMobileDetailEdit(page);
+    await captureMobileFilterDialog(page);
+    await captureMobileCalendarDaySheet(page);
 
     await context.close();
     console.log(`Captured design screenshots in ${outputDir}`);

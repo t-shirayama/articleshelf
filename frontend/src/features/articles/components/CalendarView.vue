@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   CalendarDays,
@@ -34,6 +34,8 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n();
+const selectedCalendarCell = ref<CalendarCell | null>(null);
+const calendarDayDialogOpen = ref(false);
 const mode = computed({
   get: () => props.mode,
   set: (value: CalendarMode) => emit("update:mode", value),
@@ -123,6 +125,16 @@ const calendarCells = computed<CalendarCell[]>(() => {
 
   return cells;
 });
+const selectedDayTitle = computed(() => {
+  if (!selectedCalendarCell.value) return "";
+  const [year, month, day] = selectedCalendarCell.value.date.split("-");
+  return t("calendar.dayArticles", {
+    date:
+      locale.value === "ja"
+        ? `${Number(month)}/${Number(day)}`
+        : `${Number(month)}/${Number(day)}/${year}`,
+  });
+});
 
 function articlesForDate(key: string): Article[] {
   return props.articles.filter((article) => {
@@ -140,6 +152,17 @@ function moveMonth(offset: number): void {
     visibleMonth.value.getMonth() + offset,
     1,
   )));
+}
+
+function openCalendarCell(cell: CalendarCell): void {
+  if (cell.outside || cell.articles.length === 0) return;
+  selectedCalendarCell.value = cell;
+  calendarDayDialogOpen.value = true;
+}
+
+function openArticleFromDaySheet(article: Article): void {
+  calendarDayDialogOpen.value = false;
+  emit("open-article", article);
 }
 
 function isInVisibleMonth(key: string): boolean {
@@ -273,6 +296,7 @@ function monthKeyToDate(monthKey: string): Date {
           'is-saturday': cell.weekday === 6,
         }"
         role="gridcell"
+        @click="openCalendarCell(cell)"
       >
         <template v-if="!cell.outside">
           <div class="calendar-day-header">
@@ -284,11 +308,11 @@ function monthKeyToDate(monthKey: string): Date {
 
           <div class="calendar-day-articles">
             <button
-              v-for="article in cell.articles"
+            v-for="article in cell.articles"
               :key="article.id"
               class="calendar-article-link"
               type="button"
-              @click="emit('open-article', article)"
+              @click.stop="emit('open-article', article)"
             >
               <CalendarDays :size="13" />
               <span>{{ article.title }}</span>
@@ -297,5 +321,37 @@ function monthKeyToDate(monthKey: string): Date {
         </template>
       </div>
     </div>
+
+    <VDialog
+      v-model="calendarDayDialogOpen"
+      max-width="420"
+      content-class="calendar-day-dialog-overlay"
+    >
+      <VCard class="calendar-day-dialog">
+        <header class="article-modal-header calendar-day-dialog-header">
+          <h2>{{ selectedDayTitle }}</h2>
+          <div class="article-modal-header-actions">
+            <VBtn class="action-button action-button-secondary" variant="outlined" @click="calendarDayDialogOpen = false">
+              {{ t("common.close") }}
+            </VBtn>
+          </div>
+        </header>
+        <VCardText class="calendar-day-dialog-body">
+          <p v-if="!selectedCalendarCell?.articles.length" class="tag-editor-empty">
+            {{ t("calendar.noDayArticles") }}
+          </p>
+          <button
+            v-for="article in selectedCalendarCell?.articles || []"
+            :key="article.id"
+            class="calendar-day-sheet-article"
+            type="button"
+            @click="openArticleFromDaySheet(article)"
+          >
+            <CalendarDays :size="16" />
+            <span>{{ article.title }}</span>
+          </button>
+        </VCardText>
+      </VCard>
+    </VDialog>
   </section>
 </template>
