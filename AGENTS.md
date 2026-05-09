@@ -80,7 +80,7 @@
   - 機能仕様や API 契約の変更: `docs/specification/README.md`
   - セキュリティ対策、認証/認可、CSRF/CORS、secret、rate limit、SSRF、Markdown sanitization の変更: `docs/specification/security.md` を必ず更新し、必要に応じて `docs/requirements/non-functional/security.md`、`docs/specification/authentication.md`、`docs/deployment/README.md`、`docs/testing/README.md` も同期する
   - 構成、責務分割、データフロー、永続化方針の変更: `docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書
-  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md`
+  - 画面構成、UI 挙動、操作フロー、見た目の変更: `docs/designs/README.md` と、必要に応じて `docs/designs/components/README.md` / `docs/designs/responsive/README.md` / `docs/designs/responsive/mobile.md`
   - 起動方法、開発手順、プロジェクト概要の更新: `README.md`
 
 ### 3. 実装とドキュメントの差分ルール
@@ -107,11 +107,11 @@
 - API を変更した場合は、リクエスト/レスポンス、エンドポイント、関連仕様を `docs/specification/README.md` に反映する
 - セキュリティ対策を追加・変更した場合は、`docs/specification/security.md` と関連するテスト観点を同じ作業内で更新する
 - データモデルや永続化方針を変更した場合は、`docs/architecture/README.md` または `docs/architecture/` 配下の詳細文書と、必要に応じて `docs/specification/README.md` を更新する
-- UI や操作フローを変更した場合は、`docs/designs/README.md` を確認し、差分があるなら更新する
+- UI や操作フローを変更した場合は、`docs/designs/README.md` から関連する design docs を確認し、差分があるなら更新する
 - UI や見た目を修正する場合は、実装前に `docs/designs/README.md` のデザイン判断ルール（近接・整列・反復・対比）を参照する
 - UI や見た目を修正する場合は、完了前に近接・整列・反復・対比の4原則で確認し、特に入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
 - UI や操作フローに影響するコード変更では、`docs/designs/screenshots/` の該当スクリーンショットも同じ作業内で更新し、差分があるのに古い画像を残さない
-- UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件と現行 UI 仕様がずれていないか確認する
+- UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件、`docs/designs/screenshots/README.md`、現行 UI 仕様がずれていないか確認する
 - UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する。`127.0.0.1` と `localhost` を混在させない
 - UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認し、アプリ本体のコードを疑う前に起動経路とブラウザ依存を切り分ける
 - UI 文言を変更する場合は表記揺れを確認し、非破壊のモーダル終了は「閉じる」、削除確認など確認操作の中止は「キャンセル」と表記する

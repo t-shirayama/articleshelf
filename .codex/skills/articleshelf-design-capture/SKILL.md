@@ -1,11 +1,11 @@
 ---
 name: articleshelf-design-capture
-description: Refresh screenshots under `docs/designs/screenshots/` from the current ArticleShelf implementation. Use when UI changes make design images stale, when `docs/designs/README.md` needs to match the live app, or when a user asks to replace mock images with current implementation screenshots.
+description: Refresh screenshots under `docs/designs/screenshots/` from the current ArticleShelf implementation. Use when UI changes make design images stale, when `docs/designs/screenshots/README.md` needs to match the live app, or when a user asks to replace mock images with current implementation screenshots.
 ---
 
 # ArticleShelf Design Capture
 
-Refresh `docs/designs/screenshots/*.png` from the running app instead of hand-maintaining static mockups.
+Refresh `docs/designs/screenshots/**/*.png` from the running app instead of hand-maintaining static mockups.
 Prefer this skill over a git hook because screenshot capture depends on app state, viewport control, and a human decision about when the UI meaningfully changed.
 
 ## Workflow
@@ -38,8 +38,8 @@ Prefer this skill over a git hook because screenshot capture depends on app stat
 
 4. Verify that the captures still represent the current product accurately.
    Check that the desktop list, account settings dialog, detail view mode, detail edit mode, add modal, and mobile list all render successfully.
-   If the current implementation differs from the design docs, update `docs/designs/README.md` in the same task.
-   If there are meaningful UI gaps that should not silently replace the intended design, record them in `docs/status/project-status.md`.
+   If the current implementation differs from the design docs, update `docs/designs/screenshots/README.md` and the relevant design doc in the same task.
+   If there are meaningful UI gaps that should not silently replace the intended design, record follow-up work in `docs/requirements/backlog.md`.
 
 5. Run verification appropriate to the touched files.
    When only the screenshot script or docs change, run `npm run build` in `frontend/` after script edits.
@@ -65,7 +65,7 @@ Avoid this failed pattern unless the script has been explicitly updated and veri
 
 This keeps screenshots independent from the developer's current browser state, existing local data, and Playwright API cookie behavior.
 
-If the script captures new screens or dialogs, add the filenames to `docs/designs/README.md` and include user-facing README images when appropriate.
+If the script captures new screens or dialogs, add the filenames to `docs/designs/screenshots/README.md` and include user-facing README images when appropriate.
 
 ## Notes
 
@@ -82,7 +82,8 @@ If the script captures new screens or dialogs, add the filenames to `docs/design
 
 ## Files To Touch Together
 
-- `docs/designs/screenshots/*.png`
-- `docs/designs/README.md`
-- `docs/status/project-status.md` when there is an intentional mismatch or follow-up
+- `docs/designs/screenshots/**/*.png`
+- `docs/designs/screenshots/README.md`
+- the relevant `docs/designs/**/README.md` or detailed design file when there is an intentional UI spec change
+- `docs/requirements/backlog.md` when there is an intentional mismatch or follow-up
 - `frontend/scripts/capture-design-screenshots.mjs` when capture steps or selectors need to change

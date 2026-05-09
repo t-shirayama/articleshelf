@@ -31,7 +31,7 @@
 
 ## UI 方針との関係
 
-- UI の詳細ルールは `docs/designs/README.md` を正とする
-- デスクトップ、ノート PC、タブレット、スマホのレスポンシブ仕様は `docs/designs/responsive.md` を参照する
-- スマホ固有の詳細仕様は `docs/designs/mobile-responsive.md` を参照する
-- UI 変更時は design docs とスクリーンショット更新要否を確認する
+- UI の共通方針は `docs/designs/README.md`、画面別コンポーネントルールは `docs/designs/components/README.md` を参照する
+- デスクトップ、ノート PC、タブレット、スマホのレスポンシブ仕様は `docs/designs/responsive/README.md` を参照する
+- スマホ固有の詳細仕様は `docs/designs/responsive/mobile.md` を参照する
+- UI 変更時は design docs と `docs/designs/screenshots/README.md` の更新要否を確認する
