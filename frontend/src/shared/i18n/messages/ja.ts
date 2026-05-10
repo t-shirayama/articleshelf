@@ -120,6 +120,7 @@ export const ja = {
       addFavorite: 'お気に入りに追加',
       removeFavorite: 'お気に入りを解除',
       deleteArticle: '記事を削除',
+      openArticleDetail: '{title} の詳細を開く',
       thumbnailAlt: '{title} のサムネイル',
       dateListLabel: '記事の日付',
       motivationLabel: '学習継続のメッセージ',

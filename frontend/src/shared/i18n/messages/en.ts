@@ -120,6 +120,7 @@ export const en = {
       addFavorite: 'Add to favorites',
       removeFavorite: 'Remove from favorites',
       deleteArticle: 'Delete article',
+      openArticleDetail: 'Open {title} details',
       thumbnailAlt: '{title} thumbnail',
       dateListLabel: 'Article dates',
       motivationLabel: 'Learning encouragement',
