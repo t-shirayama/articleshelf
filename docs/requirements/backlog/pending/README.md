@@ -30,7 +30,6 @@
 - [Web adapter 境界の責務整理](cleanup-web-adapter-boundaries.md)
 - [カレンダー domain helper と keyboard 操作改善](improve-calendar-domain-and-keyboard.md)
 - [記事一覧 pagination / query model 導入](add-article-pagination-query-model.md)
-- [Frontend 認証 session contract 整理](cleanup-frontend-auth-session-contract.md)
 - [認証インフラ境界と運用シグナル強化](harden-auth-infrastructure-boundaries.md)
 
 ### P3
