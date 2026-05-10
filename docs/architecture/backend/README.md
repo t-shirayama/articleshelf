@@ -22,6 +22,17 @@
 - `backend/src/test/java/com/articleshelf/architecture/CleanArchitectureDependencyTest.java` で、`domain` から外側の層や Spring/Jakarta への依存、`application` から `adapter` / `infrastructure` / `config` への依存、`adapter` から `infrastructure` / `config` への依存、`infrastructure` から `adapter` への依存を検査する
 - GitHub Actions の `backend-check` job は `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest` を実行するため、この依存関係チェックも CI で必ず実行される
 
+## Backend 品質ゲート
+
+backend の CI は、構造の崩れ、静的解析の指摘、ドメイン / アプリケーション層のテスト不足、PostgreSQL 方言差、主要導線の破壊を段階的に検知する。
+
+- `backend-check`: Docker 経由の Maven で compile、SpotBugs、Clean Architecture dependency test を実行する
+- `backend-unit`: domain / application を中心に UT を coverage 付きで実行し、JaCoCo CSV から domain / application line coverage 80% 以上を要求する
+- `backend-integration`: Spring Boot と PostgreSQL 実体を使い、認証境界、Repository 検索、DB 制約、JPA validate を確認する
+- `e2e`: backend / frontend / DB を Compose で起動し、記事追加や認証を含む P0 導線を Playwright Chromium で確認する
+
+CI の段階構成とコマンドは [CI / CD Architecture](../ci-cd/README.md)、テストの役割分担は [テスト戦略](../../testing/README.md) を正本とする。
+
 ## パッケージ構成
 
 - `com.articleshelf.domain.article`

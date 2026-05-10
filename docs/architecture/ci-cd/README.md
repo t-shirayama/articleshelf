@@ -25,8 +25,10 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 ## 3. 品質ゲート
 
 - backend は Docker 経由で Maven を実行し、ローカル Maven の有無に依存しない
+- `backend-check` は compile、SpotBugs、Clean Architecture dependency test を実行し、コンパイル不能、静的解析違反、レイヤー依存違反を早い段階で止める
+- `backend-unit` は JaCoCo coverage 付きで domain / application 中心の UT を実行し、domain / application line coverage 80% 未満を失敗にする
+- `backend-integration` は Spring Boot と PostgreSQL 実体で認証境界、Repository 検索、DB 制約、JPA validate を確認する
 - frontend は型チェックと Vite build を CI の早い段階で確認する
-- backend coverage は JaCoCo CSV から domain / application 層の line coverage を集計し、80% 未満なら失敗させる
 - E2E はフロントエンド、バックエンド、DB を Compose 経由で起動し、主要導線の破壊を検知する
 
 ## 4. デプロイとの関係

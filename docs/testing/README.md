@@ -47,6 +47,8 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 
+Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
+
 ## 5. 完了条件
 
 リリース前の最小完了条件は達成済み。現在の基準は次の通り。
