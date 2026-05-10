@@ -51,88 +51,92 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ArticleNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFound(RuntimeException exception) {
-        return ErrorResponse.of(message("error.article.notFound"));
+        return ErrorResponse.of("ARTICLE_NOT_FOUND", message("error.article.notFound"));
     }
 
     @ExceptionHandler(DuplicateArticleUrlException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleConflict(DuplicateArticleUrlException exception) {
-        return ErrorResponse.ofDuplicateArticle(message("error.article.duplicateUrl"), exception.getExistingArticleId());
+        return ErrorResponse.ofDuplicateArticle(
+                "ARTICLE_DUPLICATE_URL",
+                message("error.article.duplicateUrl"),
+                exception.getExistingArticleId()
+        );
     }
 
     @ExceptionHandler(DuplicateTagNameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateTagName(DuplicateTagNameException exception) {
         if (exception.getReason() == DuplicateTagNameException.Reason.MERGE_TARGET_SAME) {
-            return ErrorResponse.of(message("error.tag.mergeSame"));
+            return ErrorResponse.of("TAG_MERGE_TARGET_SAME", message("error.tag.mergeSame"));
         }
-        return ErrorResponse.of(message("error.tag.duplicate"));
+        return ErrorResponse.of("TAG_DUPLICATE_NAME", message("error.tag.duplicate"));
     }
 
     @ExceptionHandler(TagInUseException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleTagInUse(TagInUseException exception) {
-        return ErrorResponse.of(message("error.tag.inUse"));
+        return ErrorResponse.of("TAG_IN_USE", message("error.tag.inUse"));
     }
 
     @ExceptionHandler(TagNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleTagNotFound(TagNotFoundException exception) {
-        return ErrorResponse.of(message("error.tag.notFound"));
+        return ErrorResponse.of("TAG_NOT_FOUND", message("error.tag.notFound"));
     }
 
     @ExceptionHandler(ArticleUrlUnavailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleUnavailableUrl(ArticleUrlUnavailableException exception) {
-        return ErrorResponse.of(message("error.article.urlUnavailable"));
+        return ErrorResponse.of("ARTICLE_URL_UNAVAILABLE", message("error.article.urlUnavailable"));
     }
 
     @ExceptionHandler(AuthException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleAuth(AuthException exception) {
         if (exception.getReason() == AuthException.Reason.INVALID_REFRESH_TOKEN) {
-            return ErrorResponse.of(message("error.auth.refreshInvalid"));
+            return ErrorResponse.of("AUTH_REFRESH_INVALID", message("error.auth.refreshInvalid"));
         }
-        return ErrorResponse.of(message("error.auth.invalidCredentials"));
+        return ErrorResponse.of("AUTH_INVALID_CREDENTIALS", message("error.auth.invalidCredentials"));
     }
 
     @ExceptionHandler(CsrfValidationException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public ErrorResponse handleCsrf(RuntimeException exception) {
-        return ErrorResponse.of(message("error.auth.csrf"));
+        return ErrorResponse.of("AUTH_CSRF_INVALID", message("error.auth.csrf"));
     }
 
     @ExceptionHandler(AuthRateLimitExceededException.class)
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
     public ErrorResponse handleAuthRateLimit(AuthRateLimitExceededException exception) {
-        return ErrorResponse.of(message("error.auth.rateLimited"));
+        return ErrorResponse.of("AUTH_RATE_LIMITED", message("error.auth.rateLimited"));
     }
 
     @ExceptionHandler(DuplicateUsernameException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleDuplicateUsername(DuplicateUsernameException exception) {
-        return ErrorResponse.of(message("error.auth.duplicateUsername"));
+        return ErrorResponse.of("AUTH_DUPLICATE_USERNAME", message("error.auth.duplicateUsername"));
     }
 
     @ExceptionHandler(AccountNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleAccountNotFound(AccountNotFoundException exception) {
-        return ErrorResponse.of(message("error.auth.accountNotFound"));
+        return ErrorResponse.of("AUTH_ACCOUNT_NOT_FOUND", message("error.auth.accountNotFound"));
     }
 
     @ExceptionHandler(PasswordPolicyException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlePasswordPolicy(PasswordPolicyException exception) {
         if (exception.getReason() == PasswordPolicyException.Reason.SAME_AS_USERNAME) {
-            return ErrorResponse.of(message("error.auth.passwordSameAsUsername"));
+            return ErrorResponse.of("PASSWORD_SAME_AS_USERNAME", message("error.auth.passwordSameAsUsername"));
         }
-        return ErrorResponse.of(message("error.auth.passwordSize"));
+        return ErrorResponse.of("PASSWORD_POLICY", message("error.auth.passwordSize"));
     }
 
     @ExceptionHandler(UsernamePolicyException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleUsernamePolicy(UsernamePolicyException exception) {
-        return ErrorResponse.of(message("error.auth.usernamePolicy"));
+        return ErrorResponse.of("USERNAME_POLICY", message("error.auth.usernamePolicy"));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -141,13 +145,16 @@ public class ApiExceptionHandler {
         List<String> messages = exception.getBindingResult().getFieldErrors().stream()
                 .map(this::formatFieldError)
                 .toList();
-        return new ErrorResponse(Instant.now(), messages, null);
+        List<ErrorResponse.FieldErrorResponse> fieldErrors = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> new ErrorResponse.FieldErrorResponse(error.getField(), validationCode(error), formatFieldError(error)))
+                .toList();
+        return ErrorResponse.validation(messages, fieldErrors);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException exception) {
-        return ErrorResponse.of(formatTypeMismatch(exception.getName(), exception.getRequiredType()));
+        return ErrorResponse.of("TYPE_MISMATCH", formatTypeMismatch(exception.getName(), exception.getRequiredType()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -160,9 +167,9 @@ public class ApiExceptionHandler {
                     .map(reference -> reference.getFieldName())
                     .filter(name -> name != null && !name.isBlank())
                     .orElse("request");
-            return ErrorResponse.of(formatTypeMismatch(field, invalidFormatException.getTargetType()));
+            return ErrorResponse.of("TYPE_MISMATCH", formatTypeMismatch(field, invalidFormatException.getTargetType()));
         }
-        return ErrorResponse.of(message("error.request.invalidBody"));
+        return ErrorResponse.of("INVALID_REQUEST_BODY", message("error.request.invalidBody"));
     }
 
     @ExceptionHandler(ErrorResponseException.class)
@@ -182,7 +189,7 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleUnexpected(Exception exception) {
         log.error("Unhandled API exception", exception);
-        return ErrorResponse.of(message("error.request.internal"));
+        return ErrorResponse.of("INTERNAL_ERROR", message("error.request.internal"));
     }
 
     private String formatFieldError(FieldError error) {
@@ -217,6 +224,30 @@ public class ApiExceptionHandler {
         return arguments[1];
     }
 
+    private String validationCode(FieldError error) {
+        String code = error.getCode();
+        if ("NotBlank".equals(code) || "NotNull".equals(code)) {
+            return "REQUIRED";
+        }
+        if ("Size".equals(code)) {
+            return "SIZE";
+        }
+        if ("Pattern".equals(code)) {
+            return "PATTERN";
+        }
+        if ("URL".equals(code)) {
+            return "URL";
+        }
+        if ("Min".equals(code)) {
+            return "MIN";
+        }
+        if ("Max".equals(code)) {
+            return "MAX";
+        }
+        return "INVALID";
+    }
+
+
     private String formatTypeMismatch(String field, Class<?> requiredType) {
         String fieldName = message("field." + field);
         if (requiredType == null) {
@@ -243,7 +274,8 @@ public class ApiExceptionHandler {
 
     private ResponseEntity<ErrorResponse> frameworkErrorResponse(HttpStatusCode statusCode) {
         String key = statusCode.is4xxClientError() ? "error.request.invalid" : "error.request.internal";
-        return ResponseEntity.status(statusCode).body(ErrorResponse.of(message(key)));
+        String code = statusCode.is4xxClientError() ? "REQUEST_INVALID" : "INTERNAL_ERROR";
+        return ResponseEntity.status(statusCode).body(ErrorResponse.of(code, message(key)));
     }
 
     private Locale currentLocale() {
@@ -251,13 +283,26 @@ public class ApiExceptionHandler {
         return Locale.JAPANESE.getLanguage().equals(locale.getLanguage()) ? Locale.JAPANESE : Locale.ENGLISH;
     }
 
-    public record ErrorResponse(Instant timestamp, List<String> messages, UUID existingArticleId) {
-        static ErrorResponse of(String message) {
-            return new ErrorResponse(Instant.now(), List.of(message), null);
+    public record ErrorResponse(
+            Instant timestamp,
+            String code,
+            List<String> messages,
+            List<FieldErrorResponse> fieldErrors,
+            UUID existingArticleId
+    ) {
+        static ErrorResponse of(String code, String message) {
+            return new ErrorResponse(Instant.now(), code, List.of(message), List.of(), null);
         }
 
-        static ErrorResponse ofDuplicateArticle(String message, UUID existingArticleId) {
-            return new ErrorResponse(Instant.now(), List.of(message), existingArticleId);
+        static ErrorResponse ofDuplicateArticle(String code, String message, UUID existingArticleId) {
+            return new ErrorResponse(Instant.now(), code, List.of(message), List.of(), existingArticleId);
+        }
+
+        static ErrorResponse validation(List<String> messages, List<FieldErrorResponse> fieldErrors) {
+            return new ErrorResponse(Instant.now(), "VALIDATION_ERROR", messages, fieldErrors, null);
+        }
+
+        public record FieldErrorResponse(String field, String code, String message) {
         }
     }
 }
