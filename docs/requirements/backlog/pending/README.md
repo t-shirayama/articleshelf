@@ -11,22 +11,21 @@
 
 ### P1
 
-- [Article / Tag 永続化 Adapter 分割](split-article-tag-persistence-adapters.md)
-- [Article アプリケーションユースケース分割](split-article-application-usecases.md)
-- [ArticleCard accessibility 構造整理](fix-article-card-accessibility-structure.md)
-- [Article store state ownership 整理](simplify-article-store-state-ownership.md)
-- [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
-- [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [OGP SSRF DNS rebinding / TOCTOU 対策強化](harden-ogp-ssrf-dns-rebinding.md)
 - [OGP 取得の transaction 外分離](move-ogp-fetch-outside-transaction.md)
 - [Production DB TLS 起動ガード追加](enforce-production-db-tls.md)
-- [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [Refresh token rotation atomic 化](atomic-refresh-token-rotation.md)
 - [セッション Cookie と CSRF 責務の分離](split-session-cookie-csrf-responsibilities.md)
 
 ### P2
 
+- [Article / Tag 永続化 Adapter 分割](split-article-tag-persistence-adapters.md)
 - [Article ドメインモデル強化](enrich-article-domain-model.md)
+- [Article アプリケーションユースケース分割](split-article-application-usecases.md)
+- [ArticleCard accessibility 構造整理](fix-article-card-accessibility-structure.md)
+- [Article store state ownership 整理](simplify-article-store-state-ownership.md)
+- [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
+- [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [Backend observability metrics 追加](add-backend-observability-metrics.md)
 - [Frontend API client 強化](harden-frontend-api-client.md)
 - [Frontend CSP と Markdown security tests 強化](add-frontend-csp-and-markdown-security-tests.md)
@@ -36,6 +35,7 @@
 - [Machine-readable API エラー導入](introduce-machine-readable-api-errors.md)
 - [PDF インポート実データ品質改善](pdf-import-real-data-quality-improvement.md)
 - [Supply chain security scans 追加](add-supply-chain-security-scans.md)
+- [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [Web adapter 境界の責務整理](cleanup-web-adapter-boundaries.md)
 - [カレンダー domain helper と keyboard 操作改善](improve-calendar-domain-and-keyboard.md)
 - [記事一覧 pagination / query model 導入](add-article-pagination-query-model.md)
