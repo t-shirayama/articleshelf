@@ -16,6 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class AuthServiceTest {
@@ -139,5 +140,65 @@ class AuthServiceTest {
                 FIXED_NOW
         ));
         verify(refreshTokens).revokeAllByUserId(USER_ID, FIXED_NOW);
+    }
+
+    @Test
+    void refreshRevokesReplacementWhenAtomicReplaceDoesNotUpdateCurrentToken() {
+        AuthUserRepository users = mock(AuthUserRepository.class);
+        RefreshTokenRepository refreshTokens = mock(RefreshTokenRepository.class);
+        AccessTokenIssuer accessTokenIssuer = mock(AccessTokenIssuer.class);
+        RefreshTokenSecretService refreshTokenSecretService = mock(RefreshTokenSecretService.class);
+        AuthSettings settings = mock(AuthSettings.class);
+        AuthUser user = new AuthUser(
+                USER_ID,
+                "reader",
+                "hashed-password",
+                "Reader",
+                "USER",
+                UserStatus.ACTIVE,
+                FIXED_NOW.minus(1, ChronoUnit.DAYS),
+                Instant.EPOCH
+        );
+        RefreshTokenRecord current = new RefreshTokenRecord(
+                REFRESH_TOKEN_ID,
+                user,
+                FAMILY_ID,
+                FIXED_NOW.plus(1, ChronoUnit.DAYS),
+                null
+        );
+        UUID replacementId = UUID.fromString("00000000-0000-0000-0000-000000000004");
+        RefreshTokenRecord replacement = new RefreshTokenRecord(
+                replacementId,
+                user,
+                FAMILY_ID,
+                FIXED_NOW.plus(14, ChronoUnit.DAYS),
+                null
+        );
+        when(refreshTokenSecretService.hash("raw-refresh-token")).thenReturn("hashed-refresh-token");
+        when(refreshTokenSecretService.generateRawToken()).thenReturn("raw-replacement-token");
+        when(refreshTokens.findByTokenHash("hashed-refresh-token")).thenReturn(Optional.of(current));
+        when(refreshTokens.create(any(), eq("hashed-replacement-token"), eq(FAMILY_ID), any(), eq("JUnit"), eq("127.0.0.1")))
+                .thenReturn(replacement);
+        when(refreshTokenSecretService.hash("raw-replacement-token")).thenReturn("hashed-replacement-token");
+        when(settings.refreshTokenTtlDays()).thenReturn(14L);
+        when(refreshTokens.replaceIfActive(REFRESH_TOKEN_ID, replacementId, FIXED_NOW)).thenReturn(false);
+
+        AuthService service = new AuthService(
+                users,
+                refreshTokens,
+                mock(PasswordHasher.class),
+                accessTokenIssuer,
+                refreshTokenSecretService,
+                settings,
+                Clock.fixed(FIXED_NOW, ZoneOffset.UTC),
+                () -> FAMILY_ID,
+                new SecureRandom(new byte[]{1, 2, 3})
+        );
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.refresh("raw-refresh-token", "JUnit", "127.0.0.1"))
+                .isInstanceOf(AuthException.class);
+
+        verify(refreshTokens).revoke(replacementId, FIXED_NOW);
+        verifyNoInteractions(accessTokenIssuer);
     }
 }

@@ -113,7 +113,10 @@ public class AuthService {
         }
 
         CreatedRefreshToken replacement = createRefreshToken(user, current.familyId(), userAgent, ipAddress);
-        refreshTokenRepository.replace(current.id(), replacement.record().id(), now);
+        if (!refreshTokenRepository.replaceIfActive(current.id(), replacement.record().id(), now)) {
+            refreshTokenRepository.revoke(replacement.record().id(), now);
+            throw AuthException.invalidRefreshToken("refresh token is invalid");
+        }
         return new AuthResult(toAuthResponse(user), new RefreshSession(replacement.rawToken(), issueCsrfToken()));
     }
 

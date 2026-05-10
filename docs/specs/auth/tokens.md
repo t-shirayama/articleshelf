@@ -26,6 +26,8 @@
 - rotation:
   - login/register 成功時に `family_id` を作成する
   - refresh 成功時は同じ `family_id` で新 token を発行し、旧 token を失効する
+  - refresh token の検索は pessimistic write lock を取り、旧 token の `revoked_at is null` 条件付き update が成功した場合だけ replacement token を有効にする
+  - 条件付き update が失敗した場合は作成済み replacement token を即時失効し、refresh を失敗扱いにする
   - 失効済み token が再利用された場合、同一 family の未失効 token をすべて失効する
 
 ## 3. Cookie / CSRF

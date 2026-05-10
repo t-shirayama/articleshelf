@@ -11,7 +11,7 @@
 
 ### P1
 
-- [Refresh token rotation atomic 化](atomic-refresh-token-rotation.md)
+- 該当なし
 
 ### P2
 
