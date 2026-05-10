@@ -51,6 +51,7 @@ Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test 
 Frontend の品質ゲートは、型チェックと Vite build、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
 UI / E2E 確認では、主要 dialog の focus 復帰、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制をアクセシビリティ観点として見る。
+Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 
 ## 5. 完了条件
 

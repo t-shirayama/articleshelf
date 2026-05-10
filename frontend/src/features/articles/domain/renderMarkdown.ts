@@ -122,6 +122,7 @@ function renderCodeBlock(code: string, meta: CodeBlockMeta): string {
   const fileName = markdown.utils.escapeHtml(meta.fileName)
   const languageLabel = markdown.utils.escapeHtml(meta.language || 'text')
   const lines = code.replace(/\n$/, '').split('\n')
+  // Highlight each line separately so line-number markup stays inert and never wraps executable HTML around a whole block.
   const lineMarkup = lines
     .map((line, index) => {
       const lineNumber = index + 1

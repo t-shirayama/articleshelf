@@ -83,7 +83,17 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - 画像は `http` / `https` のみ許可し、`data:` や `javascript:` などのスキームは表示しない
 - コードブロックは静的に装飾するだけで、コード本文を評価・実行しない
 
-## 9. テスト観点
+## 9. Frontend security headers
+
+Cloudflare Pages の `_headers` で frontend response に security headers を付与する。
+
+- CSP は `script-src 'self'`、`object-src 'none'`、`base-uri 'none'`、`frame-ancestors 'none'` を含める
+- Vuetify の runtime style と既存 CSS 運用のため、`style-src` は当面 `'unsafe-inline'` を許可する
+- Markdown / OGP 画像表示のため `img-src` は `https:`、`data:`、`blob:` を許可する。ただし Markdown renderer 側は画像 URL を `http` / `https` に制限する
+- API 通信のため `connect-src` は `https:` と local development の `http://localhost:8080` を許可する
+- `X-Content-Type-Options: nosniff`、`Referrer-Policy`、`Strict-Transport-Security`、`Permissions-Policy` を付与する
+
+## 10. テスト観点
 
 - production profile で CSRF 無効、`SameSite=None; Secure=false`、未設定または弱い secret を拒否する
 - JWT は Spring Security JOSE 経由で発行 / 検証し、改ざん、期限切れ、想定外 `alg` を拒否する
@@ -91,3 +101,4 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - register / login の rate limit は制限 key、429 応答、統一 error body を検証する
 - OGP SSRF 対策は scheme、localhost、loopback、private、link-local、multicast、metadata endpoint、IPv6 unique local、redirect 先再検証、body size、content-type を検証する
 - Markdown sanitization は raw HTML、危険タグ、危険属性、危険 scheme が実行または表示されないことを検証する
+- Frontend security headers は Cloudflare Pages `_headers` を正本とし、CSP / nosniff / Referrer-Policy / HSTS / Permissions-Policy の存在をレビューで確認する

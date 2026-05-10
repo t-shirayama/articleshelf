@@ -75,6 +75,7 @@ Supabase Free PostgreSQL
 
 Cloudflare Pages は Vite / Vue の build command と output directory として `npm run build` / `dist` を扱える。
 依存関係の install は Pages build が行う前提とし、必要な場合だけ install command に `npm ci` を明示する。
+`frontend/public/_headers` は build output にコピーされ、CSP、nosniff、Referrer-Policy、HSTS、Permissions-Policy を Cloudflare Pages response header として設定する。
 
 ### 4.2 環境変数
 
@@ -226,6 +227,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] Build command が `npm run build` になっている
 - [ ] Build output directory が `dist` になっている
 - [ ] `VITE_API_BASE_URL` が Render API URL を向いている
+- [ ] `frontend/public/_headers` の security headers が production deploy に反映されている
 - [ ] 公開 URL を `FRONTEND_ORIGIN` に反映した
 - [ ] Vue Router history mode を導入した場合は `_redirects` を追加した
 
