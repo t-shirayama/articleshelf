@@ -62,6 +62,7 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - redirect 回数は最大 3 回に制限する
 - response body は最大 1MB に制限する
 - `Content-Type` が `text/html` 以外の場合は本文を解析しない
+- HTML は最大 1MB の bytes を読んだ後、`Content-Type` charset、meta charset、UTF-8 fallback の順で decode する
 - OGP 取得は timeout と専用 User-Agent を設定する
 
 ## 7. 入力検証とエラー応答

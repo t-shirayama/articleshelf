@@ -9,17 +9,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Component
 public class OgpClient {
-    private static final Pattern META_TAG = Pattern.compile("<meta\\s+[^>]*>", Pattern.CASE_INSENSITIVE);
-    private static final Pattern ATTRIBUTE = Pattern.compile("([\\w:-]+)\\s*=\\s*([\"'])(.*?)\\2", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-    private static final Pattern HTML_TITLE = Pattern.compile("<title[^>]*>(.*?)</title>", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final int MAX_REDIRECTS = 3;
     private static final int MAX_BODY_BYTES = 1024 * 1024;
 
@@ -41,20 +34,10 @@ public class OgpClient {
                 closeQuietly(response.body());
                 return OgpMetadata.unavailable();
             }
-            String body = readLimited(response.body());
-            String title = extractMeta(body, "og:title").or(() -> extract(HTML_TITLE, body)).orElse("");
-            String description = extractMeta(body, "og:description")
-                    .or(() -> extractMeta(body, "description"))
-                    .orElse("");
-            String imageUrl = extractMeta(body, "og:image")
-                    .or(() -> extractMeta(body, "twitter:image"))
-                    .map(image -> resolveUrl(response.uri().toString(), image))
-                    .orElse("");
-            return new OgpMetadata(
-                    title,
-                    description,
-                    imageUrl,
-                    true
+            return new OgpHtmlParser().parse(
+                    readLimited(response.body()),
+                    response.headers().firstValue("Content-Type").orElse(""),
+                    response.uri().toString()
             );
         } catch (IllegalArgumentException | OgpRequestGuard.UnsafeOgpUrlException ignored) {
             return OgpMetadata.unavailable();
@@ -99,13 +82,13 @@ public class OgpClient {
                 .orElse(false);
     }
 
-    private String readLimited(InputStream inputStream) throws IOException {
+    private byte[] readLimited(InputStream inputStream) throws IOException {
         try (inputStream) {
             byte[] bytes = inputStream.readNBytes(MAX_BODY_BYTES + 1);
             if (bytes.length > MAX_BODY_BYTES) {
                 throw new IOException("response body is too large");
             }
-            return new String(bytes, StandardCharsets.UTF_8);
+            return bytes;
         }
     }
 
@@ -116,58 +99,4 @@ public class OgpClient {
         }
     }
 
-    private Optional<String> extractMeta(String html, String key) {
-        Matcher matcher = META_TAG.matcher(html);
-        while (matcher.find()) {
-            String tag = matcher.group();
-            String content = null;
-            String property = null;
-            String name = null;
-
-            Matcher attributeMatcher = ATTRIBUTE.matcher(tag);
-            while (attributeMatcher.find()) {
-                String attributeName = attributeMatcher.group(1).toLowerCase();
-                String attributeValue = clean(attributeMatcher.group(3));
-                if ("content".equals(attributeName)) {
-                    content = attributeValue;
-                } else if ("property".equals(attributeName)) {
-                    property = attributeValue;
-                } else if ("name".equals(attributeName)) {
-                    name = attributeValue;
-                }
-            }
-
-            if (content != null && (key.equalsIgnoreCase(property) || key.equalsIgnoreCase(name))) {
-                return Optional.of(content);
-            }
-        }
-        return Optional.empty();
-    }
-
-    private Optional<String> extract(Pattern pattern, String html) {
-        Matcher matcher = pattern.matcher(html);
-        if (!matcher.find()) {
-            return Optional.empty();
-        }
-        return Optional.of(clean(matcher.group(1)));
-    }
-
-    private String clean(String value) {
-        return value == null ? "" : value
-                .replace("&amp;", "&")
-                .replace("&lt;", "<")
-                .replace("&gt;", ">")
-                .replace("&quot;", "\"")
-                .replace("&#39;", "'")
-                .replaceAll("\\s+", " ")
-                .trim();
-    }
-
-    private String resolveUrl(String pageUrl, String imageUrl) {
-        try {
-            return URI.create(pageUrl).resolve(imageUrl).toString();
-        } catch (IllegalArgumentException ignored) {
-            return imageUrl;
-        }
-    }
 }

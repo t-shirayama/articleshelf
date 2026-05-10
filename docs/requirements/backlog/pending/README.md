@@ -44,7 +44,6 @@
 
 ### P3
 
-- [OGP HTML 解析と charset 対応改善](improve-ogp-parsing-charset-handling.md)
 - [記事詳細・追加フォーム component 分割](split-article-detail-and-create-components.md)
 
 ### P4

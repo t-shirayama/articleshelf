@@ -23,5 +23,6 @@
 - OGP画像はDB上の `thumbnail_url` を直接表示せず、記事カードのサムネイル領域が表示範囲に近づいた時だけフロントエンドが取得する
 - 取得したサムネイル Blob は IndexedDB に保存し、最大 200 records または 50MB を超える場合は `cachedAt` / `failedAt` が古いものから削除する
 - CORS 非対応、非画像、5MB 超過、取得失敗のサムネイルは proxy せず、安全側にプレースホルダー表示へ倒す。失敗記録は 24 時間 retry を抑制し、期限切れ後は eviction 対象にする
+- OGP HTML は `OgpHtmlParser` が meta tag / title 抽出を担当し、`Content-Type` charset、meta charset、UTF-8 fallback の順で文字コードを決定する
 - 取得した画像は IndexedDB に画像 Blob として保存したものを表示する
 - 画像取得に失敗したURLは一定時間再試行せず、外部サイトへのアクセス増加を避けてプレースホルダー表示に戻す
