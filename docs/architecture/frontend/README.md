@@ -37,6 +37,7 @@
 - article form split: 詳細ページの閲覧セクション、メモ編集 / preview、追加モーダルの create form state は dedicated component / composable に分ける
 - shared boundary: 認証付き fetch、共通 UI、i18n、日付 formatting、IndexedDB cache のような横断処理だけを `shared` に置く
 - auth-aware API client: `shared/api/client` が access token 付与、CSRF header、401 後の refresh retry、API error mapping、malformed response の汎用エラー化を担う
+- cancellable requests: `shared/api/client` は `AbortSignal` を `fetch` へ渡せるため、検索や画面遷移で古い request を中断する導線を作れる
 - client-side domain helpers: 検索、フィルタ、ソート、フォーム変換、Markdown rendering などは `features/articles/domain` の副作用を持たない関数へ寄せる
 - UI measurement: タグ管理の select 幅など DOM 計測が必要な処理は dedicated composable に分け、タグ管理 state と DOM 依存を混ぜない
 - safe Markdown rendering: `renderMarkdown` は raw HTML を無効化した MarkdownIt 出力を DOMPurify で sanitization し、許可スキームや危険タグの境界は [セキュリティ仕様](../../specs/security/README.md) に従う

@@ -82,6 +82,9 @@ Cloudflare Pages は Vite / Vue の build command と output directory として
 | ------------------- | --------------------------------------- | --------------------------- |
 | `VITE_API_BASE_URL` | `https://articleshelf-api.onrender.com` | Render 上の backend API URL |
 
+Production frontend runtime では `VITE_API_BASE_URL` を必須とし、未設定の場合は API client の初期化時に失敗させる。
+ローカル開発では未設定時だけ `http://localhost:8080` へ fallback する。
+
 ### 4.3 公開 URL
 
 Cloudflare Pages は `https://<project-name>.pages.dev` の無料 URL を提供する。

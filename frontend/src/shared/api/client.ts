@@ -1,7 +1,12 @@
 import { getCurrentLocale, translate } from "../i18n"
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE_URL = resolveApiBaseUrl(import.meta.env)
 const CSRF_COOKIE = 'ARTICLESHELF_CSRF'
+
+interface ApiClientEnv {
+  VITE_API_BASE_URL?: string
+  PROD?: boolean
+}
 
 interface ApiErrorPayload {
   messages?: string[]
@@ -56,6 +61,21 @@ export function setAccessToken(token: string): void {
 export function configureAuthRefresh(callback: (() => Promise<string | null>) | null): void {
   refreshAccessToken = callback
   refreshPromise = null
+}
+
+export function resetApiClientForTest(): void {
+  accessToken = ''
+  refreshAccessToken = null
+  refreshPromise = null
+}
+
+export function resolveApiBaseUrl(env: ApiClientEnv): string {
+  const configuredUrl = env.VITE_API_BASE_URL?.trim()
+  if (configuredUrl) return configuredUrl.replace(/\/$/, '')
+  if (env.PROD) {
+    throw new Error('VITE_API_BASE_URL is required for production frontend builds')
+  }
+  return 'http://localhost:8080'
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {

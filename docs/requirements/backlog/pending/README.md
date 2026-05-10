@@ -27,7 +27,6 @@
 - [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
 - [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [Backend observability metrics 追加](add-backend-observability-metrics.md)
-- [Frontend API client 強化](harden-frontend-api-client.md)
 - [Frontend CSP と Markdown security tests 強化](add-frontend-csp-and-markdown-security-tests.md)
 - [Frontend focus management と reduced motion 改善](improve-frontend-focus-and-reduced-motion.md)
 - [Frontend quality gates 強化](add-frontend-quality-gates.md)
