@@ -29,6 +29,15 @@
 - feature の表示 component が図形や状態管理を大きく抱える場合は、専用 component / composable に分ける
 - i18n 文言は locale ごとに `shared/i18n/messages/` 配下へ分割し、`shared/i18n/messages.ts` は集約 export にする
 
+## Design Highlights
+
+- feature-oriented: `features/articles` と `features/auth` に画面、API adapter、store、composable、domain helper をまとめ、機能内の変更理由を近くに置く
+- shared boundary: 認証付き fetch、共通 UI、i18n、日付 formatting、IndexedDB cache のような横断処理だけを `shared` に置く
+- auth-aware API client: `shared/api/client` が access token 付与、CSRF header、401 後の refresh retry、API error mapping、malformed response の汎用エラー化を担う
+- client-side domain helpers: 検索、フィルタ、ソート、フォーム変換、Markdown rendering などは `features/articles/domain` の副作用を持たない関数へ寄せる
+- safe Markdown rendering: `renderMarkdown` は raw HTML を無効化した MarkdownIt 出力を DOMPurify で sanitization し、許可スキームや危険タグの境界は [セキュリティ仕様](../../specs/security/README.md) に従う
+- responsive UX: desktop / tablet / mobile の見た目と操作は design docs を正本にし、代表導線は Playwright E2E と screenshot capture で確認する
+
 ## UI 方針との関係
 
 - UI の共通方針は `docs/designs/README.md`、画面別コンポーネントルールは `docs/designs/components/README.md` を参照する

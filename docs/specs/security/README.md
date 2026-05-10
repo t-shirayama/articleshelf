@@ -73,6 +73,7 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 ## 8. Markdown 表示の安全境界
 
 - 詳細画面のメモ Markdown はフロントエンドだけで HTML に変換し、バックエンドには元のメモ本文を保存する
+- Markdown 変換と sanitization は `frontend/src/features/articles/domain/renderMarkdown.ts` が担当する
 - Markdown 変換では raw HTML を無効化する
 - `v-html` に渡す HTML は必ず DOMPurify を通す
 - `script`、`iframe`、`object`、`embed`、`style`、フォーム系タグ、SVG、MathML、media 系タグは禁止する
