@@ -10,6 +10,7 @@ import com.articleshelf.domain.article.ArticleStatus;
 import com.articleshelf.domain.article.ArticleUrlUnavailableException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.Tag;
+import com.articleshelf.domain.article.TagName;
 import com.articleshelf.domain.article.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -100,24 +101,19 @@ public class ArticleService {
         }
 
         return Objects.requireNonNull(transactionOperations.execute(status -> {
-            Article updated = new Article(
-                    current.getId(),
-                    current.getUserId(),
+            current.updateContent(
                     command.url(),
                     firstPresent(command.title(), current.getTitle()),
                     command.summary(),
-                    firstPresent(metadata.imageUrl(), current.getThumbnailUrl()),
-                    command.status() == null ? current.getStatus() : command.status(),
-                    command.readDate(),
-                    command.favorite() == null ? current.isFavorite() : command.favorite(),
-                    command.rating() == null ? current.getRating() : command.rating(),
-                    command.notes(),
-                    resolveTags(user, command.tags()),
-                    current.getCreatedAt(),
-                    current.getUpdatedAt()
+                    command.notes()
             );
+            current.changeThumbnailUrl(firstPresent(metadata.imageUrl(), current.getThumbnailUrl()));
+            current.changeStatus(command.status() == null ? current.getStatus() : command.status(), command.readDate());
+            current.changeFavorite(command.favorite() == null ? current.isFavorite() : command.favorite());
+            current.changeRating(command.rating() == null ? current.getRating() : command.rating());
+            current.replaceTags(resolveTags(user, command.tags()));
 
-            ArticleResponse response = ArticleResponse.from(articleRepository.save(updated));
+            ArticleResponse response = ArticleResponse.from(articleRepository.save(current));
             metrics.recordArticleUpdated();
             return response;
         }));
@@ -138,10 +134,10 @@ public class ArticleService {
 
         Set<Tag> tags = new LinkedHashSet<>();
         names.stream()
-                .map(this::normalizeName)
+                .map(value -> value == null ? "" : value.trim())
                 .filter(value -> !value.isBlank())
                 .distinct()
-                .forEach(name -> tags.add(tagRepository.saveTag(user.id(), name)));
+                .forEach(name -> tags.add(tagRepository.saveTag(user.id(), TagName.normalize(name))));
         return tags;
     }
 
@@ -166,10 +162,6 @@ public class ArticleService {
             return null;
         }
         return value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizeName(String value) {
-        return value == null ? "" : value.trim();
     }
 
     private String firstPresent(String... values) {

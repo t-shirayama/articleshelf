@@ -43,14 +43,14 @@
 | --- | --- | --- | --- |
 | id | id | UUID | PK |
 | userId | user_id | UUID | 所有ユーザー。protected API では current user にスコープする |
-| url | url | string / VARCHAR | 必須、最大2048文字、ユーザー単位でユニーク |
+| url | url | string / VARCHAR | 必須、最大2048文字、前後空白を除去し、空値は domain で拒否する。ユーザー単位でユニーク |
 | title | title | string / VARCHAR | 必須、最大255文字 |
 | summary | summary | string / TEXT | 任意、API入力は最大5000文字 |
 | thumbnailUrl | thumbnail_url | string / VARCHAR | 任意 |
 | status | status | enum / VARCHAR | `UNREAD`, `READ` |
 | readDate | read_date | date / DATE | 任意、API では `YYYY-MM-DD` |
 | favorite | favorite | boolean / BOOLEAN | お気に入り |
-| rating | rating | integer / INTEGER | `0` - `5`、未指定時は `0` |
+| rating | rating | integer / INTEGER | `0` - `5`、未指定時は `0`。domain では範囲外入力を `0` - `5` に clamp する |
 | notes | notes | text / TEXT | 任意、API入力は最大20000文字 |
 | createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
 | updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
@@ -61,7 +61,7 @@
 | --- | --- | --- | --- |
 | id | id | UUID | PK |
 | userId | user_id | UUID | 所有ユーザー |
-| name | name | string / VARCHAR | ユーザー単位でユニーク |
+| name | name | string / VARCHAR | 前後空白を除去し、空値と255文字超過を domain で拒否する。ユーザー単位でユニーク |
 | createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
 | updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
 | articleCount | - | integer | 一覧表示用の集計値。永続化カラムではない |
