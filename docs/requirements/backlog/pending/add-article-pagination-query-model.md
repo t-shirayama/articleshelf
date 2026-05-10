@@ -37,4 +37,4 @@ P2
 
 ## 根拠
 
-Backend レビューで、`findArticles` が `List<ArticleResponse>` を返しており、将来の記事数増加を考えると pagination / sorting / query object を導入した方が性能と設計説明力が上がると指摘されたため。
+Backend / Frontend レビューで、記事一覧が全件取得と client-side filtering / sorting に寄っており、将来の記事数増加を考えると pagination / sorting / query object を導入した方が性能と設計説明力が上がると指摘されたため。
