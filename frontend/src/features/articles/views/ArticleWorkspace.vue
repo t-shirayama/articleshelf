@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import {
   BookOpen,
   CalendarDays,
@@ -14,6 +14,7 @@ import {
   UserCog,
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import AccountSettingsDialog from "../../auth/components/AccountSettingsDialog.vue";
 import { useAuthStore } from "../../auth/stores/auth";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
@@ -46,6 +47,8 @@ type CalendarMode = "created" | "read";
 const authStore = useAuthStore();
 const store = useArticlesStore();
 const { t, locale } = useI18n({ useScope: "global" });
+const route = useRoute();
+const router = useRouter();
 const filterDialogOpen = ref(false);
 const accountDialogOpen = ref(false);
 const accountDialogError = ref("");
@@ -164,6 +167,11 @@ const { cancelSearch } = useArticleSearchDebounce(searchDraft, (value) => store.
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
   await loadInitialData();
+  await applyWorkspaceRoute();
+});
+
+watch(() => route.path, () => {
+  void applyWorkspaceRoute();
 });
 
 onBeforeUnmount(() => {
@@ -227,16 +235,19 @@ function showDetailReturnView(): void {
 
 function showCalendar(): void {
   mobileDrawerOpen.value = false;
+  void router.push("/calendar");
   requestNavigation(navigateToCalendar);
 }
 
 function showTags(): void {
   mobileDrawerOpen.value = false;
+  void router.push("/tags");
   requestNavigation(navigateToTags);
 }
 
 function setStatus(status: ArticleStatus): void {
   mobileDrawerOpen.value = false;
+  void router.push("/articles");
   requestNavigation(() => {
     navigateToList();
     rotateMotivation();
@@ -246,6 +257,7 @@ function setStatus(status: ArticleStatus): void {
 
 function setFavoriteOnly(): void {
   mobileDrawerOpen.value = false;
+  void router.push("/articles");
   requestNavigation(() => {
     navigateToList();
     rotateMotivation();
@@ -255,6 +267,7 @@ function setFavoriteOnly(): void {
 
 function setAllArticles(): void {
   mobileDrawerOpen.value = false;
+  void router.push("/articles");
   requestNavigation(() => {
     navigateToList();
     rotateMotivation();
@@ -277,6 +290,7 @@ function openArticleModalFromMobile(): void {
 
 function openAccountSettings(): void {
   mobileDrawerOpen.value = false;
+  void router.push("/settings");
   accountDialogOpen.value = true;
 }
 
@@ -288,6 +302,28 @@ function changeLocale(value: unknown): void {
 
 async function loadInitialData(): Promise<void> {
   await Promise.all([store.fetchArticles(), store.fetchTags()]);
+}
+
+async function applyWorkspaceRoute(): Promise<void> {
+  if (route.path === "/calendar") {
+    navigateToCalendar();
+    return;
+  }
+  if (route.path === "/tags") {
+    navigateToTags();
+    return;
+  }
+  if (route.path === "/settings") {
+    navigateWorkspaceToList();
+    accountDialogOpen.value = true;
+    return;
+  }
+  if (typeof route.params.id === "string") {
+    detailReturnView.value = "list";
+    await openDuplicateArticle(route.params.id);
+    return;
+  }
+  navigateWorkspaceToList();
 }
 
 async function retryInitialLoad(): Promise<void> {
@@ -313,16 +349,19 @@ function applyAdvancedFilters(filters: {
 
 function navigateToList(): void {
   detailFormError.value = "";
+  if (route.path !== "/articles") void router.push("/articles");
   navigateWorkspaceToList();
 }
 
 function navigateToDetailReturnView(): void {
   detailFormError.value = "";
   if (detailReturnView.value === "calendar") {
+    void router.push("/calendar");
     navigateToCalendar();
     return;
   }
 
+  void router.push("/articles");
   navigateWorkspaceToList();
 }
 
@@ -332,11 +371,13 @@ function currentDetailReturnView(): DetailReturnView {
 
 function openArticleFromList(article: Article): Promise<void> {
   detailReturnView.value = "list";
+  void router.push(`/articles/${article.id}`);
   return openArticle(article);
 }
 
 function openArticleFromCalendar(article: Article): Promise<void> {
   detailReturnView.value = "calendar";
+  void router.push(`/articles/${article.id}`);
   return openArticle(article);
 }
 

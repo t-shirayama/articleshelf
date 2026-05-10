@@ -59,6 +59,7 @@ Frontend unit coverage は lines 19%、statements 19%、functions 14%、branches
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
 UI / E2E 確認では、主要 dialog の focus 復帰、記事カードの詳細 open button と右上 action button の独立操作、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 ArticleWorkspace の検索 debounce は `useArticleSearchDebounce` の unit test で、最後の入力値だけが反映されることと unmount / logout 相当の cancel で遅延反映されないことを確認する。
+Router 導入後の E2E / 手動確認では、未認証 protected route が `/login` へ補正されること、認証後に `/articles` / `/calendar` / `/tags` / `/settings` へ直接入れること、記事カード選択で `/articles/:id` になることを見る。
 Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 Supply chain security は Dependabot の更新 PR、Dependency Review の PR 差分検知、CodeQL の code scanning、Trivy の filesystem / backend image scan に分担する。
 PDF インポートを実装する場合は、URL あり / 複数 URL / URL なし / 段組や改行の多い PDF / スキャン PDF / OGP 取得失敗 URL を代表ケースとして確認する。
