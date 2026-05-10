@@ -1,7 +1,6 @@
 package com.articleshelf.adapter.web;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import com.articleshelf.adapter.web.AuthController.CsrfValidationException;
 import com.articleshelf.application.auth.AccountNotFoundException;
 import com.articleshelf.application.auth.AuthException;
 import com.articleshelf.application.auth.AuthRateLimitExceededException;

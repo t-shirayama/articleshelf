@@ -45,3 +45,5 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 ```
 
 同一 site 配信なら `SameSite=Lax` も選択可能だが、production profile では CSRF は常に有効にする。
+
+refresh / CSRF cookie の発行と削除は `SessionCookieWriter`、CSRF cookie と `X-CSRF-Token` header の照合は `CsrfTokenValidator` に集約し、Controller は request handling と認証ユースケース呼び出しに集中する。

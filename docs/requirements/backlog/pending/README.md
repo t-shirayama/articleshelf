@@ -13,7 +13,6 @@
 
 - [OGP SSRF DNS rebinding / TOCTOU 対策強化](harden-ogp-ssrf-dns-rebinding.md)
 - [Refresh token rotation atomic 化](atomic-refresh-token-rotation.md)
-- [セッション Cookie と CSRF 責務の分離](split-session-cookie-csrf-responsibilities.md)
 
 ### P2
 

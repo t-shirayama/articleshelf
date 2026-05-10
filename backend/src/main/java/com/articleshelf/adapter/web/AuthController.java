@@ -4,7 +4,6 @@ import com.articleshelf.application.auth.AuthResponse;
 import com.articleshelf.application.auth.AuthResult;
 import com.articleshelf.application.auth.AuthException;
 import com.articleshelf.application.auth.AuthRateLimiter;
-import com.articleshelf.application.auth.AuthSessionSettings;
 import com.articleshelf.application.auth.AuthService;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.application.auth.UserResponse;
@@ -14,8 +13,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,24 +23,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
-
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private static final String REFRESH_COOKIE = "ARTICLESHELF_REFRESH";
-    private static final String CSRF_COOKIE = "ARTICLESHELF_CSRF";
-
     private final AuthService authService;
-    private final AuthSessionSettings settings;
     private final AuthRateLimiter rateLimiter;
+    private final SessionCookieWriter sessionCookieWriter;
+    private final CsrfTokenValidator csrfTokenValidator;
 
-    public AuthController(AuthService authService, AuthSessionSettings settings, AuthRateLimiter rateLimiter) {
+    public AuthController(
+            AuthService authService,
+            AuthRateLimiter rateLimiter,
+            SessionCookieWriter sessionCookieWriter,
+            CsrfTokenValidator csrfTokenValidator
+    ) {
         this.authService = authService;
-        this.settings = settings;
         this.rateLimiter = rateLimiter;
+        this.sessionCookieWriter = sessionCookieWriter;
+        this.csrfTokenValidator = csrfTokenValidator;
     }
 
     @PostMapping("/register")
@@ -60,7 +59,7 @@ public class AuthController {
                 servletRequest.getHeader("User-Agent"),
                 servletRequest.getRemoteAddr()
         );
-        setSessionCookies(response, result);
+        sessionCookieWriter.writeSession(response, result);
         return result.response();
     }
 
@@ -77,25 +76,25 @@ public class AuthController {
                 servletRequest.getHeader("User-Agent"),
                 servletRequest.getRemoteAddr()
         );
-        setSessionCookies(response, result);
+        sessionCookieWriter.writeSession(response, result);
         return result.response();
     }
 
     @PostMapping("/refresh")
     public AuthResponse refresh(
-            @CookieValue(name = REFRESH_COOKIE, required = false) String refreshToken,
-            @CookieValue(name = CSRF_COOKIE, required = false) String csrfCookie,
+            @CookieValue(name = SessionCookieWriter.REFRESH_COOKIE, required = false) String refreshToken,
+            @CookieValue(name = SessionCookieWriter.CSRF_COOKIE, required = false) String csrfCookie,
             @RequestHeader(name = "X-CSRF-Token", required = false) String csrfHeader,
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
-        validateCsrf(csrfCookie, csrfHeader);
+        csrfTokenValidator.validate(csrfCookie, csrfHeader);
         try {
             AuthResult result = authService.refresh(refreshToken, servletRequest.getHeader("User-Agent"), servletRequest.getRemoteAddr());
-            setSessionCookies(response, result);
+            sessionCookieWriter.writeSession(response, result);
             return result.response();
         } catch (AuthException exception) {
-            clearSessionCookies(response);
+            sessionCookieWriter.clearSession(response);
             throw exception;
         }
     }
@@ -103,21 +102,21 @@ public class AuthController {
     @PostMapping("/logout")
     @ResponseStatus(NO_CONTENT)
     public void logout(
-            @CookieValue(name = REFRESH_COOKIE, required = false) String refreshToken,
-            @CookieValue(name = CSRF_COOKIE, required = false) String csrfCookie,
+            @CookieValue(name = SessionCookieWriter.REFRESH_COOKIE, required = false) String refreshToken,
+            @CookieValue(name = SessionCookieWriter.CSRF_COOKIE, required = false) String csrfCookie,
             @RequestHeader(name = "X-CSRF-Token", required = false) String csrfHeader,
             HttpServletResponse response
     ) {
-        validateCsrf(csrfCookie, csrfHeader);
+        csrfTokenValidator.validate(csrfCookie, csrfHeader);
         authService.logout(refreshToken);
-        clearSessionCookies(response);
+        sessionCookieWriter.clearSession(response);
     }
 
     @PostMapping("/logout-all")
     @ResponseStatus(NO_CONTENT)
     public void logoutAll(@AuthenticationPrincipal CurrentUser currentUser, HttpServletResponse response) {
         authService.logoutAll(currentUser);
-        clearSessionCookies(response);
+        sessionCookieWriter.clearSession(response);
     }
 
     @GetMapping("/me")
@@ -125,41 +124,8 @@ public class AuthController {
         return authService.currentUser(currentUser);
     }
 
-    private void validateCsrf(String csrfCookie, String csrfHeader) {
-        if (!settings.csrfEnabled()) {
-            return;
-        }
-        if (csrfCookie == null || csrfCookie.isBlank() || !csrfCookie.equals(csrfHeader)) {
-            throw new CsrfValidationException();
-        }
-    }
-
     private String clientIp(HttpServletRequest request) {
         return request.getRemoteAddr();
-    }
-
-    private void setSessionCookies(HttpServletResponse response, AuthResult result) {
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie(REFRESH_COOKIE, result.session().rawRefreshToken(), true, refreshMaxAge()).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie(CSRF_COOKIE, result.session().csrfToken(), false, refreshMaxAge()).toString());
-    }
-
-    private void clearSessionCookies(HttpServletResponse response) {
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie(REFRESH_COOKIE, "", true, Duration.ZERO).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie(CSRF_COOKIE, "", false, Duration.ZERO).toString());
-    }
-
-    private ResponseCookie cookie(String name, String value, boolean httpOnly, Duration maxAge) {
-        return ResponseCookie.from(name, value)
-                .httpOnly(httpOnly)
-                .secure(settings.cookieSecure())
-                .sameSite(settings.cookieSameSite())
-                .path("/")
-                .maxAge(maxAge)
-                .build();
-    }
-
-    private Duration refreshMaxAge() {
-        return Duration.ofDays(settings.refreshTokenTtlDays());
     }
 
     public record RegisterRequest(
@@ -170,11 +136,5 @@ public class AuthController {
     }
 
     public record LoginRequest(@NotBlank @Size(min = 3, max = 32) @Pattern(regexp = "^[A-Za-z0-9._-]+$") String username, @NotBlank String password) {
-    }
-
-    public static class CsrfValidationException extends RuntimeException {
-        public CsrfValidationException() {
-            super("CSRF token is invalid");
-        }
     }
 }
