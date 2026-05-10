@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type APIRequestContext, type Page, type TestInfo } from '@playwright/test'
 
 const RUN_ID = Date.now().toString(36)
@@ -20,6 +21,21 @@ test('user can register, create an article, logout and login again', async ({ pa
 
   await login(page, username)
   await expect(articleCard(page, articleTitle)).toBeVisible()
+})
+
+test('authenticated article list has no critical accessibility violations', async ({ page }, testInfo) => {
+  const username = uniqueUsername('axe', testInfo)
+
+  await register(page, username)
+
+  const results = await new AxeBuilder({ page })
+    .disableRules(['color-contrast'])
+    .analyze()
+  const blockingViolations = results.violations.filter((violation) => {
+    return violation.impact === 'critical' || violation.impact === 'serious'
+  })
+
+  expect(blockingViolations).toEqual([])
 })
 
 test('user can change password and must use the new password', async ({ page }, testInfo) => {

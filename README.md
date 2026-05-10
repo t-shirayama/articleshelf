@@ -96,7 +96,9 @@ docker compose up --build
 | 用途                         | コマンド                                    |
 | ---------------------------- | ------------------------------------------- |
 | ローカル起動                 | `docker compose up --build`                 |
+| フロントエンド lint          | `cd frontend && npm run lint`               |
 | フロントエンド build         | `cd frontend && npm run build`              |
+| フロントエンド bundle check  | `cd frontend && npm run check:bundle`       |
 | フロントエンド unit test     | `cd frontend && npm run test:unit`          |
 | フロントエンド E2E           | `cd frontend && npm run test:e2e`           |
 | バックエンド test            | `docker compose run --rm backend mvn test`  |

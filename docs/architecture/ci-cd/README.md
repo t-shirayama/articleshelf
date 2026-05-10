@@ -9,7 +9,7 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 
 | Step | Job | 主な責務 |
 | --- | --- | --- |
-| 1 | `backend-check` / `frontend-check` | コンパイル、型チェック、静的解析、アーキテクチャ依存関係の確認 |
+| 1 | `backend-check` / `frontend-check` | コンパイル、型チェック、静的解析、bundle size、アーキテクチャ依存関係の確認 |
 | 2 | `backend-unit` / `frontend-unit` | backend domain / application UT と frontend UT を coverage 付きで実行 |
 | 3 | `backend-integration` / `frontend-integration` | Spring Boot / PostgreSQL IT と frontend integration test を実行 |
 | 4 | `e2e` | Playwright Chromium で P0 導線を確認 |
@@ -28,8 +28,9 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 - `backend-check` は compile、SpotBugs、Clean Architecture dependency test を実行し、コンパイル不能、静的解析違反、レイヤー依存違反を早い段階で止める
 - `backend-unit` は JaCoCo coverage 付きで domain / application 中心の UT を実行し、domain / application line coverage 80% 未満を失敗にする
 - `backend-integration` は Spring Boot と PostgreSQL 実体で認証境界、Repository 検索、DB 制約、JPA validate を確認する
-- frontend は型チェックと Vite build を CI の早い段階で確認する
-- E2E はフロントエンド、バックエンド、DB を Compose 経由で起動し、主要導線の破壊を検知する
+- frontend は ESLint、型チェック、Vite build、bundle size check を CI の早い段階で確認する
+- `frontend-unit` は Vitest coverage threshold を適用し、lines 19%、statements 19%、functions 14%、branches 16% 未満を失敗にする
+- E2E はフロントエンド、バックエンド、DB を Compose 経由で起動し、主要導線と認証後記事一覧の axe accessibility scan の破壊を検知する
 
 ## 4. デプロイとの関係
 

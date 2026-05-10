@@ -39,8 +39,10 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 - 採用技術と推奨バージョンは [技術スタック](../architecture/technology/README.md) に従う
 - フロントエンド確認: `npm run build`
+- フロントエンド lint: `npm run lint`
 - フロントエンド UT: `npm run test:unit`
 - フロントエンド UT coverage: `npm run test:unit:coverage`
+- フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
@@ -48,9 +50,10 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
-Frontend の品質ゲートは、型チェックと Vite build、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
+Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
+Frontend unit coverage は lines 19%、statements 19%、functions 14%、branches 16% を現行下限にし、`src/**/*.{ts,vue}` の実装を対象にする。
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
-UI / E2E 確認では、主要 dialog の focus 復帰、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制をアクセシビリティ観点として見る。
+UI / E2E 確認では、主要 dialog の focus 復帰、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 
 ## 5. 完了条件

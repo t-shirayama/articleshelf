@@ -27,7 +27,6 @@
 - [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
 - [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [Backend observability metrics 追加](add-backend-observability-metrics.md)
-- [Frontend quality gates 強化](add-frontend-quality-gates.md)
 - [Machine-readable API エラー導入](introduce-machine-readable-api-errors.md)
 - [PDF インポート実データ品質改善](pdf-import-real-data-quality-improvement.md)
 - [Supply chain security scans 追加](add-supply-chain-security-scans.md)
