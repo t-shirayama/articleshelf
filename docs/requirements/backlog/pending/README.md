@@ -15,7 +15,6 @@
 
 ### P2
 
-- [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
 - [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [記事一覧 pagination / query model 導入](add-article-pagination-query-model.md)
 

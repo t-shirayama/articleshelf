@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import {
   BookOpen,
   CalendarDays,
@@ -31,6 +31,7 @@ import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
 import { useArticleActions } from "../composables/useArticleActions";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
 import { useArticleModalState } from "../composables/useArticleModalState";
+import { useArticleSearchDebounce } from "../composables/useArticleSearchDebounce";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
 import { useStatusUndo } from "../composables/useStatusUndo";
 import { useTagActions } from "../composables/useTagActions";
@@ -54,7 +55,6 @@ const detailReturnView = ref<DetailReturnView>("list");
 const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
 const calendarMode = ref<CalendarMode>("created");
 const mobileDrawerOpen = ref(false);
-let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
 
 const availableTagNames = computed<string[]>(() =>
   store.tags.map((tag) => tag.name),
@@ -159,12 +159,7 @@ const mobileBottomNavigationVisible = computed(
     !unsavedChangesDialogOpen.value,
 );
 
-watch(searchDraft, (value) => {
-  if (searchTimer) window.clearTimeout(searchTimer);
-  searchTimer = window.setTimeout(() => {
-    store.setSearch(value);
-  }, 250);
-});
+const { cancelSearch } = useArticleSearchDebounce(searchDraft, (value) => store.setSearch(value));
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
@@ -215,6 +210,7 @@ async function deleteAccount(input: { currentPassword: string }): Promise<void> 
 }
 
 function resetUserScopedState(): void {
+  cancelSearch();
   store.resetState();
   resetNavigation();
 }

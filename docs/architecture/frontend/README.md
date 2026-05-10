@@ -43,6 +43,7 @@
 - cancellable requests: `shared/api/client` は `AbortSignal` を `fetch` へ渡せるため、検索や画面遷移で古い request を中断する導線を作れる
 - client-side domain helpers: 検索、フィルタ、ソート、フォーム変換、Markdown rendering などは `features/articles/domain` の副作用を持たない関数へ寄せる
 - UI measurement: タグ管理の select 幅など DOM 計測が必要な処理は dedicated composable に分け、タグ管理 state と DOM 依存を混ぜない
+- workspace search debounce: 記事一覧検索の遅延反映は `useArticleSearchDebounce` に分け、workspace unmount や logout state reset 時に保留中の検索反映を cancel する
 - safe Markdown rendering: `renderMarkdown` は raw HTML を無効化した MarkdownIt 出力を DOMPurify で sanitization し、許可スキームや危険タグの境界は [セキュリティ仕様](../../specs/security/README.md) に従う
 - responsive UX: desktop / tablet / mobile の見た目と操作は design docs を正本にし、代表導線は Playwright E2E と screenshot capture で確認する
 
