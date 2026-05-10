@@ -223,11 +223,6 @@ function resetUserScopedState(): void {
   resetNavigation();
 }
 
-function showList(): void {
-  mobileDrawerOpen.value = false;
-  requestNavigation(navigateToList);
-}
-
 function showDetailReturnView(): void {
   mobileDrawerOpen.value = false;
   requestNavigation(navigateToDetailReturnView);
@@ -612,9 +607,9 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
 
       <CalendarView
         v-else-if="viewMode === 'calendar'"
-        :articles="store.articles"
         v-model:visible-month-key="calendarVisibleMonthKey"
         v-model:mode="calendarMode"
+        :articles="store.articles"
         @open-article="openArticleFromCalendar"
       />
 
