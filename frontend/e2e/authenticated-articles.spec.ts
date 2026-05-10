@@ -23,6 +23,20 @@ test('user can register, create an article, logout and login again', async ({ pa
   await expect(articleCard(page, articleTitle)).toBeVisible()
 })
 
+test('user can register without a display name', async ({ page }, testInfo) => {
+  const username = uniqueUsername('nodisplay', testInfo)
+
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'ja'))
+  await page.goto('/')
+  await page.getByRole('button', { name: '登録', exact: true }).click()
+  await page.getByLabel('ユーザー名').fill(username)
+  await page.getByLabel('パスワード').fill('password123')
+  await page.getByRole('button', { name: '登録して始める' }).click()
+
+  await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
+  await expect(page.locator('.sidebar > .sidebar-account')).toContainText(username)
+})
+
 test('authenticated article list has no critical accessibility violations', async ({ page }, testInfo) => {
   const username = uniqueUsername('axe', testInfo)
 

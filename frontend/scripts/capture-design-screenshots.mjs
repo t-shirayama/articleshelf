@@ -225,6 +225,9 @@ async function captureAuthLogin(browser) {
   await page.waitForSelector("form", { timeout: 30000 });
   await page.waitForTimeout(500);
   await saveScreenshot(page, "auth_login.png");
+  await page.getByRole("button", { name: "登録", exact: true }).click();
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "auth_register.png");
   await context.close();
 }
 
