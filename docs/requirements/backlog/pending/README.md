@@ -44,7 +44,7 @@
 
 ### P3
 
-- [記事詳細・追加フォーム component 分割](split-article-detail-and-create-components.md)
+- 該当なし
 
 ### P4
 

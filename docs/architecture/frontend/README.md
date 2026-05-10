@@ -34,6 +34,7 @@
 
 - feature-oriented: `features/articles` と `features/auth` に画面、API adapter、store、composable、domain helper をまとめ、機能内の変更理由を近くに置く
 - app providers: `main.ts` は Vue app 作成と provider 登録に集中し、Pinia、i18n、Vuetify の設定は `app/providers` に分ける
+- article form split: 詳細ページの閲覧セクション、メモ編集 / preview、追加モーダルの create form state は dedicated component / composable に分ける
 - shared boundary: 認証付き fetch、共通 UI、i18n、日付 formatting、IndexedDB cache のような横断処理だけを `shared` に置く
 - auth-aware API client: `shared/api/client` が access token 付与、CSRF header、401 後の refresh retry、API error mapping、malformed response の汎用エラー化を担う
 - client-side domain helpers: 検索、フィルタ、ソート、フォーム変換、Markdown rendering などは `features/articles/domain` の副作用を持たない関数へ寄せる
