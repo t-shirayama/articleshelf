@@ -9,17 +9,17 @@ import {
   PlusCircle,
 } from "lucide-vue-next";
 import type { Article } from "../types";
-
-type CalendarMode = "created" | "read";
-
-interface CalendarCell {
-  key: string;
-  label: number | null;
-  date: string;
-  weekday: number | null;
-  articles: Article[];
-  outside: boolean;
-}
+import {
+  articleDateKey,
+  createCalendarCells,
+  dateKey,
+  isDateKeyInRange,
+  monthKeyToDate,
+  toDateKey,
+  toMonthKey,
+  type CalendarCell,
+  type CalendarMode,
+} from "../domain/calendar";
 
 const props = defineProps<{
   articles: Article[];
@@ -75,7 +75,7 @@ const createdInMonth = computed(() =>
 );
 const readInMonth = computed(() =>
   props.articles.filter((article) =>
-    isInVisibleMonth(dateKey(article.readDate)),
+    isInVisibleMonth(articleDateKey(article, "read")),
   ),
 );
 const backlogDelta = computed(
@@ -83,48 +83,7 @@ const backlogDelta = computed(
 );
 
 const calendarCells = computed<CalendarCell[]>(() => {
-  const year = visibleMonth.value.getFullYear();
-  const month = visibleMonth.value.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const cells: CalendarCell[] = [];
-
-  for (let index = 0; index < firstDay.getDay(); index += 1) {
-    cells.push({
-      key: `blank-start-${index}`,
-      label: null,
-      date: "",
-      weekday: null,
-      articles: [],
-      outside: true,
-    });
-  }
-
-  for (let day = 1; day <= lastDay.getDate(); day += 1) {
-    const date = new Date(year, month, day);
-    const key = toDateKey(date);
-    cells.push({
-      key,
-      label: day,
-      date: key,
-      weekday: date.getDay(),
-      articles: articlesForDate(key),
-      outside: false,
-    });
-  }
-
-  while (cells.length < 42) {
-    cells.push({
-      key: `blank-end-${cells.length}`,
-      label: null,
-      date: "",
-      weekday: null,
-      articles: [],
-      outside: true,
-    });
-  }
-
-  return cells;
+  return createCalendarCells(visibleMonth.value, props.articles, mode.value);
 });
 const selectedDayTitle = computed(() => {
   if (!selectedCalendarCell.value) return "";
@@ -136,16 +95,6 @@ const selectedDayTitle = computed(() => {
         : `${Number(month)}/${Number(day)}/${year}`,
   });
 });
-
-function articlesForDate(key: string): Article[] {
-  return props.articles.filter((article) => {
-    const targetDate =
-      mode.value === "created"
-        ? dateKey(article.createdAt)
-        : dateKey(article.readDate);
-    return targetDate === key;
-  });
-}
 
 function moveMonth(offset: number): void {
   emit("update:visibleMonthKey", toMonthKey(new Date(
@@ -176,29 +125,7 @@ function openArticleFromDaySheet(article: Article): void {
 }
 
 function isInVisibleMonth(key: string): boolean {
-  return Boolean(key) && key >= monthStartKey.value && key <= monthEndKey.value;
-}
-
-function dateKey(value?: string | null): string {
-  return value ? value.slice(0, 10) : "";
-}
-
-function toDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function startOfMonth(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function toMonthKey(date: Date): string {
-  const monthStart = startOfMonth(date);
-  const year = monthStart.getFullYear();
-  const month = String(monthStart.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
+  return isDateKeyInRange(key, monthStartKey.value, monthEndKey.value);
 }
 
 function calendarCellLabel(cell: CalendarCell): string | undefined {
@@ -206,11 +133,6 @@ function calendarCellLabel(cell: CalendarCell): string | undefined {
   return `${cell.date} ${t("calendar.articleCount", { count: cell.articles.length })}`;
 }
 
-function monthKeyToDate(monthKey: string): Date {
-  const [year, month] = monthKey.split("-").map(Number);
-  if (!year || !month || month < 1 || month > 12) return startOfMonth(new Date());
-  return new Date(year, month - 1, 1);
-}
 </script>
 
 <template>
