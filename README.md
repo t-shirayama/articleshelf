@@ -67,7 +67,7 @@ docker compose up --build
 | テスト         | Vitest / Playwright / JUnit / Spring Boot Test  |
 
 主要技術だけを README に載せています。採用技術、推奨バージョン、開発環境、テストツールの詳細は [docs/architecture/technology/README.md](docs/architecture/technology/README.md) を参照してください。
-現在の公開構成は Cloudflare Pages + Render + Supabase PostgreSQL を基本にしています。Render Free Web Service の休眠抑制は、Cloudflare Worker から Render の health check へ定期 ping する運用です。構成、環境変数、デプロイ運用の詳細は [docs/deployment/README.md](docs/deployment/README.md) に整理しています。
+現在の公開構成は Cloudflare Pages + Render + Supabase PostgreSQL を基本にしています。Render Free Web Service の休眠抑制は、Cloudflare Worker から Render の health check へ 10 分ごとに ping する運用です。GitHub Actions は CI を担当し、定期 ping は Cloudflare Worker 側へ分離しています。構成、環境変数、デプロイ運用の詳細は [docs/deployment/README.md](docs/deployment/README.md) に整理しています。
 
 ## 開発者向け情報
 
