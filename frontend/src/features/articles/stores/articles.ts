@@ -8,7 +8,6 @@ import type { Article, ArticleFilters, ArticleInput, ArticleSort, ArticleStatus,
 
 interface ArticlesState {
   articles: Article[]
-  allArticles: Article[]
   tags: Tag[]
   selectedArticle: Article | null
   filters: ArticleFilters
@@ -19,7 +18,6 @@ interface ArticlesState {
 export const useArticlesStore = defineStore('articles', {
   state: (): ArticlesState => ({
     articles: [],
-    allArticles: [],
     tags: [],
     selectedArticle: null,
     filters: createDefaultArticleFilters(),
@@ -45,7 +43,6 @@ export const useArticlesStore = defineStore('articles', {
       try {
         const articles = await articlesApi.findArticles(createDefaultArticleFilters())
         this.articles = articles
-        this.allArticles = articles
         if (this.selectedArticle) {
           const selectedId = this.selectedArticle.id
           this.selectedArticle = this.articles.find((article) => article.id === selectedId) || null
@@ -103,7 +100,6 @@ export const useArticlesStore = defineStore('articles', {
     },
     async toggleFavorite(article: Article): Promise<void> {
       const previousArticles = this.articles
-      const previousAllArticles = this.allArticles
       const previousSelectedArticle = this.selectedArticle
       const optimisticArticle = { ...article, favorite: !article.favorite }
       this.error = ''
@@ -114,14 +110,12 @@ export const useArticlesStore = defineStore('articles', {
         this.applyArticleUpdate(updated)
       } catch (error: unknown) {
         this.articles = previousArticles
-        this.allArticles = previousAllArticles
         this.selectedArticle = previousSelectedArticle
         this.error = errorMessage(error, translate('articles.favoriteError'))
       }
     },
     async updateArticleStatus(article: Article, status: Exclude<ArticleStatus, 'ALL'>, readDate: string | null): Promise<Article | null> {
       const previousArticles = this.articles
-      const previousAllArticles = this.allArticles
       const previousSelectedArticle = this.selectedArticle
       const optimisticArticle = { ...article, status, readDate }
       this.error = ''
@@ -133,14 +127,12 @@ export const useArticlesStore = defineStore('articles', {
         return updated
       } catch (error: unknown) {
         this.articles = previousArticles
-        this.allArticles = previousAllArticles
         this.selectedArticle = previousSelectedArticle
         this.error = errorMessage(error, translate('articles.statusError'))
         return null
       }
     },
     applyArticleUpdate(article: Article): void {
-      this.allArticles = replaceArticle(this.allArticles, article)
       this.articles = replaceArticle(this.articles, article)
 
       if (this.selectedArticle?.id === article.id) {
@@ -196,7 +188,6 @@ export const useArticlesStore = defineStore('articles', {
     },
     resetState(): void {
       this.articles = []
-      this.allArticles = []
       this.tags = []
       this.selectedArticle = null
       this.filters = createDefaultArticleFilters()

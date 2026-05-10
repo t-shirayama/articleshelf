@@ -18,7 +18,6 @@
 - [Article / Tag 永続化 Adapter 分割](split-article-tag-persistence-adapters.md)
 - [Article ドメインモデル強化](enrich-article-domain-model.md)
 - [Article アプリケーションユースケース分割](split-article-application-usecases.md)
-- [Article store state ownership 整理](simplify-article-store-state-ownership.md)
 - [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
 - [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
