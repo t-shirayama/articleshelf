@@ -1,17 +1,10 @@
 package com.articleshelf.adapter.web;
 
-import com.articleshelf.application.article.AddArticleCommand;
 import com.articleshelf.application.article.ArticleResponse;
 import com.articleshelf.application.article.ArticleService;
-import com.articleshelf.application.article.UpdateArticleCommand;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,9 +25,11 @@ import java.util.UUID;
 @RequestMapping("/api/articles")
 public class ArticleController {
     private final ArticleService articleService;
+    private final ArticleRequestMapper articleRequestMapper;
 
-    public ArticleController(ArticleService articleService) {
+    public ArticleController(ArticleService articleService, ArticleRequestMapper articleRequestMapper) {
         this.articleService = articleService;
+        this.articleRequestMapper = articleRequestMapper;
     }
 
     @GetMapping
@@ -57,7 +51,7 @@ public class ArticleController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ArticleResponse addArticle(@AuthenticationPrincipal CurrentUser user, @Valid @RequestBody ArticleRequest request) {
-        return articleService.addArticle(user, request.toAddCommand());
+        return articleService.addArticle(user, articleRequestMapper.toAddCommand(request));
     }
 
     @PutMapping("/{id}")
@@ -66,32 +60,12 @@ public class ArticleController {
             @PathVariable UUID id,
             @Valid @RequestBody ArticleRequest request
     ) {
-        return articleService.updateArticle(user, id, request.toUpdateCommand());
+        return articleService.updateArticle(user, id, articleRequestMapper.toUpdateCommand(request));
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteArticle(@AuthenticationPrincipal CurrentUser user, @PathVariable UUID id) {
         articleService.deleteArticle(user, id);
-    }
-
-    public record ArticleRequest(
-            @NotBlank @URL @Size(max = 2048) String url,
-            @Size(max = 255) String title,
-            @Size(max = 5000) String summary,
-            ArticleStatus status,
-            LocalDate readDate,
-            Boolean favorite,
-            @Min(0) @Max(5) Integer rating,
-            @Size(max = 20000) String notes,
-            @Size(max = 20) List<@Size(max = 255) String> tags
-    ) {
-        AddArticleCommand toAddCommand() {
-            return new AddArticleCommand(url, title, summary, status, readDate, favorite, rating, notes, tags);
-        }
-
-        UpdateArticleCommand toUpdateCommand() {
-            return new UpdateArticleCommand(url, title, summary, status, readDate, favorite, rating, notes, tags);
-        }
     }
 }

@@ -32,17 +32,20 @@ public class AuthController {
     private final AuthRateLimiter rateLimiter;
     private final SessionCookieWriter sessionCookieWriter;
     private final CsrfTokenValidator csrfTokenValidator;
+    private final ClientRequestContext clientRequestContext;
 
     public AuthController(
             AuthService authService,
             AuthRateLimiter rateLimiter,
             SessionCookieWriter sessionCookieWriter,
-            CsrfTokenValidator csrfTokenValidator
+            CsrfTokenValidator csrfTokenValidator,
+            ClientRequestContext clientRequestContext
     ) {
         this.authService = authService;
         this.rateLimiter = rateLimiter;
         this.sessionCookieWriter = sessionCookieWriter;
         this.csrfTokenValidator = csrfTokenValidator;
+        this.clientRequestContext = clientRequestContext;
     }
 
     @PostMapping("/register")
@@ -51,13 +54,13 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
-        rateLimiter.checkRegister(clientIp(servletRequest));
+        rateLimiter.checkRegister(clientRequestContext.ipAddress(servletRequest));
         AuthResult result = authService.register(
                 request.username(),
                 request.password(),
                 request.displayName(),
-                servletRequest.getHeader("User-Agent"),
-                servletRequest.getRemoteAddr()
+                clientRequestContext.userAgent(servletRequest),
+                clientRequestContext.ipAddress(servletRequest)
         );
         sessionCookieWriter.writeSession(response, result);
         return result.response();
@@ -69,12 +72,12 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
-        rateLimiter.checkLogin(clientIp(servletRequest), request.username());
+        rateLimiter.checkLogin(clientRequestContext.ipAddress(servletRequest), request.username());
         AuthResult result = authService.login(
                 request.username(),
                 request.password(),
-                servletRequest.getHeader("User-Agent"),
-                servletRequest.getRemoteAddr()
+                clientRequestContext.userAgent(servletRequest),
+                clientRequestContext.ipAddress(servletRequest)
         );
         sessionCookieWriter.writeSession(response, result);
         return result.response();
@@ -90,7 +93,11 @@ public class AuthController {
     ) {
         csrfTokenValidator.validate(csrfCookie, csrfHeader);
         try {
-            AuthResult result = authService.refresh(refreshToken, servletRequest.getHeader("User-Agent"), servletRequest.getRemoteAddr());
+            AuthResult result = authService.refresh(
+                    refreshToken,
+                    clientRequestContext.userAgent(servletRequest),
+                    clientRequestContext.ipAddress(servletRequest)
+            );
             sessionCookieWriter.writeSession(response, result);
             return result.response();
         } catch (AuthException exception) {
@@ -122,10 +129,6 @@ public class AuthController {
     @GetMapping("/me")
     public UserResponse me(@AuthenticationPrincipal CurrentUser currentUser) {
         return authService.currentUser(currentUser);
-    }
-
-    private String clientIp(HttpServletRequest request) {
-        return request.getRemoteAddr();
     }
 
     public record RegisterRequest(
