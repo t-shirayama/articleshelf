@@ -57,9 +57,11 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - URL userinfo は許可しない
 - `localhost`、`localhost.localdomain` を拒否する
 - DNS 解決後の全 IP を検証する
+- 接続直前にも DNS を再解決し、連続した解決結果が変わる場合や危険 IP が混ざる場合は DNS rebinding / TOCTOU リスクとして拒否する
 - loopback、private、link-local、multicast、any-local、IPv6 unique local を拒否する
 - cloud metadata endpoint として `169.254.169.254` と `100.100.100.200` を明示拒否する
 - redirect は自動追従せず、redirect 先 URL も同じ検証を行う
+- redirect 先 URL でも scheme、userinfo、host、DNS、接続直前再解決を同じ手順で検証する
 - redirect 回数は最大 3 回に制限する
 - response body は最大 1MB に制限する
 - `Content-Type` が `text/html` 以外の場合は本文を解析しない

@@ -52,7 +52,7 @@ public class OgpClient {
     private HttpResponse<InputStream> sendFollowingRedirects(URI initialUri) throws IOException, InterruptedException {
         URI currentUri = initialUri;
         for (int redirectCount = 0; redirectCount <= MAX_REDIRECTS; redirectCount += 1) {
-            HttpRequest request = HttpRequest.newBuilder(requestGuard.validate(currentUri))
+            HttpRequest request = HttpRequest.newBuilder(requestGuard.validateForConnection(currentUri))
                     .timeout(Duration.ofSeconds(5))
                     .header("User-Agent", "ArticleShelf/0.1")
                     .GET()

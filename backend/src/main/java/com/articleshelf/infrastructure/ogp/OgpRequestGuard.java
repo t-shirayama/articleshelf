@@ -3,8 +3,11 @@ package com.articleshelf.infrastructure.ogp;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 class OgpRequestGuard {
     private static final Set<String> BLOCKED_HOSTS = Set.of("localhost", "localhost.localdomain");
@@ -12,6 +15,15 @@ class OgpRequestGuard {
             "169.254.169.254",
             "100.100.100.200"
     );
+    private final AddressResolver addressResolver;
+
+    OgpRequestGuard() {
+        this(InetAddress::getAllByName);
+    }
+
+    OgpRequestGuard(AddressResolver addressResolver) {
+        this.addressResolver = addressResolver;
+    }
 
     URI validate(String url) {
         try {
@@ -41,13 +53,35 @@ class OgpRequestGuard {
         return uri;
     }
 
+    URI validateForConnection(URI uri) {
+        URI validated = validate(uri);
+        String normalizedHost = stripTrailingDot(validated.getHost().toLowerCase(Locale.ROOT));
+        Set<String> firstResolution = resolveAndValidate(normalizedHost);
+        Set<String> secondResolution = resolveAndValidate(normalizedHost);
+        if (!firstResolution.equals(secondResolution)) {
+            throw new UnsafeOgpUrlException();
+        }
+        return validated;
+    }
+
     private void validateResolvedAddresses(String host) {
+        resolveAndValidate(host);
+    }
+
+    private Set<String> resolveAndValidate(String host) {
         try {
-            for (InetAddress address : InetAddress.getAllByName(host)) {
+            InetAddress[] addresses = addressResolver.resolve(host);
+            if (addresses.length == 0) {
+                throw new UnsafeOgpUrlException();
+            }
+            for (InetAddress address : addresses) {
                 if (isBlocked(address)) {
                     throw new UnsafeOgpUrlException();
                 }
             }
+            return Arrays.stream(addresses)
+                    .map(InetAddress::getHostAddress)
+                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (UnknownHostException exception) {
             throw new UnsafeOgpUrlException();
         }
@@ -73,5 +107,9 @@ class OgpRequestGuard {
     }
 
     static class UnsafeOgpUrlException extends RuntimeException {
+    }
+
+    interface AddressResolver {
+        InetAddress[] resolve(String host) throws UnknownHostException;
     }
 }
