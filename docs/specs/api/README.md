@@ -15,3 +15,5 @@ ArticleShelf の API 仕様の入口です。
 - [記事 API](articles.md)
 - [タグ API](tags.md)
 - [エラーレスポンス](errors.md)
+- [認証仕様](../auth/README.md): JWT/ユーザー認証の前提
+- [アカウント API](../auth/account-api.md): サインイン後状態確認やユーザー情報取得

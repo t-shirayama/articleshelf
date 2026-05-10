@@ -23,8 +23,8 @@ if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
 fi
 
 if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
-  if ! has_changed '^(docs/designs/README\.md|docs/specification/ui\.md)$'; then
-    echo "WARNING: UI files changed without docs/designs/README.md or docs/specification/ui.md."
+  if ! has_changed '^(docs/designs/README\.md|docs/specs/ui/README\.md)$'; then
+    echo "WARNING: UI files changed without docs/designs/README.md or docs/specs/ui/README.md."
     echo "         If the visual behavior changed, update the relevant UI docs before committing."
   fi
   if ! has_changed '^docs/designs/screenshots/.*\.png$'; then
@@ -37,7 +37,7 @@ if has_changed '^frontend/src/.*\.(vue|ts|css)$'; then
   echo "  - Check related input/button edges align and state changes do not shift layout."
 fi
 
-if has_changed '^(frontend/src/.*\.(vue|css)|docs/designs/README\.md|docs/specification/ui\.md|docs/designs/.*)$'; then
+if has_changed '^(frontend/src/.*\.(vue|css)|docs/designs/README\.md|docs/specs/ui/README\.md|docs/designs/.*)$'; then
   echo "Design capture reminder:"
   echo "  - Preferred stack: docker compose -f docker-compose.e2e.yml up --build -d"
   echo "  - Preferred URLs: http://localhost:5173 and http://localhost:8080"

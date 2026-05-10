@@ -30,7 +30,7 @@ export function useArticleDetailForm(
       }
 
       if (isEditing.value) {
-        cancelEditing();
+        stopEditing();
       }
     },
   });
@@ -40,10 +40,10 @@ export function useArticleDetailForm(
     { label: t("articles.statusUnread"), value: "UNREAD" },
     { label: t("articles.statusRead"), value: "READ" },
   ]);
-  const summaryText = computed(() => article.value?.summary?.trim() || t("detail.emptySummary"));
-  const notesText = computed(() => article.value?.notes?.trim() || t("detail.emptyNotes"));
+  const summaryText = computed(() => form.summary.trim() || t("detail.emptySummary"));
+  const notesText = computed(() => form.notes.trim() || t("detail.emptyNotes"));
   const hasUnsavedChanges = computed(() => Boolean(
-    article.value && isEditing.value && hasArticleDetailFormChanges(form, article.value),
+    article.value && hasArticleDetailFormChanges(form, article.value),
   ));
   const urlError = computed(() => (form.url.trim() ? "" : t("articleForm.validation.urlRequired")));
   const titleError = computed(() => (form.title.trim() ? "" : t("detail.titleRequired")));
@@ -73,20 +73,18 @@ export function useArticleDetailForm(
 
   function startEditing(): void {
     if (!article.value) return;
-    Object.assign(form, articleToDetailForm(article.value));
     isEditing.value = true;
     submitted.value = false;
   }
 
-  function cancelEditing(): void {
-    Object.assign(form, article.value ? articleToDetailForm(article.value) : createEmptyArticleDetailForm());
+  function stopEditing(): void {
     isEditing.value = false;
     submitted.value = false;
   }
 
   function createFavoriteInput(): ArticleInput | null {
     if (!article.value) return null;
-    if (isEditing.value) {
+    if (isEditing.value || hasArticleDetailFormChanges(form, article.value)) {
       form.favorite = !form.favorite;
       return null;
     }

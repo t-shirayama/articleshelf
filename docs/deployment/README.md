@@ -1,10 +1,11 @@
-# 無料枠を中心にした公開構成と CI
+# 無料枠を中心にした公開構成とデプロイ運用
 
 最終更新: 2026-05-09
 
 ## 1. 目的
 
-ArticleShelf の現在の公開構成、環境変数、公開後の運用メモ、CI 方針を整理する。
+ArticleShelf の現在の公開構成、環境変数、公開後の運用メモ、デプロイ運用を整理する。
+CI の段階構成と品質ゲートの詳細は [CI / CD](../architecture/ci-cd/README.md) を正本とする。
 対象は個人利用、社内説明、ポートフォリオ、小規模検証であり、商用 SLA や高可用性を前提にしない。
 
 無料枠は、容量制限、休眠、起動遅延、バックアップ制限、利用条件変更がある。
@@ -201,11 +202,11 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - リリース前後に `/actuator/health` で DB 接続が healthy になることを確認する
 - `pg_dump` または Supabase dashboard から export 手順を確認する
 
-## 7. CI 方針
+## 7. デプロイ連携メモ
 
 ### 7.1 現在の運用
 
-- PR / push では GitHub Actions の CI を実行する
+- PR / push では GitHub Actions の CI を実行する。CI の詳細は [CI / CD](../architecture/ci-cd/README.md) に従う
 - Cloudflare Pages は Git 連携で `frontend` を build / deploy する
 - Render は Git 連携で `backend` を Docker build / deploy する
 - Cloudflare Worker は 10 分ごとの scheduled event で Render の `/actuator/health` へ ping し、Free Web Service の spin down を抑制する
