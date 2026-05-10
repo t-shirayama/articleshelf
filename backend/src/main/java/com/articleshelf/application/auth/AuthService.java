@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -22,9 +23,11 @@ public class AuthService {
     private final AccessTokenIssuer accessTokenIssuer;
     private final RefreshTokenSecretService refreshTokenSecretService;
     private final AuthSettings settings;
+    private final Clock clock;
+    private final IdGenerator idGenerator;
+    private final SecureRandom secureRandom;
     private final UsernamePolicy usernamePolicy = new UsernamePolicy();
     private final PasswordPolicy passwordPolicy = new PasswordPolicy();
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
             AuthUserRepository userRepository,
@@ -32,7 +35,10 @@ public class AuthService {
             PasswordHasher passwordHasher,
             AccessTokenIssuer accessTokenIssuer,
             RefreshTokenSecretService refreshTokenSecretService,
-            AuthSettings settings
+            AuthSettings settings,
+            Clock clock,
+            IdGenerator idGenerator,
+            SecureRandom secureRandom
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -40,6 +46,9 @@ public class AuthService {
         this.accessTokenIssuer = accessTokenIssuer;
         this.refreshTokenSecretService = refreshTokenSecretService;
         this.settings = settings;
+        this.clock = clock;
+        this.idGenerator = idGenerator;
+        this.secureRandom = secureRandom;
     }
 
     @Transactional
@@ -58,10 +67,10 @@ public class AuthService {
                 normalizeDisplayName(displayName, normalizedUsername),
                 "USER",
                 UserStatus.ACTIVE,
-                Instant.now(),
+                now(),
                 Instant.EPOCH
         );
-        return issueAuthResult(userRepository.save(user), UUID.randomUUID(), userAgent, ipAddress);
+        return issueAuthResult(userRepository.save(user), idGenerator.nextUuid(), userAgent, ipAddress);
     }
 
     @Transactional
@@ -80,10 +89,10 @@ public class AuthService {
                 user.displayName(),
                 user.role(),
                 user.status(),
-                Instant.now(),
+                now(),
                 user.tokenValidAfter()
         ));
-        return issueAuthResult(user, UUID.randomUUID(), userAgent, ipAddress);
+        return issueAuthResult(user, idGenerator.nextUuid(), userAgent, ipAddress);
     }
 
     @Transactional
@@ -91,7 +100,7 @@ public class AuthService {
         if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
             throw AuthException.invalidRefreshToken("refresh token is missing");
         }
-        Instant now = Instant.now();
+        Instant now = now();
         RefreshTokenRecord current = refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
                 .orElseThrow(() -> AuthException.invalidRefreshToken("refresh token is invalid"));
         AuthUser user = current.user();
@@ -116,7 +125,7 @@ public class AuthService {
         refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
                 .ifPresent(token -> {
                     if (token.revokedAt() == null) {
-                        refreshTokenRepository.revoke(token.id(), Instant.now());
+                        refreshTokenRepository.revoke(token.id(), now());
                     }
                 });
     }
@@ -193,7 +202,7 @@ public class AuthService {
     }
 
     private void saveWithPasswordAndInvalidatedTokens(AuthUser user, String newPassword, UserStatus status) {
-        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant now = now().truncatedTo(ChronoUnit.SECONDS);
         userRepository.save(new AuthUser(
                 user.id(),
                 user.username(),
@@ -208,7 +217,7 @@ public class AuthService {
     }
 
     private void invalidateTokens(AuthUser user) {
-        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant now = now().truncatedTo(ChronoUnit.SECONDS);
         userRepository.save(new AuthUser(
                 user.id(),
                 user.username(),
@@ -233,7 +242,7 @@ public class AuthService {
                 user,
                 refreshTokenSecretService.hash(rawToken),
                 familyId,
-                Instant.now().plus(settings.refreshTokenTtlDays(), ChronoUnit.DAYS),
+                now().plus(settings.refreshTokenTtlDays(), ChronoUnit.DAYS),
                 userAgent,
                 ipAddress
         );
@@ -249,6 +258,10 @@ public class AuthService {
         byte[] bytes = new byte[24];
         secureRandom.nextBytes(bytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    private Instant now() {
+        return Instant.now(clock);
     }
 
     private String normalizeUsername(String username) {
