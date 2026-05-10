@@ -57,6 +57,7 @@ Supabase Free PostgreSQL
 - backend は `server.forward-headers-strategy: framework` を有効化済みで、Render の HTTPS proxy 後段で secure request / forwarded header を扱える
 - production profile は datasource、frontend origin、JWT secret、refresh token hash secret を環境変数必須にしている
 - production profile は `AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None` を既定にし、frontend / API が別 site になる構成に合っている
+- production profile は `SPRING_DATASOURCE_URL` の `sslmode=require` / `verify-ca` / `verify-full` を起動時に検証し、TLS なしの DB 接続を拒否する
 - OGP 取得は timeout、User-Agent、SSRF 対策、redirect 再検証、body size 制限、`text/html` 制限に対応済み
 - DB schema は Flyway migration と JPA `validate` で管理しており、Supabase PostgreSQL へ起動時 migration を適用できる
 - 現行 frontend は Vue Router を使っていないため SPA fallback は必須ではない。history mode の routing を導入した場合は `_redirects` を追加する
@@ -134,7 +135,7 @@ README やアプリ画面で表示する注意書き例:
 | 変数                                         | 例                                               | 説明                                                     |
 | -------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------- |
 | `SPRING_PROFILES_ACTIVE`                     | `prod`                                           | 本番 profile                                             |
-| `SPRING_DATASOURCE_URL`                      | `jdbc:postgresql://.../postgres?sslmode=require` | Supabase PostgreSQL JDBC URL                             |
+| `SPRING_DATASOURCE_URL`                      | `jdbc:postgresql://.../postgres?sslmode=require` | Supabase PostgreSQL JDBC URL。production profile では `sslmode=require` 以上が必須 |
 | `SPRING_DATASOURCE_USERNAME`                 | `postgres.<project-ref>`                         | Supabase DB user。接続方式により形式が異なる             |
 | `SPRING_DATASOURCE_PASSWORD`                 | `********`                                       | Supabase DB password                                     |
 | `FRONTEND_ORIGIN`                            | `https://articleshelf.pages.dev`                 | CORS 許可 origin                                         |
@@ -191,7 +192,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 ```
 
 `verify-full` を使う場合は Supabase の CA certificate を取得し、JDBC / runtime に証明書設定を追加する。
-現行運用では最低限 `sslmode=require` を必須にする。
+現行運用では最低限 `sslmode=require` を必須にする。production profile の backend は JDBC URL に `sslmode=require`、`verify-ca`、`verify-full` のいずれもない場合は起動を拒否する。
 
 ### 6.2 Free plan の注意
 
