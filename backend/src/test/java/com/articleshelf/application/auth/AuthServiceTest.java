@@ -143,7 +143,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void refreshRevokesReplacementWhenAtomicReplaceDoesNotUpdateCurrentToken() {
+    void refreshRevokesTokenFamilyWhenAtomicReplaceDoesNotUpdateCurrentToken() {
         AuthUserRepository users = mock(AuthUserRepository.class);
         RefreshTokenRepository refreshTokens = mock(RefreshTokenRepository.class);
         AccessTokenIssuer accessTokenIssuer = mock(AccessTokenIssuer.class);
@@ -198,7 +198,7 @@ class AuthServiceTest {
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.refresh("raw-refresh-token", "JUnit", "127.0.0.1"))
                 .isInstanceOf(AuthException.class);
 
-        verify(refreshTokens).revoke(replacementId, FIXED_NOW);
+        verify(refreshTokens).revokeFamily(USER_ID, FAMILY_ID, FIXED_NOW);
         verifyNoInteractions(accessTokenIssuer);
     }
 }

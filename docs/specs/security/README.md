@@ -19,7 +19,7 @@
 - protected API は認証済みユーザーだけが利用できる
 - access token は短命 JWT、refresh token は HttpOnly cookie として扱う
 - Cookie 認証を使う refresh / logout 系 API は CSRF 保護の対象にする
-- refresh token rotation は `RefreshTokenRotationService` に集約し、pessimistic lock と条件付き update で atomic に行い、並行 refresh で複数 replacement token が有効化されないようにする
+- refresh token rotation は `RefreshTokenRotationService` に集約し、pessimistic lock と条件付き update で atomic に行い、並行 refresh で複数 replacement token が有効化されないようにする。条件付き update 失敗や失効済み token の再利用は replay / compromise signal として扱い、同一 token family を失効する
 - JWT の発行 / 検証は Spring Security JOSE に委譲し、自前実装しない
 
 ## 3. 本番起動ガード

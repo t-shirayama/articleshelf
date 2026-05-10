@@ -59,7 +59,7 @@ public class RefreshTokenRotationService {
 
         CreatedRefreshToken replacement = createRefreshToken(user, current.familyId(), userAgent, ipAddress);
         if (!refreshTokenRepository.replaceIfActive(current.id(), replacement.record().id(), now)) {
-            refreshTokenRepository.revoke(replacement.record().id(), now);
+            refreshTokenRepository.revokeFamily(user.id(), current.familyId(), now);
             throw AuthException.invalidRefreshToken("refresh token is invalid");
         }
         return new AuthResult(toAuthResponse(user), new RefreshSession(replacement.rawToken(), issueCsrfToken()));
