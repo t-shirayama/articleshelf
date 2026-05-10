@@ -15,7 +15,7 @@
 
 ### P2
 
-- [記事一覧 pagination / query model 導入](add-article-pagination-query-model.md)
+- 該当なし
 
 ### P3
 

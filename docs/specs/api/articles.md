@@ -5,11 +5,14 @@
 - 説明: 記事一覧を取得
 - 認証: 必須
 - レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
-- パラメータ: `status`, `tag`, `search`, `favorite`
+- パラメータ: `status`, `tag`, `search`, `favorite`, `page`, `size`, `sort`
 - `status` は `UNREAD` または `READ`
 - `tag` は単一タグ名で、大文字小文字を区別せず一致判定する
 - `search` はタイトル、URL、概要、メモを対象に部分一致する
 - `favorite` は `true` または `false`
+- `page` は 0 origin のページ番号。`page` または `size` を指定した場合だけ backend 側で page slice する
+- `size` は 1 - 200。未指定で page 指定がある場合は 50 件を既定値にする
+- `sort` は query model 用の並び順キー。現時点では既存レスポンス互換を優先し、フロントエンド側 sort と併用する
 - 備考: フロントエンドでは初回取得時に `status`, `search`, `favorite` をAPIへ渡し、複数タグ、おすすめ度、登録日範囲、既読日範囲、並び替えは取得後にフロントエンド側で適用する
 
 ## `GET /api/articles/{id}`

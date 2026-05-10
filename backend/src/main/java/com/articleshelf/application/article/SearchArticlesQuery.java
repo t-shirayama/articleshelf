@@ -20,8 +20,20 @@ public class SearchArticlesQuery {
 
     @Transactional(readOnly = true)
     public List<ArticleResponse> findArticles(CurrentUser user, ArticleStatus status, String tag, String search, Boolean favorite) {
+        return findArticles(user, status, tag, search, favorite, new ArticleListQuery(null, null, null));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ArticleResponse> findArticles(
+            CurrentUser user,
+            ArticleStatus status,
+            String tag,
+            String search,
+            Boolean favorite,
+            ArticleListQuery query
+    ) {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(status, normalizeFilter(tag), normalizeFilter(search), favorite);
-        return articleRepository.searchByUserId(user.id(), criteria).stream()
+        return query.slice(articleRepository.searchByUserId(user.id(), criteria)).stream()
                 .map(ArticleResponse::from)
                 .toList();
     }

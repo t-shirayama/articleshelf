@@ -33,6 +33,17 @@ public class ArticleService {
         return searchArticlesQuery.findArticles(user, status, tag, search, favorite);
     }
 
+    public List<ArticleResponse> findArticles(
+            CurrentUser user,
+            ArticleStatus status,
+            String tag,
+            String search,
+            Boolean favorite,
+            ArticleListQuery query
+    ) {
+        return searchArticlesQuery.findArticles(user, status, tag, search, favorite, query);
+    }
+
     public ArticleResponse findArticle(CurrentUser user, UUID id) {
         return findArticleQuery.findArticle(user, id);
     }

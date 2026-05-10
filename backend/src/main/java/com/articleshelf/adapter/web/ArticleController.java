@@ -2,6 +2,7 @@ package com.articleshelf.adapter.web;
 
 import com.articleshelf.application.article.ArticleResponse;
 import com.articleshelf.application.article.ArticleService;
+import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
@@ -38,9 +39,12 @@ public class ArticleController {
             @RequestParam(required = false) ArticleStatus status,
             @RequestParam(required = false) String tag,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) Boolean favorite
+            @RequestParam(required = false) Boolean favorite,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String sort
     ) {
-        return articleService.findArticles(user, status, tag, search, favorite);
+        return articleService.findArticles(user, status, tag, search, favorite, new ArticleListQuery(page, size, sort));
     }
 
     @GetMapping("/{id}")
