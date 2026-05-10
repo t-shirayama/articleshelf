@@ -54,6 +54,7 @@ Supabase Free PostgreSQL
 - frontend API client は `credentials: 'include'` で refresh token cookie を送信できる
 - backend は `server.port: ${PORT:8080}` に対応済みで、Render が指定する `PORT` で待ち受けられる
 - backend production Docker image は dedicated non-root user で `java -jar` を実行する
+- frontend Docker image は開発 / E2E 用でも Node 公式 image の non-root user で dev server を実行する
 - backend は `server.forward-headers-strategy: framework` を有効化済みで、Render の HTTPS proxy 後段で secure request / forwarded header を扱える
 - production profile は datasource、frontend origin、JWT secret、refresh token hash secret を環境変数必須にしている
 - production profile は `AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None` を既定にし、frontend / API が別 site になる構成に合っている
@@ -163,6 +164,7 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 
 - backend へ外部から直接到達させず、Render の公開 HTTPS 経路を通す
 - backend コンテナは final image で root ではなく `articleshelf` user として実行する
+- frontend の Docker 開発 / E2E image は root ではなく `node` user として実行する
 - 認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う
 - 現行 rate limit は Render 無料枠の単一 backend インスタンス向け。複数インスタンスへ拡張する場合は Redis、proxy、WAF 側へ移す
 - `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
