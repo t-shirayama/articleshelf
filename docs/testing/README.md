@@ -63,6 +63,7 @@ Router 導入後の E2E / 手動確認では、未認証 protected route が `/l
 記事一覧 query model は `ArticleListQueryTest` で、pagination 未指定時に既存の全件レスポンスを維持すること、`page` / `size` の正規化と slice を確認する。
 Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 Supply chain security は Dependabot の更新 PR、Dependency Review の PR 差分検知、CodeQL の code scanning、Trivy の filesystem / backend image scan に分担する。
+Dependency Review は GitHub repository の Dependency graph が有効で、repository variable `DEPENDENCY_REVIEW_ENABLED=true` が設定されている場合に moderate 以上の既知脆弱性を PR gate として扱う。Dependency graph が使えない repository では job 内で skip notice を出し、Trivy / CodeQL / Dependabot を継続する。
 PDF インポートを実装する場合は、URL あり / 複数 URL / URL なし / 段組や改行の多い PDF / スキャン PDF / OGP 取得失敗 URL を代表ケースとして確認する。
 
 ## 5. 完了条件
