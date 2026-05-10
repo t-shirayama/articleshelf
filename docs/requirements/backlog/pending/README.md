@@ -28,7 +28,6 @@
 - [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [Backend observability metrics 追加](add-backend-observability-metrics.md)
 - [Frontend CSP と Markdown security tests 強化](add-frontend-csp-and-markdown-security-tests.md)
-- [Frontend focus management と reduced motion 改善](improve-frontend-focus-and-reduced-motion.md)
 - [Frontend quality gates 強化](add-frontend-quality-gates.md)
 - [Machine-readable API エラー導入](introduce-machine-readable-api-errors.md)
 - [PDF インポート実データ品質改善](pdf-import-real-data-quality-improvement.md)

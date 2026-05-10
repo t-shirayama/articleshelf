@@ -12,13 +12,18 @@ export function useArticleCreateForm(
   const form = reactive(createEmptyArticleCreateForm())
   const submitted = ref(false)
   const urlInput = ref<{ focus: () => void } | null>(null)
+  const openerElement = ref<HTMLElement | null>(null)
   const tagOptions = computed(() => [...new Set(tags.value.map((tag) => tag.name).filter(Boolean))])
   const urlError = computed(() => (form.url.trim() ? '' : t('articleForm.validation.urlRequired')))
   const readDateError = computed(() => (!form.readLater && !form.readDate ? t('articleForm.validation.readDateRequired') : ''))
   const formValid = computed(() => !urlError.value && !readDateError.value)
 
   watch(open, (isOpen) => {
-    if (!isOpen) return
+    if (!isOpen) {
+      restoreFocus()
+      return
+    }
+    openerElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
     reset()
     focusUrlInput()
   })
@@ -33,6 +38,13 @@ export function useArticleCreateForm(
       window.requestAnimationFrame(() => {
         urlInput.value?.focus()
       })
+    })
+  }
+
+  function restoreFocus(): void {
+    nextTick(() => {
+      openerElement.value?.focus()
+      openerElement.value = null
     })
   }
 

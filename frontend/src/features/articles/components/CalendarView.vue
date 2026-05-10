@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   CalendarDays,
@@ -36,6 +36,7 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 const selectedCalendarCell = ref<CalendarCell | null>(null);
 const calendarDayDialogOpen = ref(false);
+const lastCalendarCellTrigger = ref<HTMLElement | null>(null);
 const mode = computed({
   get: () => props.mode,
   set: (value: CalendarMode) => emit("update:mode", value),
@@ -154,8 +155,17 @@ function moveMonth(offset: number): void {
   )));
 }
 
-function openCalendarCell(cell: CalendarCell): void {
+watch(calendarDayDialogOpen, (open) => {
+  if (open) return;
+  nextTick(() => {
+    lastCalendarCellTrigger.value?.focus();
+    lastCalendarCellTrigger.value = null;
+  });
+});
+
+function openCalendarCell(cell: CalendarCell, event?: Event): void {
   if (cell.outside || cell.articles.length === 0) return;
+  lastCalendarCellTrigger.value = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
   selectedCalendarCell.value = cell;
   calendarDayDialogOpen.value = true;
 }
@@ -189,6 +199,11 @@ function toMonthKey(date: Date): string {
   const year = monthStart.getFullYear();
   const month = String(monthStart.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
+}
+
+function calendarCellLabel(cell: CalendarCell): string | undefined {
+  if (cell.outside || cell.articles.length === 0) return undefined;
+  return `${cell.date} ${t("calendar.articleCount", { count: cell.articles.length })}`;
 }
 
 function monthKeyToDate(monthKey: string): Date {
@@ -296,7 +311,11 @@ function monthKeyToDate(monthKey: string): Date {
           'is-saturday': cell.weekday === 6,
         }"
         role="gridcell"
-        @click="openCalendarCell(cell)"
+        :tabindex="!cell.outside && cell.articles.length > 0 ? 0 : -1"
+        :aria-label="calendarCellLabel(cell)"
+        @click="openCalendarCell(cell, $event)"
+        @keydown.enter.prevent="openCalendarCell(cell, $event)"
+        @keydown.space.prevent="openCalendarCell(cell, $event)"
       >
         <template v-if="!cell.outside">
           <div class="calendar-day-header">

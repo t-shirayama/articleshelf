@@ -50,6 +50,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、型チェックと Vite build、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
+UI / E2E 確認では、主要 dialog の focus 復帰、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制をアクセシビリティ観点として見る。
 
 ## 5. 完了条件
 
