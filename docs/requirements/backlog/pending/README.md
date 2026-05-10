@@ -14,10 +14,14 @@
 - [Router level route boundaries](router-level-route-boundaries.md)
 - [ArticleWorkspace container boundaries](article-workspace-container-boundaries.md)
 - [Server driven article list query](server-driven-article-list-query.md)
+- [DB backed article list pagination sort](db-backed-article-list-pagination-sort.md)
+- [Article optimistic locking](article-optimistic-locking.md)
 
 ### P2
 
 - [Frontend focused coverage gates](frontend-focused-coverage-gates.md)
+- [Auth use case bean injection](auth-use-case-bean-injection.md)
+- [JWT token service time id injection](jwt-token-service-time-id-injection.md)
 
 ### P3
 

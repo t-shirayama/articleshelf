@@ -22,6 +22,7 @@ backend に入り始めている `page` / `size` / `sort` query を frontend sto
 
 ## 対応内容
 
+- backend 側の DB-backed pagination / sort contract は [DB backed article list pagination sort](db-backed-article-list-pagination-sort.md) を前提にし、frontend からはその契約に沿った query を送る。
 - 既存 `/api/articles` の範囲で、検索、ステータス、タグ、お気に入り、並び順、ページ取得を frontend から query として渡す。
 - デプロイ構成は変えず、Vue / Spring Boot / PostgreSQL / Docker Compose の現行構成内で完結させる。
 - frontend store は全件取得を前提にした表示から、一覧用 query state と取得結果を持つ構成へ段階的に移す。
@@ -39,3 +40,4 @@ backend に入り始めている `page` / `size` / `sort` query を frontend sto
 ## 根拠
 
 backend には `page` / `size` / `sort` が入り始めているが、frontend store は基本的に全記事取得後の client-side filtering / sorting を使っている。小規模では問題ないが、大量データ時の設計説明では server-driven query との接続が必要になる。
+加えて、backend 側でも page / size / sort を DB query に落とす必要があるため、frontend 接続とは別に backend persistence contract の改善を前提タスクとして扱う。
