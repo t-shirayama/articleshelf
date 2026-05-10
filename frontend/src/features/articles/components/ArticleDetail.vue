@@ -280,7 +280,7 @@ function confirmDelete(): void {
               <div class="detail-section-header">
                 <h3>{{ t('common.notes') }}</h3>
               </div>
-              <MarkdownViewer v-if="article.notes" :source="article.notes" />
+              <MarkdownViewer v-if="form.notes" :source="form.notes" />
               <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
             </section>
           </template>
