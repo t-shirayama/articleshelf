@@ -36,12 +36,29 @@ class ArticleServiceTest {
     private final InMemoryArticleRepository repository = new InMemoryArticleRepository();
     private final RecordingTransactionOperations transactionOperations = new RecordingTransactionOperations();
     private final StubMetadataProvider metadataProvider = new StubMetadataProvider();
+    private final BackendMetrics metrics = BackendMetrics.noop();
+    private final ArticleTagResolver tagResolver = new ArticleTagResolver(repository);
+    private final ArticleUrlUniquenessGuard urlUniquenessGuard = new ArticleUrlUniquenessGuard(repository, transactionOperations);
     private final ArticleService service = new ArticleService(
-            repository,
-            repository,
-            metadataProvider,
-            transactionOperations,
-            BackendMetrics.noop()
+            new SearchArticlesQuery(repository),
+            new FindArticleQuery(repository),
+            new AddArticleUseCase(
+                    repository,
+                    metadataProvider,
+                    transactionOperations,
+                    metrics,
+                    tagResolver,
+                    urlUniquenessGuard
+            ),
+            new UpdateArticleUseCase(
+                    repository,
+                    metadataProvider,
+                    transactionOperations,
+                    metrics,
+                    tagResolver,
+                    urlUniquenessGuard
+            ),
+            new DeleteArticleUseCase(repository)
     );
     private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user", "User", List.of("USER"));
 
