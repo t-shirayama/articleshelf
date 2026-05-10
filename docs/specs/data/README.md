@@ -76,6 +76,7 @@
 
 記事とタグは多対多で関連付けます。
 `userId`, `articleId`, `tagId` を主キーにし、複合 FK で article / tag の user mismatch を拒否します。
+永続化 adapter は記事検索・保存を `ArticleRepository` 実装、タグ一覧・名称変更・統合・未使用削除を `TagRepository` 実装に分け、article-tag link の user mismatch は記事保存時にも検証します。
 
 ## Migration Contract
 
