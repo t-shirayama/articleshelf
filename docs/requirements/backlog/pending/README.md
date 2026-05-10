@@ -46,7 +46,6 @@
 
 ### P3
 
-- [Frontend app providers 分離](split-frontend-app-providers.md)
 - [OGP HTML 解析と charset 対応改善](improve-ogp-parsing-charset-handling.md)
 - [TimeProvider / IdGenerator port 導入](introduce-time-id-provider-ports.md)
 - [Thumbnail cache eviction 導入](add-thumbnail-cache-eviction.md)
