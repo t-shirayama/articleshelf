@@ -16,12 +16,17 @@
 - [Server driven article list query](server-driven-article-list-query.md)
 - [DB backed article list pagination sort](db-backed-article-list-pagination-sort.md)
 - [Article optimistic locking](article-optimistic-locking.md)
+- [Production profile runtime enforcement](production-profile-runtime-enforcement.md)
 
 ### P2
 
 - [Frontend focused coverage gates](frontend-focused-coverage-gates.md)
 - [Auth use case bean injection](auth-use-case-bean-injection.md)
 - [JWT token service time id injection](jwt-token-service-time-id-injection.md)
+- [Distributed auth rate limit](distributed-auth-rate-limit.md)
+- [Centralized cookie CSRF guard](centralized-cookie-csrf-guard.md)
+- [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)
+- [OGP egress network isolation](ogp-egress-network-isolation.md)
 
 ### P3
 
