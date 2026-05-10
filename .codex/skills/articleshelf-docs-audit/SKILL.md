@@ -6,13 +6,14 @@ description: Audit ArticleShelf documentation consistency. Use when Codex needs 
 # ArticleShelf Docs Audit
 
 Use this skill for documentation integrity checks and responsibility cleanup.
+After the initial release, treat `AGENTS.md` as the worker handbook for Codex / AI agents / maintainers, and `docs/README.md` as the human-facing docs entrypoint.
 
 ## Workflow
 
 1. Read `AGENTS.md`, `docs/README.md`, and `.codex/skills/articleshelf-change-sync/SKILL.md`.
 2. Check link and path integrity:
    - Run a Markdown relative link existence check across `README.md`, `docs`, `AGENTS.md`, and `.codex`.
-   - Run old-path searches for the legacy specification folder, the old Backlog file path, moved architecture direct `.md` paths, and moved product direct `.md` paths.
+   - Run old-path searches for the legacy specification folder, the old Backlog file path, moved architecture direct `.md` paths, moved product direct `.md` paths, and old phase wording.
    - Run `git diff --check`.
 3. Check docs structure:
    - `docs/` direct children should be `README.md` plus major folders.
@@ -38,7 +39,10 @@ $legacy = @(
   'specification' + '/',
   'requirements/backlog' + '.md',
   'architecture/(technology|frontend|backend|data-model|api-flow|runtime|ci-cd)' + '\.md',
-  'product/(vision|glossary)' + '\.md'
+  'product/(vision|glossary)' + '\.md',
+  'MVP' + ' iteration',
+  ('ま' + 'ずは' + '基本'),
+  '画像' + '貼り付け'
 ) -join '|'
 rg $legacy README.md docs AGENTS.md .codex
 git diff --check
@@ -51,5 +55,6 @@ For Markdown link validation, use a local script or shell snippet that resolves 
 - Do not turn requirements docs into implementation specs.
 - Do not duplicate detailed data model, API, UI, security, or test rules in multiple places.
 - Keep README files as indexes or short source-of-truth summaries.
+- Keep `AGENTS.md` focused on operating rules and review lenses, not project roadmap or speculative product ideas.
 - For Backlog, verify `docs/requirements/backlog/README.md` and each state folder README stay updated, task filenames use lowercase kebab-case, task files use the standard headings, and priorities use `P0`-`P4`.
 - Build / unit / integration / E2E are not required for docs-only audits unless scripts or executable behavior changed.

@@ -38,6 +38,7 @@
 - [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [Web adapter 境界の責務整理](cleanup-web-adapter-boundaries.md)
 - [カレンダー domain helper と keyboard 操作改善](improve-calendar-domain-and-keyboard.md)
+- [詳細編集でステータス変更時に既読日を同期する](sync-read-date-on-detail-status-edit.md)
 - [記事一覧 pagination / query model 導入](add-article-pagination-query-model.md)
 - [Frontend 認証 session contract 整理](cleanup-frontend-auth-session-contract.md)
 - [Backend Docker image non-root 実行](run-backend-container-as-non-root.md)
