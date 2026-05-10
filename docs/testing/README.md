@@ -1,6 +1,6 @@
 # ArticleShelf Test Strategy
 
-最終更新: 2026-05-09
+最終更新: 2026-05-10
 
 ArticleShelf のテストは、記事を「読んだ知識資産」として安全に登録・検索・更新できることを継続的に保証するために整備する。
 この README はテスト文書の入口とし、Unit / Integration / E2E の詳細は配下ディレクトリに分割する。
@@ -44,6 +44,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - ブラウザ E2E: `npm run test:e2e`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
+- Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 
 ## 5. 完了条件

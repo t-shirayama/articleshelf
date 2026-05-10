@@ -76,3 +76,11 @@
 
 記事とタグは多対多で関連付けます。
 `userId`, `articleId`, `tagId` を主キーにし、複合 FK で article / tag の user mismatch を拒否します。
+
+## Migration Contract
+
+- schema は Flyway の versioned migration で更新する
+- `V1__baseline_schema.sql` は初回 schema と既存開発 DB の baseline 統合を兼ねるため、冪等な table / column 追加、既存制約の整理、既存データ補正を含む
+- `V2__username_auth_and_account_controls.sql` は username login、legacy email nullable 化、`token_valid_after` 追加を担当する
+- 共有環境や本番 DB に適用済みの migration は rewrite せず、以後の schema 変更は新しい migration として追加する
+- migration と JPA Entity の差分は JPA validate と PostgreSQL 実体を使った integration test で確認する

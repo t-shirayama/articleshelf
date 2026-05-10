@@ -47,7 +47,6 @@
 ### P3
 
 - [Backend quality gates の見せ方整理](document-backend-quality-gates.md)
-- [Flyway baseline migration の意図整理](document-or-simplify-flyway-baseline.md)
 - [Frontend app providers 分離](split-frontend-app-providers.md)
 - [Frontend architecture highlights 整理](document-frontend-architecture-highlights.md)
 - [OGP HTML 解析と charset 対応改善](improve-ogp-parsing-charset-handling.md)
