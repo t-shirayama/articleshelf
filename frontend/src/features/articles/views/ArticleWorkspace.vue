@@ -58,6 +58,7 @@ const detailReturnView = ref<DetailReturnView>("list");
 const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
 const calendarMode = ref<CalendarMode>("created");
 const mobileDrawerOpen = ref(false);
+let removeWorkspaceRouteGuard: (() => void) | null = null;
 
 const availableTagNames = computed<string[]>(() =>
   store.tags.map((tag) => tag.name),
@@ -166,6 +167,21 @@ const { cancelSearch } = useArticleSearchDebounce(searchDraft, (value) => store.
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
+  removeWorkspaceRouteGuard = router.beforeEach((to, from) => {
+    if (
+      to.fullPath === from.fullPath ||
+      !isWorkspaceRoute(to.path) ||
+      viewMode.value !== "detail" ||
+      !detailHasUnsavedChanges.value
+    ) {
+      return true;
+    }
+
+    requestNavigation(() => {
+      void router.push(to.fullPath);
+    });
+    return false;
+  });
   await loadInitialData();
   await applyWorkspaceRoute();
 });
@@ -176,6 +192,8 @@ watch(() => route.path, () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
+  removeWorkspaceRouteGuard?.();
+  removeWorkspaceRouteGuard = null;
 });
 
 async function logout(): Promise<void> {
@@ -230,20 +248,24 @@ function showDetailReturnView(): void {
 
 function showCalendar(): void {
   mobileDrawerOpen.value = false;
-  void router.push("/calendar");
-  requestNavigation(navigateToCalendar);
+  requestNavigation(() => {
+    void router.push("/calendar");
+    navigateToCalendar();
+  });
 }
 
 function showTags(): void {
   mobileDrawerOpen.value = false;
-  void router.push("/tags");
-  requestNavigation(navigateToTags);
+  requestNavigation(() => {
+    void router.push("/tags");
+    navigateToTags();
+  });
 }
 
 function setStatus(status: ArticleStatus): void {
   mobileDrawerOpen.value = false;
-  void router.push("/articles");
   requestNavigation(() => {
+    void router.push("/articles");
     navigateToList();
     rotateMotivation();
     void store.setStatus(status);
@@ -252,8 +274,8 @@ function setStatus(status: ArticleStatus): void {
 
 function setFavoriteOnly(): void {
   mobileDrawerOpen.value = false;
-  void router.push("/articles");
   requestNavigation(() => {
+    void router.push("/articles");
     navigateToList();
     rotateMotivation();
     void store.setFavoriteOnly();
@@ -262,8 +284,8 @@ function setFavoriteOnly(): void {
 
 function setAllArticles(): void {
   mobileDrawerOpen.value = false;
-  void router.push("/articles");
   requestNavigation(() => {
+    void router.push("/articles");
     navigateToList();
     rotateMotivation();
     void store.setAllArticles();
@@ -393,6 +415,16 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
   if (!detailHasUnsavedChanges.value) return;
   event.preventDefault();
   event.returnValue = "";
+}
+
+function isWorkspaceRoute(path: string): boolean {
+  return (
+    path === "/articles" ||
+    path.startsWith("/articles/") ||
+    path === "/calendar" ||
+    path === "/tags" ||
+    path === "/settings"
+  );
 }
 </script>
 

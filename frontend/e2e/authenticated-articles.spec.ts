@@ -338,6 +338,13 @@ test('user is warned before leaving unsaved article edits', async ({ page }, tes
   await page.getByRole('button', { name: '編集' }).click()
   await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Unsaved draft note')
   await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')
+  await page.getByRole('button', { name: '編集を続ける' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+
   await page.getByRole('button', { name: '戻る' }).click()
 
   await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')
