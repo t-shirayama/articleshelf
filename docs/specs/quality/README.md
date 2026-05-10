@@ -49,4 +49,5 @@ ArticleShelf の品質属性と運用上守るべき仕様を定義する。
 - metrics は Actuator の `/actuator/metrics` で確認できる範囲に限定し、token、username、URL、メモ本文などの個人情報や secret を tag / value に含めない
 - OGP 取得は `articleshelf.ogp.fetch` timer で `accessible`、`unavailable`、`invalid_input`、`error` の outcome を記録する
 - 認証失敗は `articleshelf.auth.failure`、rate limit 超過は `articleshelf.auth.rate_limited` で理由や operation のみを記録する
+- access token の拒否は `articleshelf.auth.access_token_rejected` で理由のみを記録し、token 値、username、IP は metrics tag に含めない
 - 記事作成 / 更新は `articleshelf.article.created`、`articleshelf.article.updated` counter で件数だけを記録する

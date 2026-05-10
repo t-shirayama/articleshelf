@@ -11,6 +11,8 @@ public interface BackendMetrics {
 
     void recordAuthRateLimited(String operation);
 
+    void recordAccessTokenRejected(String reason);
+
     void recordOgpFetch(Duration duration, String outcome);
 
     static BackendMetrics noop() {
@@ -29,6 +31,10 @@ public interface BackendMetrics {
 
             @Override
             public void recordAuthRateLimited(String operation) {
+            }
+
+            @Override
+            public void recordAccessTokenRejected(String reason) {
             }
 
             @Override

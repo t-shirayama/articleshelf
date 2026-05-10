@@ -35,6 +35,11 @@ public class MicrometerBackendMetrics implements BackendMetrics {
     }
 
     @Override
+    public void recordAccessTokenRejected(String reason) {
+        meterRegistry.counter("articleshelf.auth.access_token_rejected", "reason", reason).increment();
+    }
+
+    @Override
     public void recordOgpFetch(Duration duration, String outcome) {
         meterRegistry.timer("articleshelf.ogp.fetch", "outcome", outcome).record(duration);
     }

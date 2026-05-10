@@ -24,7 +24,6 @@
 - [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
 - [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [記事一覧 pagination / query model 導入](add-article-pagination-query-model.md)
-- [認証インフラ境界と運用シグナル強化](harden-auth-infrastructure-boundaries.md)
 
 ### P3
 

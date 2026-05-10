@@ -51,6 +51,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 - 依存関係とコンテナの脆弱性確認は `codeql.yml` と `supply-chain.yml` で実行し、通常の `ci.yml` とは別 workflow として管理する
 - backend request ID filter と metrics instrumentation は unit test と build で確認し、metrics tag に token、username、URL、メモ本文などを含めないことをレビュー観点にする
+- 認証インフラ境界では、client IP 解決、rate limit 呼び出し、invalid access token metrics が Controller / token 値から分離されていることを確認する
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。

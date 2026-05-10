@@ -3,7 +3,6 @@ package com.articleshelf.adapter.web;
 import com.articleshelf.application.auth.AuthResponse;
 import com.articleshelf.application.auth.AuthResult;
 import com.articleshelf.application.auth.AuthException;
-import com.articleshelf.application.auth.AuthRateLimiter;
 import com.articleshelf.application.auth.AuthService;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.application.auth.UserResponse;
@@ -29,20 +28,20 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
-    private final AuthRateLimiter rateLimiter;
+    private final AuthAttemptGuard authAttemptGuard;
     private final SessionCookieWriter sessionCookieWriter;
     private final CsrfTokenValidator csrfTokenValidator;
     private final ClientRequestContext clientRequestContext;
 
     public AuthController(
             AuthService authService,
-            AuthRateLimiter rateLimiter,
+            AuthAttemptGuard authAttemptGuard,
             SessionCookieWriter sessionCookieWriter,
             CsrfTokenValidator csrfTokenValidator,
             ClientRequestContext clientRequestContext
     ) {
         this.authService = authService;
-        this.rateLimiter = rateLimiter;
+        this.authAttemptGuard = authAttemptGuard;
         this.sessionCookieWriter = sessionCookieWriter;
         this.csrfTokenValidator = csrfTokenValidator;
         this.clientRequestContext = clientRequestContext;
@@ -54,7 +53,7 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
-        rateLimiter.checkRegister(clientRequestContext.ipAddress(servletRequest));
+        authAttemptGuard.checkRegister(servletRequest);
         AuthResult result = authService.register(
                 request.username(),
                 request.password(),
@@ -72,7 +71,7 @@ public class AuthController {
             HttpServletRequest servletRequest,
             HttpServletResponse response
     ) {
-        rateLimiter.checkLogin(clientRequestContext.ipAddress(servletRequest), request.username());
+        authAttemptGuard.checkLogin(servletRequest, request.username());
         AuthResult result = authService.login(
                 request.username(),
                 request.password(),
