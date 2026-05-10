@@ -1,0 +1,60 @@
+name: Supply Chain Security
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+  schedule:
+    - cron: '0 20 * * 0'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Dependency Review is disabled
+        if: ${{ vars.DEPENDENCY_REVIEW_ENABLED != 'true' }}
+        run: |
+          echo "::notice title=Dependency Review skipped::Enable Dependency graph in repository settings and set the DEPENDENCY_REVIEW_ENABLED repository variable to true to enforce this PR gate."
+      - uses: actions/checkout@v6
+        if: ${{ vars.DEPENDENCY_REVIEW_ENABLED == 'true' }}
+      - uses: actions/dependency-review-action@v4
+        if: ${{ vars.DEPENDENCY_REVIEW_ENABLED == 'true' }}
+        with:
+          fail-on-severity: moderate
+
+  trivy-filesystem:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true
+
+  trivy-backend-image:
+    name: Trivy backend image scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build backend image
+        run: docker build -t articleshelf-backend:scan backend
+      - uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          image-ref: articleshelf-backend:scan
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          exit-code: '1'
+          ignore-unfixed: true

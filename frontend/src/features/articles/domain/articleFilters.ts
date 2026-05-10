@@ -1,4 +1,5 @@
 import type { Article, ArticleFilters, ArticleSort } from '../types'
+import { getCurrentLocale } from '../../../shared/i18n'
 
 export function createDefaultArticleFilters(): ArticleFilters {
   return {
@@ -36,7 +37,7 @@ function compareArticles(left: Article, right: Article, sort: ArticleSort): numb
     case 'READ_DATE_DESC':
       return compareDate(right.readDate, left.readDate) || compareDate(right.updatedAt, left.updatedAt)
     case 'TITLE_ASC':
-      return left.title.localeCompare(right.title, 'ja')
+      return left.title.localeCompare(right.title, currentTextLocale())
     case 'RATING_DESC':
       return right.rating - left.rating || compareDate(right.updatedAt, left.updatedAt)
     case 'CREATED_DESC':
@@ -84,17 +85,19 @@ function matchesFilters(article: Article, filters: ArticleFilters): boolean {
 }
 
 function matchesSearch(article: Article, search: string): boolean {
-  const keyword = search.trim().toLocaleLowerCase('ja')
+  const locale = currentTextLocale()
+  const keyword = search.trim().toLocaleLowerCase(locale)
   if (!keyword) return true
 
   const haystacks = [
     article.title,
     article.url,
+    article.summary || '',
     article.notes || '',
     article.tags.map((tag) => tag.name).join(' ')
   ]
 
-  return haystacks.some((value) => value.toLocaleLowerCase('ja').includes(keyword))
+  return haystacks.some((value) => value.toLocaleLowerCase(locale).includes(keyword))
 }
 
 function matchesDateRange(value: string | null | undefined, from: string, to: string): boolean {
@@ -105,4 +108,8 @@ function matchesDateRange(value: string | null | undefined, from: string, to: st
   if (from && target < from) return false
   if (to && target > to) return false
   return true
+}
+
+function currentTextLocale(): string {
+  return getCurrentLocale() === 'ja' ? 'ja' : 'en'
 }

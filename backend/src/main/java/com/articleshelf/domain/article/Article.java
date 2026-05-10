@@ -36,22 +36,50 @@ public class Article {
             String notes,
             Set<Tag> tags,
             Instant createdAt,
-            Instant updatedAt
+        Instant updatedAt
     ) {
         this.id = id == null ? UUID.randomUUID() : id;
         this.userId = userId;
-        this.url = url;
-        this.title = title;
-        this.summary = summary == null ? "" : summary;
-        this.thumbnailUrl = thumbnailUrl == null ? "" : thumbnailUrl;
+        this.url = ArticleUrl.normalize(url);
+        this.title = normalizeText(title);
+        this.summary = normalizeText(summary);
+        this.thumbnailUrl = normalizeText(thumbnailUrl);
         this.status = status == null ? ArticleStatus.UNREAD : status;
         this.readDate = readDate;
         this.favorite = favorite;
-        this.rating = Math.max(0, Math.min(5, rating));
-        this.notes = notes == null ? "" : notes;
+        this.rating = ArticleRating.normalize(rating);
+        this.notes = normalizeText(notes);
         this.tags = tags == null ? new LinkedHashSet<>() : new LinkedHashSet<>(tags);
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public void updateContent(String url, String title, String summary, String notes) {
+        this.url = ArticleUrl.normalize(url);
+        this.title = normalizeText(title);
+        this.summary = normalizeText(summary);
+        this.notes = normalizeText(notes);
+    }
+
+    public void changeThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = normalizeText(thumbnailUrl);
+    }
+
+    public void changeStatus(ArticleStatus status, LocalDate readDate) {
+        this.status = status == null ? ArticleStatus.UNREAD : status;
+        this.readDate = readDate;
+    }
+
+    public void changeFavorite(boolean favorite) {
+        this.favorite = favorite;
+    }
+
+    public void changeRating(int rating) {
+        this.rating = ArticleRating.normalize(rating);
+    }
+
+    public void replaceTags(Set<Tag> tags) {
+        this.tags = tags == null ? new LinkedHashSet<>() : new LinkedHashSet<>(tags);
     }
 
     public UUID getId() {
@@ -108,5 +136,9 @@ public class Article {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    private String normalizeText(String value) {
+        return value == null ? "" : value.trim();
     }
 }

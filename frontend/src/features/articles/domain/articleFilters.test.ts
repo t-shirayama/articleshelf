@@ -31,6 +31,31 @@ describe('articleFilters', () => {
 
     expect(result.map((item) => item.id)).toEqual(['new-five', 'old-five', 'four'])
   })
+
+  it('searches summary to match the backend search contract', () => {
+    const filters = createDefaultArticleFilters()
+    filters.search = 'ogp'
+
+    const result = filterArticles([
+      article({ id: 'match', summary: 'OGP parser notes' }),
+      article({ id: 'miss', summary: 'Markdown parser notes' })
+    ], filters)
+
+    expect(result.map((item) => item.id)).toEqual(['match'])
+  })
+
+  it('matches any selected tag as an OR filter', () => {
+    const filters = createDefaultArticleFilters()
+    filters.tags = ['Vue', 'Java']
+
+    const result = filterArticles([
+      article({ id: 'vue', tags: [{ name: 'Vue' }] }),
+      article({ id: 'java', tags: [{ name: 'Java' }] }),
+      article({ id: 'css', tags: [{ name: 'CSS' }] })
+    ], filters)
+
+    expect(result.map((item) => item.id)).toEqual(['vue', 'java'])
+  })
 })
 
 function article(overrides: Partial<Article>): Article {

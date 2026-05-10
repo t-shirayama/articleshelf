@@ -26,14 +26,12 @@ describe('articles store', () => {
     const store = useArticlesStore()
     const original = article({ id: 'a1', favorite: false })
     store.articles = [original]
-    store.allArticles = [original]
     store.selectedArticle = original
     vi.mocked(articlesApi.updateArticle).mockRejectedValueOnce(new Error('保存に失敗しました'))
 
     await store.toggleFavorite(original)
 
     expect(store.articles[0].favorite).toBe(false)
-    expect(store.allArticles[0].favorite).toBe(false)
     expect(store.selectedArticle?.favorite).toBe(false)
     expect(store.error).toBe('保存に失敗しました')
   })
@@ -43,7 +41,6 @@ describe('articles store', () => {
     const original = article({ id: 'a1', status: 'UNREAD', readDate: null })
     const updated = article({ id: 'a1', status: 'READ', readDate: '2026-05-07' })
     store.articles = [original]
-    store.allArticles = [original]
     vi.mocked(articlesApi.updateArticle).mockResolvedValueOnce(updated)
 
     const result = await store.updateArticleStatus(original, 'READ', '2026-05-07')
@@ -55,7 +52,6 @@ describe('articles store', () => {
   it('resets user scoped article state on logout', () => {
     const store = useArticlesStore()
     store.articles = [article({ id: 'a1' })]
-    store.allArticles = [article({ id: 'a1' })]
     store.tags = [{ name: 'Vue' }]
     store.selectedArticle = article({ id: 'a1' })
     store.error = 'error'

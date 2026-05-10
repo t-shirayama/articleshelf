@@ -9,7 +9,7 @@ public interface RefreshTokenRepository {
 
     RefreshTokenRecord create(AuthUser user, String tokenHash, UUID familyId, Instant expiresAt, String userAgent, String ipAddress);
 
-    void replace(UUID currentId, UUID replacementId, Instant revokedAt);
+    boolean replaceIfActive(UUID currentId, UUID replacementId, Instant revokedAt);
 
     void revoke(UUID id, Instant revokedAt);
 

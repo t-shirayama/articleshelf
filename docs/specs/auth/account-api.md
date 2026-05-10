@@ -7,6 +7,7 @@
 - request: `username`, `password`, `displayName`
 - response: `user`, `accessToken`
 - side effect: refresh cookie と CSRF cookie を設定
+- `displayName` は任意。空または未指定の場合は正規化済み username を表示名として保存する
 - error:
   - `400`: username 形式不正、password 要件不足、必須項目不足
   - `409`: username 重複

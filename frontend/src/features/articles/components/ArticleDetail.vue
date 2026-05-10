@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ArrowLeft, ChevronDown, ExternalLink, Eye, Heart, Pencil, Save, Trash2 } from 'lucide-vue-next'
+import { ArrowLeft, ChevronDown, ExternalLink, Heart, Save, Trash2 } from 'lucide-vue-next'
 import ArticleDeleteDialog from './ArticleDeleteDialog.vue'
 import ArticleDetailMetaPanel from './ArticleDetailMetaPanel.vue'
-import MarkdownViewer from './MarkdownViewer.vue'
+import ArticleDetailViewSections from './ArticleDetailViewSections.vue'
+import ArticleNotesEditor from './ArticleNotesEditor.vue'
 import TagEditor from './TagEditor.vue'
 import { useArticleDetailForm } from '../composables/useArticleDetailForm'
 import type { Article, ArticleInput, Tag } from '../types'
@@ -213,76 +214,10 @@ function confirmDelete(): void {
               </Transition>
             </section>
 
-            <section class="detail-section detail-edit-notes-section">
-              <div class="detail-section-header detail-notes-header">
-                <div class="detail-notes-heading-copy">
-                  <h3>{{ t('common.notes') }}</h3>
-                  <span>{{ t('detail.notesHelp') }}</span>
-                </div>
-                <VBtn
-                  class="detail-notes-preview-button"
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  type="button"
-                  @click="notesPreviewOpen = !notesPreviewOpen"
-                >
-                  <template #prepend>
-                    <Pencil v-if="notesPreviewOpen" :size="16" />
-                    <Eye v-else :size="16" />
-                  </template>
-                  {{ notesPreviewOpen ? t('detail.notesEdit') : t('detail.notesPreview') }}
-                </VBtn>
-              </div>
-              <template v-if="notesPreviewOpen">
-                <div class="detail-notes-preview-stack">
-                  <div class="detail-notes-preview">
-                    <MarkdownViewer v-if="form.notes.trim()" :source="form.notes" />
-                    <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
-                  </div>
-                  <div class="detail-notes-preview-details-spacer" aria-hidden="true" />
-                </div>
-              </template>
-              <VTextarea
-                v-else
-                v-model="form.notes"
-                class="detail-edit-notes-field"
-                counter="20000"
-                :aria-label="t('common.notes')"
-                rows="13"
-                variant="outlined"
-              />
-            </section>
+            <ArticleNotesEditor v-model:preview-open="notesPreviewOpen" :form="form" :notes-text="notesText" />
           </template>
           <template v-else>
-            <section class="detail-section">
-              <div class="detail-section-header">
-                <h3>{{ t('common.summary') }}</h3>
-              </div>
-              <p class="detail-body-copy" :class="{ 'is-empty': !article.summary }">
-                {{ summaryText }}
-              </p>
-            </section>
-
-            <section class="detail-section">
-              <div class="detail-section-header">
-                <h3>{{ t('common.tags') }}</h3>
-              </div>
-              <div v-if="article.tags.length > 0" class="tag-list detail-tag-list">
-                <VChip v-for="tag in article.tags" :key="tag.id || tag.name" size="small" color="secondary" variant="flat">
-                  {{ tag.name }}
-                </VChip>
-              </div>
-              <p v-else class="detail-body-copy is-empty">{{ t('detail.emptyTags') }}</p>
-            </section>
-
-            <section class="detail-section">
-              <div class="detail-section-header">
-                <h3>{{ t('common.notes') }}</h3>
-              </div>
-              <MarkdownViewer v-if="form.notes" :source="form.notes" />
-              <p v-else class="detail-body-copy detail-notes-copy is-empty">{{ notesText }}</p>
-            </section>
+            <ArticleDetailViewSections :article="{ ...article, notes: form.notes }" :summary-text="summaryText" :notes-text="notesText" />
           </template>
         </section>
 

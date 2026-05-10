@@ -10,6 +10,11 @@ ArticleShelf の API 仕様の入口です。
 
 認証方式と認証 API は [認証仕様](../auth/README.md) と [アカウント API](../auth/account-api.md) を参照してください。
 
+## Web adapter 境界
+
+Controller は HTTP request / response の受け渡しと application service 呼び出しに集中する。
+Article request から command への変換は `ArticleRequestMapper`、session cookie は `SessionCookieWriter`、CSRF 照合は `CsrfTokenValidator`、User-Agent / client IP 取得は `ClientRequestContext` が担当する。
+
 ## 詳細文書
 
 - [記事 API](articles.md)

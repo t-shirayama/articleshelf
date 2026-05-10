@@ -7,10 +7,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,12 +18,13 @@ public class AuthService {
     private final AuthUserRepository userRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordHasher passwordHasher;
-    private final AccessTokenIssuer accessTokenIssuer;
     private final RefreshTokenSecretService refreshTokenSecretService;
-    private final AuthSettings settings;
+    private final Clock clock;
+    private final IdGenerator idGenerator;
+    private final RefreshTokenRotationService refreshTokenRotationService;
+    private final InitialUserProvisioner initialUserProvisioner;
     private final UsernamePolicy usernamePolicy = new UsernamePolicy();
     private final PasswordPolicy passwordPolicy = new PasswordPolicy();
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public AuthService(
             AuthUserRepository userRepository,
@@ -32,14 +32,26 @@ public class AuthService {
             PasswordHasher passwordHasher,
             AccessTokenIssuer accessTokenIssuer,
             RefreshTokenSecretService refreshTokenSecretService,
-            AuthSettings settings
+            AuthSettings settings,
+            Clock clock,
+            IdGenerator idGenerator,
+            SecureRandom secureRandom
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordHasher = passwordHasher;
-        this.accessTokenIssuer = accessTokenIssuer;
         this.refreshTokenSecretService = refreshTokenSecretService;
-        this.settings = settings;
+        this.clock = clock;
+        this.idGenerator = idGenerator;
+        this.refreshTokenRotationService = new RefreshTokenRotationService(
+                refreshTokenRepository,
+                accessTokenIssuer,
+                refreshTokenSecretService,
+                settings,
+                clock,
+                secureRandom
+        );
+        this.initialUserProvisioner = new InitialUserProvisioner(userRepository, passwordHasher, settings);
     }
 
     @Transactional
@@ -58,10 +70,10 @@ public class AuthService {
                 normalizeDisplayName(displayName, normalizedUsername),
                 "USER",
                 UserStatus.ACTIVE,
-                Instant.now(),
+                now(),
                 Instant.EPOCH
         );
-        return issueAuthResult(userRepository.save(user), UUID.randomUUID(), userAgent, ipAddress);
+        return issueAuthResult(userRepository.save(user), idGenerator.nextUuid(), userAgent, ipAddress);
     }
 
     @Transactional
@@ -80,32 +92,15 @@ public class AuthService {
                 user.displayName(),
                 user.role(),
                 user.status(),
-                Instant.now(),
+                now(),
                 user.tokenValidAfter()
         ));
-        return issueAuthResult(user, UUID.randomUUID(), userAgent, ipAddress);
+        return issueAuthResult(user, idGenerator.nextUuid(), userAgent, ipAddress);
     }
 
     @Transactional
     public AuthResult refresh(String rawRefreshToken, String userAgent, String ipAddress) {
-        if (rawRefreshToken == null || rawRefreshToken.isBlank()) {
-            throw AuthException.invalidRefreshToken("refresh token is missing");
-        }
-        Instant now = Instant.now();
-        RefreshTokenRecord current = refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
-                .orElseThrow(() -> AuthException.invalidRefreshToken("refresh token is invalid"));
-        AuthUser user = current.user();
-        if (user.status() != UserStatus.ACTIVE || current.expiresAt().isBefore(now)) {
-            throw AuthException.invalidRefreshToken("refresh token is invalid");
-        }
-        if (current.revokedAt() != null) {
-            refreshTokenRepository.revokeFamily(user.id(), current.familyId(), now);
-            throw AuthException.invalidRefreshToken("refresh token is invalid");
-        }
-
-        CreatedRefreshToken replacement = createRefreshToken(user, current.familyId(), userAgent, ipAddress);
-        refreshTokenRepository.replace(current.id(), replacement.record().id(), now);
-        return new AuthResult(toAuthResponse(user), new RefreshSession(replacement.rawToken(), issueCsrfToken()));
+        return refreshTokenRotationService.rotate(rawRefreshToken, userAgent, ipAddress);
     }
 
     @Transactional
@@ -116,7 +111,7 @@ public class AuthService {
         refreshTokenRepository.findByTokenHash(refreshTokenSecretService.hash(rawRefreshToken))
                 .ifPresent(token -> {
                     if (token.revokedAt() == null) {
-                        refreshTokenRepository.revoke(token.id(), Instant.now());
+                        refreshTokenRepository.revoke(token.id(), now());
                     }
                 });
     }
@@ -162,25 +157,7 @@ public class AuthService {
 
     @Transactional
     public Optional<AuthUser> ensureInitialUser() {
-        if (!settings.initialUserEnabled()) {
-            return Optional.empty();
-        }
-        String username = normalizeUsername(settings.initialUsername());
-        usernamePolicy.validate(username);
-        return Optional.of(userRepository.findByUsername(username).orElseGet(() -> {
-            passwordPolicy.validate(username, settings.initialUserPassword());
-            AuthUser user = new AuthUser(
-                    null,
-                    username,
-                    passwordHasher.hash(settings.initialUserPassword()),
-                    "ArticleShelf Owner",
-                    "ADMIN",
-                    UserStatus.ACTIVE,
-                    null,
-                    Instant.EPOCH
-            );
-            return userRepository.save(user);
-        }));
+        return initialUserProvisioner.ensureInitialUser();
     }
 
     private AuthUser requireActiveUser(CurrentUser currentUser) {
@@ -193,7 +170,7 @@ public class AuthService {
     }
 
     private void saveWithPasswordAndInvalidatedTokens(AuthUser user, String newPassword, UserStatus status) {
-        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant now = now().truncatedTo(ChronoUnit.SECONDS);
         userRepository.save(new AuthUser(
                 user.id(),
                 user.username(),
@@ -208,7 +185,7 @@ public class AuthService {
     }
 
     private void invalidateTokens(AuthUser user) {
-        Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant now = now().truncatedTo(ChronoUnit.SECONDS);
         userRepository.save(new AuthUser(
                 user.id(),
                 user.username(),
@@ -223,32 +200,11 @@ public class AuthService {
     }
 
     private AuthResult issueAuthResult(AuthUser user, UUID familyId, String userAgent, String ipAddress) {
-        CreatedRefreshToken refreshToken = createRefreshToken(user, familyId, userAgent, ipAddress);
-        return new AuthResult(toAuthResponse(user), new RefreshSession(refreshToken.rawToken(), issueCsrfToken()));
+        return refreshTokenRotationService.issue(user, familyId, userAgent, ipAddress);
     }
 
-    private CreatedRefreshToken createRefreshToken(AuthUser user, UUID familyId, String userAgent, String ipAddress) {
-        String rawToken = refreshTokenSecretService.generateRawToken();
-        RefreshTokenRecord token = refreshTokenRepository.create(
-                user,
-                refreshTokenSecretService.hash(rawToken),
-                familyId,
-                Instant.now().plus(settings.refreshTokenTtlDays(), ChronoUnit.DAYS),
-                userAgent,
-                ipAddress
-        );
-        return new CreatedRefreshToken(rawToken, token);
-    }
-
-    private AuthResponse toAuthResponse(AuthUser user) {
-        CurrentUser currentUser = new CurrentUser(user.id(), user.username(), user.displayName(), List.of(user.role()));
-        return new AuthResponse(UserResponse.from(user), accessTokenIssuer.issue(currentUser));
-    }
-
-    private String issueCsrfToken() {
-        byte[] bytes = new byte[24];
-        secureRandom.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    private Instant now() {
+        return Instant.now(clock);
     }
 
     private String normalizeUsername(String username) {
@@ -257,8 +213,5 @@ public class AuthService {
 
     private String normalizeDisplayName(String displayName, String username) {
         return displayName != null && !displayName.isBlank() ? displayName.trim() : username;
-    }
-
-    private record CreatedRefreshToken(String rawToken, RefreshTokenRecord record) {
     }
 }

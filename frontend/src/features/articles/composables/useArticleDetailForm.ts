@@ -6,6 +6,7 @@ import {
   favoriteToggleInput,
   hasArticleDetailFormChanges,
 } from "../domain/articleForms";
+import { readDateForStatus, todayString } from "../domain/articleStatus";
 import type { Article, ArticleInput, ArticleStatus, Tag } from "../types";
 
 type Translate = (key: string) => string;
@@ -59,6 +60,14 @@ export function useArticleDetailForm(
       submitted.value = false;
     },
     { immediate: true },
+  );
+
+  watch(
+    () => form.status,
+    (status, previousStatus) => {
+      if (!isEditing.value || status === previousStatus) return;
+      form.readDate = readDateForStatus(status, form.readDate, todayString());
+    },
   );
 
   watch(hasUnsavedChanges, (value) => {

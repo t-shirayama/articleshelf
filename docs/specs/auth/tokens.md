@@ -26,6 +26,8 @@
 - rotation:
   - login/register 成功時に `family_id` を作成する
   - refresh 成功時は同じ `family_id` で新 token を発行し、旧 token を失効する
+  - refresh token の検索は pessimistic write lock を取り、旧 token の `revoked_at is null` 条件付き update が成功した場合だけ replacement token を有効にする
+  - 条件付き update が失敗した場合は作成済み replacement token を即時失効し、refresh を失敗扱いにする
   - 失効済み token が再利用された場合、同一 family の未失効 token をすべて失効する
 
 ## 3. Cookie / CSRF
@@ -45,3 +47,5 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 ```
 
 同一 site 配信なら `SameSite=Lax` も選択可能だが、production profile では CSRF は常に有効にする。
+
+refresh / CSRF cookie の発行と削除は `SessionCookieWriter`、CSRF cookie と `X-CSRF-Token` header の照合は `CsrfTokenValidator` に集約し、Controller は request handling と認証ユースケース呼び出しに集中する。

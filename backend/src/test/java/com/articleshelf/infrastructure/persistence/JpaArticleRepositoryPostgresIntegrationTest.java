@@ -46,6 +46,9 @@ class JpaArticleRepositoryPostgresIntegrationTest {
     private JpaArticleRepository repository;
 
     @Autowired
+    private JpaTagRepository tagRepository;
+
+    @Autowired
     private SpringDataArticleJpaRepository articleJpaRepository;
 
     @Autowired
@@ -260,7 +263,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         tag(userId, "Unused");
         repository.save(article(userId, "https://example.com/used-tag", 3, null, Set.of(used)));
 
-        List<TagUsage> usages = repository.findAllTagUsagesByUserId(userId);
+        List<TagUsage> usages = tagRepository.findAllTagUsagesByUserId(userId);
 
         assertThat(usages).hasSize(2);
         assertThat(usages).anySatisfy(usage -> {
@@ -303,6 +306,6 @@ class JpaArticleRepositoryPostgresIntegrationTest {
     }
 
     private Tag tag(UUID userId, String name) {
-        return repository.saveTag(userId, name);
+        return tagRepository.saveTag(userId, name);
     }
 }

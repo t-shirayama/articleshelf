@@ -2,6 +2,7 @@ package com.articleshelf.infrastructure.security;
 
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.application.auth.AuthUserRepository;
+import com.articleshelf.application.observability.BackendMetrics;
 import com.articleshelf.domain.user.UserStatus;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,10 +20,16 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenService jwtTokenService;
     private final AuthUserRepository userRepository;
+    private final BackendMetrics metrics;
 
-    public JwtAuthenticationFilter(JwtTokenService jwtTokenService, AuthUserRepository userRepository) {
+    public JwtAuthenticationFilter(
+            JwtTokenService jwtTokenService,
+            AuthUserRepository userRepository,
+            BackendMetrics metrics
+    ) {
         this.jwtTokenService = jwtTokenService;
         this.userRepository = userRepository;
+        this.metrics = metrics;
     }
 
     @Override
@@ -46,6 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 var authentication = new UsernamePasswordAuthenticationToken(currentUser, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             } catch (RuntimeException ignored) {
+                metrics.recordAccessTokenRejected("invalid");
                 SecurityContextHolder.clearContext();
             }
         }

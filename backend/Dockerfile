@@ -13,6 +13,8 @@ RUN mvn -q -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /workspace/target/articleshelf-backend-0.1.0.jar app.jar
+RUN addgroup -S articleshelf && adduser -S -G articleshelf articleshelf
+COPY --from=build --chown=articleshelf:articleshelf /workspace/target/articleshelf-backend-0.1.0.jar app.jar
+USER articleshelf
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

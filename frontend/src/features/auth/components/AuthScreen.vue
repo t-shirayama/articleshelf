@@ -27,8 +27,7 @@ const usernameError = computed(() => {
     : t("auth.errors.usernameInvalid");
 });
 const displayNameError = computed(() => {
-  if (!isRegister.value) return "";
-  return displayName.value.trim() ? "" : t("auth.errors.displayNameRequired");
+  return "";
 });
 const passwordError = computed(() => {
   if (!password.value) return t("auth.errors.passwordRequired");
@@ -50,7 +49,7 @@ async function submit(): Promise<void> {
       await authStore.register({
         username: username.value.trim().toLowerCase(),
         password: password.value,
-        displayName: displayName.value,
+        displayName: displayName.value.trim(),
       });
       return;
     }
