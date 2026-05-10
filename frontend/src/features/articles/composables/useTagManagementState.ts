@@ -1,6 +1,7 @@
-import { computed, nextTick, onMounted, ref, watch, type Ref } from "vue";
+import { computed, ref, type Ref } from "vue";
 import { getCurrentLocale } from "../../../shared/i18n";
 import type { Tag } from "../types";
+import { useMeasuredSelectWidth } from "./useMeasuredSelectWidth";
 
 export type TagSort = "COUNT_DESC" | "COUNT_ASC" | "NAME_ASC";
 
@@ -14,8 +15,6 @@ export function useTagManagementState(tags: Ref<Tag[]>, t: (key: string, params?
   const deleteCandidate = ref<Tag | null>(null);
   const searchQuery = ref<string | null>("");
   const sortMode = ref<TagSort>("COUNT_DESC");
-  const sortMeasureEl = ref<HTMLElement | null>(null);
-  const sortWidth = ref(252);
 
   const sortOptions = computed(() => [
     { title: t("tags.sortCountDesc"), value: "COUNT_DESC" },
@@ -30,9 +29,10 @@ export function useTagManagementState(tags: Ref<Tag[]>, t: (key: string, params?
     ),
   );
 
-  const sortWidthStyle = computed(() => ({
-    "--tag-management-sort-width": `${sortWidth.value}px`,
-  }));
+  const {
+    measureEl: sortMeasureEl,
+    widthStyle: sortWidthStyle,
+  } = useMeasuredSelectWidth(longestSortTitle, "--tag-management-sort-width");
 
   const filteredTags = computed(() => {
     const keyword = (searchQuery.value || "").trim().toLocaleLowerCase(currentTextLocale());
@@ -65,12 +65,6 @@ export function useTagManagementState(tags: Ref<Tag[]>, t: (key: string, params?
         value: tag.id || "",
       })),
   );
-
-  async function updateSortWidth(): Promise<void> {
-    await nextTick();
-    const measuredWidth = sortMeasureEl.value?.scrollWidth || 0;
-    sortWidth.value = Math.ceil(measuredWidth + 78);
-  }
 
   function openAddDialog(): void {
     addDraft.value = "";
@@ -115,14 +109,6 @@ export function useTagManagementState(tags: Ref<Tag[]>, t: (key: string, params?
   function currentTextLocale(): string {
     return getCurrentLocale() === "ja" ? "ja" : "en";
   }
-
-  watch(longestSortTitle, () => {
-    void updateSortWidth();
-  });
-
-  onMounted(() => {
-    void updateSortWidth();
-  });
 
   return {
     addDialogOpen,
