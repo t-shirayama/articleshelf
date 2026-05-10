@@ -1,6 +1,7 @@
 package com.articleshelf.application.article;
 
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.application.observability.BackendMetrics;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleRepository;
@@ -35,7 +36,13 @@ class ArticleServiceTest {
     private final InMemoryArticleRepository repository = new InMemoryArticleRepository();
     private final RecordingTransactionOperations transactionOperations = new RecordingTransactionOperations();
     private final StubMetadataProvider metadataProvider = new StubMetadataProvider();
-    private final ArticleService service = new ArticleService(repository, repository, metadataProvider, transactionOperations);
+    private final ArticleService service = new ArticleService(
+            repository,
+            repository,
+            metadataProvider,
+            transactionOperations,
+            BackendMetrics.noop()
+    );
     private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user", "User", List.of("USER"));
 
     @Test

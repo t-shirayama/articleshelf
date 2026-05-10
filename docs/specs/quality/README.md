@@ -42,3 +42,11 @@ ArticleShelf の品質属性と運用上守るべき仕様を定義する。
 - backend / frontend の check、unit、integration、E2E は CI で段階実行する
 - backend unit と frontend unit は coverage を確認する
 - テスト範囲、具体的なコマンド、CI の job 構成は [テスト戦略](../../testing/README.md) に従う
+
+## 7. 観測性
+
+- backend は request ごとに `X-Request-Id` を受け取り、未指定時は UUID を生成して response header と logging MDC の `requestId` に設定する
+- metrics は Actuator の `/actuator/metrics` で確認できる範囲に限定し、token、username、URL、メモ本文などの個人情報や secret を tag / value に含めない
+- OGP 取得は `articleshelf.ogp.fetch` timer で `accessible`、`unavailable`、`invalid_input`、`error` の outcome を記録する
+- 認証失敗は `articleshelf.auth.failure`、rate limit 超過は `articleshelf.auth.rate_limited` で理由や operation のみを記録する
+- 記事作成 / 更新は `articleshelf.article.created`、`articleshelf.article.updated` counter で件数だけを記録する

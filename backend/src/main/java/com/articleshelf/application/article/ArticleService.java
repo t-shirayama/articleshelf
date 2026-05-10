@@ -1,6 +1,7 @@
 package com.articleshelf.application.article;
 
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.application.observability.BackendMetrics;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleRepository;
@@ -27,17 +28,20 @@ public class ArticleService {
     private final TagRepository tagRepository;
     private final ArticleMetadataProvider metadataProvider;
     private final TransactionOperations transactionOperations;
+    private final BackendMetrics metrics;
 
     public ArticleService(
             ArticleRepository articleRepository,
             TagRepository tagRepository,
             ArticleMetadataProvider metadataProvider,
-            TransactionOperations transactionOperations
+            TransactionOperations transactionOperations,
+            BackendMetrics metrics
     ) {
         this.articleRepository = articleRepository;
         this.tagRepository = tagRepository;
         this.metadataProvider = metadataProvider;
         this.transactionOperations = transactionOperations;
+        this.metrics = metrics;
     }
 
     @Transactional(readOnly = true)
@@ -81,7 +85,9 @@ public class ArticleService {
                     null
             );
 
-            return ArticleResponse.from(articleRepository.save(article));
+            ArticleResponse response = ArticleResponse.from(articleRepository.save(article));
+            metrics.recordArticleCreated();
+            return response;
         }));
     }
 
@@ -111,7 +117,9 @@ public class ArticleService {
                     current.getUpdatedAt()
             );
 
-            return ArticleResponse.from(articleRepository.save(updated));
+            ArticleResponse response = ArticleResponse.from(articleRepository.save(updated));
+            metrics.recordArticleUpdated();
+            return response;
         }));
     }
 

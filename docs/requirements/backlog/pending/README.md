@@ -24,7 +24,6 @@
 - [Article store state ownership 整理](simplify-article-store-state-ownership.md)
 - [ArticleWorkspace 責務分割](split-article-workspace-responsibilities.md)
 - [Auth アプリケーションユースケース分割](split-auth-application-usecases.md)
-- [Backend observability metrics 追加](add-backend-observability-metrics.md)
 - [PDF インポート実データ品質改善](pdf-import-real-data-quality-improvement.md)
 - [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [Web adapter 境界の責務整理](cleanup-web-adapter-boundaries.md)

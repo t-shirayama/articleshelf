@@ -5,6 +5,7 @@ import com.articleshelf.application.auth.AuthRateLimitExceededException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.DuplicateTagNameException;
 import com.articleshelf.domain.user.PasswordPolicyException;
+import com.articleshelf.application.observability.BackendMetrics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class ApiExceptionHandlerTest {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         messageSource.setDefaultEncoding("UTF-8");
-        handler = new ApiExceptionHandler(messageSource);
+        handler = new ApiExceptionHandler(messageSource, BackendMetrics.noop());
         LocaleContextHolder.setLocale(Locale.ENGLISH);
     }
 

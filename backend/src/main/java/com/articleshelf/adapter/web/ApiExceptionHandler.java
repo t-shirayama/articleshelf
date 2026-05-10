@@ -15,6 +15,7 @@ import com.articleshelf.domain.article.TagInUseException;
 import com.articleshelf.domain.article.TagNotFoundException;
 import com.articleshelf.domain.user.PasswordPolicyException;
 import com.articleshelf.domain.user.UsernamePolicyException;
+import com.articleshelf.application.observability.BackendMetrics;
 import jakarta.servlet.ServletException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +44,11 @@ public class ApiExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     private final MessageSource messageSource;
+    private final BackendMetrics metrics;
 
-    public ApiExceptionHandler(MessageSource messageSource) {
+    public ApiExceptionHandler(MessageSource messageSource, BackendMetrics metrics) {
         this.messageSource = messageSource;
+        this.metrics = metrics;
     }
 
     @ExceptionHandler(ArticleNotFoundException.class)
@@ -95,8 +98,10 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleAuth(AuthException exception) {
         if (exception.getReason() == AuthException.Reason.INVALID_REFRESH_TOKEN) {
+            metrics.recordAuthFailure("refresh_invalid");
             return ErrorResponse.of("AUTH_REFRESH_INVALID", message("error.auth.refreshInvalid"));
         }
+        metrics.recordAuthFailure("invalid_credentials");
         return ErrorResponse.of("AUTH_INVALID_CREDENTIALS", message("error.auth.invalidCredentials"));
     }
 
