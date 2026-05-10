@@ -314,7 +314,9 @@ async function applyWorkspaceRoute(): Promise<void> {
     return;
   }
   if (typeof route.params.id === "string") {
-    detailReturnView.value = "list";
+    if (viewMode.value !== "calendar" && detailReturnView.value !== "calendar") {
+      detailReturnView.value = "list";
+    }
     await openDuplicateArticle(route.params.id);
     return;
   }
