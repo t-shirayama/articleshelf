@@ -11,11 +11,13 @@
 
 ### P1
 
-- 該当なし
+- [Router level route boundaries](router-level-route-boundaries.md)
+- [ArticleWorkspace container boundaries](article-workspace-container-boundaries.md)
+- [Server driven article list query](server-driven-article-list-query.md)
 
 ### P2
 
-- 該当なし
+- [Frontend focused coverage gates](frontend-focused-coverage-gates.md)
 
 ### P3
 
