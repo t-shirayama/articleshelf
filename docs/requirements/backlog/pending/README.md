@@ -51,7 +51,6 @@
 - [Frontend app providers 分離](split-frontend-app-providers.md)
 - [Frontend architecture highlights 整理](document-frontend-architecture-highlights.md)
 - [OGP HTML 解析と charset 対応改善](improve-ogp-parsing-charset-handling.md)
-- [SECURITY.md 追加](add-security-policy.md)
 - [TimeProvider / IdGenerator port 導入](introduce-time-id-provider-ports.md)
 - [Thumbnail cache eviction 導入](add-thumbnail-cache-eviction.md)
 - [TagManagement DOM 計測責務分離](split-tag-management-measured-width.md)

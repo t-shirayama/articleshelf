@@ -6,6 +6,7 @@
 
 セキュリティ要件は [../../requirements/non-functional/security.md](../../requirements/non-functional/security.md) を正とする。
 この文書では、現在の実装における具体的なセキュリティ仕様を、認証、入力、外部通信、表示、運用、テストの横断仕様として管理する。
+脆弱性疑いの private reporting flow、supported scope、報告時に含めてほしい情報は repository root の [SECURITY.md](../../../SECURITY.md) を入口とする。
 
 セキュリティ対策を追加または更新した場合は、この文書を必ず更新する。
 必要に応じて [認証仕様](../auth/README.md)、[品質仕様](../quality/README.md)、[../../requirements/non-functional/security.md](../../requirements/non-functional/security.md)、[../../deployment/README.md](../../deployment/README.md)、[../../testing/README.md](../../testing/README.md) も同期する。
