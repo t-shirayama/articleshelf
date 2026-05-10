@@ -28,7 +28,6 @@
 - [Backend observability metrics 追加](add-backend-observability-metrics.md)
 - [Machine-readable API エラー導入](introduce-machine-readable-api-errors.md)
 - [PDF インポート実データ品質改善](pdf-import-real-data-quality-improvement.md)
-- [Supply chain security scans 追加](add-supply-chain-security-scans.md)
 - [Vue Router による画面遷移と URL 状態同期](add-vue-router-workspace-navigation.md)
 - [Web adapter 境界の責務整理](cleanup-web-adapter-boundaries.md)
 - [カレンダー domain helper と keyboard 操作改善](improve-calendar-domain-and-keyboard.md)

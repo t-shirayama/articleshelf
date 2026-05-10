@@ -21,6 +21,11 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 - `ci.yml`
   - pull request / push で frontend build、backend check、unit、integration、E2E を段階実行する
   - P0 E2E も同じ workflow の `e2e` job として実行する
+- `codeql.yml`
+  - pull request / `main` / `develop` push / weekly schedule で Java / JavaScript / TypeScript の CodeQL analysis を実行する
+- `supply-chain.yml`
+  - pull request では Dependency Review で lockfile / dependency 差分を確認する
+  - pull request / `main` / `develop` push / weekly schedule で Trivy filesystem scan と backend Docker image scan を実行する
 
 ## 3. 品質ゲート
 
@@ -31,6 +36,10 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 - frontend は ESLint、型チェック、Vite build、bundle size check を CI の早い段階で確認する
 - `frontend-unit` は Vitest coverage threshold を適用し、lines 19%、statements 19%、functions 14%、branches 16% 未満を失敗にする
 - E2E はフロントエンド、バックエンド、DB を Compose 経由で起動し、主要導線と認証後記事一覧の axe accessibility scan の破壊を検知する
+- Dependency Review は依存追加・更新 PR で moderate 以上の既知脆弱性を検知する
+- CodeQL は Java / JavaScript / TypeScript の security query を code scanning として実行する
+- Trivy は repository filesystem の dependency / secret / misconfiguration と backend Docker image の high / critical vulnerability を検知する
+- GitHub-owned actions は major tag、third-party actions は version tag を使い、`.github/dependabot.yml` の GitHub Actions 更新 PR で追従する。SHA pinning は運用負荷と Dependabot 追従性のバランスを見て、外部公開規模が上がった段階で再検討する
 
 ## 4. デプロイとの関係
 
