@@ -1,6 +1,6 @@
 # 無料枠を中心にした公開構成とデプロイ運用
 
-最終更新: 2026-05-09
+最終更新: 2026-05-10
 
 ## 1. 目的
 
@@ -53,9 +53,12 @@ Supabase Free PostgreSQL
 - frontend は `VITE_API_BASE_URL` で backend API URL を build 時に注入できる
 - frontend API client は `credentials: 'include'` で refresh token cookie を送信できる
 - backend は `server.port: ${PORT:8080}` に対応済みで、Render が指定する `PORT` で待ち受けられる
+- backend production Docker image は dedicated non-root user で `java -jar` を実行する
+- frontend Docker image は開発 / E2E 用でも Node 公式 image の non-root user で dev server を実行する
 - backend は `server.forward-headers-strategy: framework` を有効化済みで、Render の HTTPS proxy 後段で secure request / forwarded header を扱える
 - production profile は datasource、frontend origin、JWT secret、refresh token hash secret を環境変数必須にしている
 - production profile は `AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None` を既定にし、frontend / API が別 site になる構成に合っている
+- production profile は `SPRING_DATASOURCE_URL` の `sslmode=require` / `verify-ca` / `verify-full` を起動時に検証し、TLS なしの DB 接続を拒否する
 - OGP 取得は timeout、User-Agent、SSRF 対策、redirect 再検証、body size 制限、`text/html` 制限に対応済み
 - DB schema は Flyway migration と JPA `validate` で管理しており、Supabase PostgreSQL へ起動時 migration を適用できる
 - 現行 frontend は Vue Router を使っていないため SPA fallback は必須ではない。history mode の routing を導入した場合は `_redirects` を追加する
@@ -74,12 +77,16 @@ Supabase Free PostgreSQL
 
 Cloudflare Pages は Vite / Vue の build command と output directory として `npm run build` / `dist` を扱える。
 依存関係の install は Pages build が行う前提とし、必要な場合だけ install command に `npm ci` を明示する。
+`frontend/public/_headers` は build output にコピーされ、CSP、nosniff、Referrer-Policy、HSTS、Permissions-Policy を Cloudflare Pages response header として設定する。
 
 ### 4.2 環境変数
 
 | 変数                | 例                                      | 説明                        |
 | ------------------- | --------------------------------------- | --------------------------- |
 | `VITE_API_BASE_URL` | `https://articleshelf-api.onrender.com` | Render 上の backend API URL |
+
+Production frontend runtime では `VITE_API_BASE_URL` を必須とし、未設定の場合は API client の初期化時に失敗させる。
+ローカル開発では未設定時だけ `http://localhost:8080` へ fallback する。
 
 ### 4.3 公開 URL
 
@@ -129,7 +136,7 @@ README やアプリ画面で表示する注意書き例:
 | 変数                                         | 例                                               | 説明                                                     |
 | -------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------- |
 | `SPRING_PROFILES_ACTIVE`                     | `prod`                                           | 本番 profile                                             |
-| `SPRING_DATASOURCE_URL`                      | `jdbc:postgresql://.../postgres?sslmode=require` | Supabase PostgreSQL JDBC URL                             |
+| `SPRING_DATASOURCE_URL`                      | `jdbc:postgresql://.../postgres?sslmode=require` | Supabase PostgreSQL JDBC URL。production profile では `sslmode=require` 以上が必須 |
 | `SPRING_DATASOURCE_USERNAME`                 | `postgres.<project-ref>`                         | Supabase DB user。接続方式により形式が異なる             |
 | `SPRING_DATASOURCE_PASSWORD`                 | `********`                                       | Supabase DB password                                     |
 | `FRONTEND_ORIGIN`                            | `https://articleshelf.pages.dev`                 | CORS 許可 origin                                         |
@@ -156,6 +163,8 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 ### 5.3 セキュリティ前提
 
 - backend へ外部から直接到達させず、Render の公開 HTTPS 経路を通す
+- backend コンテナは final image で root ではなく `articleshelf` user として実行する
+- frontend の Docker 開発 / E2E image は root ではなく `node` user として実行する
 - 認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う
 - 現行 rate limit は Render 無料枠の単一 backend インスタンス向け。複数インスタンスへ拡張する場合は Redis、proxy、WAF 側へ移す
 - `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
@@ -185,7 +194,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 ```
 
 `verify-full` を使う場合は Supabase の CA certificate を取得し、JDBC / runtime に証明書設定を追加する。
-現行運用では最低限 `sslmode=require` を必須にする。
+現行運用では最低限 `sslmode=require` を必須にする。production profile の backend は JDBC URL に `sslmode=require`、`verify-ca`、`verify-full` のいずれもない場合は起動を拒否する。
 
 ### 6.2 Free plan の注意
 
@@ -221,6 +230,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] Build command が `npm run build` になっている
 - [ ] Build output directory が `dist` になっている
 - [ ] `VITE_API_BASE_URL` が Render API URL を向いている
+- [ ] `frontend/public/_headers` の security headers が production deploy に反映されている
 - [ ] 公開 URL を `FRONTEND_ORIGIN` に反映した
 - [ ] Vue Router history mode を導入した場合は `_redirects` を追加した
 
@@ -228,6 +238,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 
 - [ ] Render Web Service を Docker で作成した
 - [ ] Root directory / build context が `backend` になっている
+- [ ] backend final Docker image が non-root user で起動している
 - [ ] Health check path が `/actuator/health` になっている
 - [ ] `SPRING_PROFILES_ACTIVE=prod` を設定した
 - [ ] Supabase 接続情報を設定した

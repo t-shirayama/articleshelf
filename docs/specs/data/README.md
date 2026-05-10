@@ -43,14 +43,14 @@
 | --- | --- | --- | --- |
 | id | id | UUID | PK |
 | userId | user_id | UUID | 所有ユーザー。protected API では current user にスコープする |
-| url | url | string / VARCHAR | 必須、最大2048文字、ユーザー単位でユニーク |
+| url | url | string / VARCHAR | 必須、最大2048文字、前後空白を除去し、空値は domain で拒否する。ユーザー単位でユニーク |
 | title | title | string / VARCHAR | 必須、最大255文字 |
 | summary | summary | string / TEXT | 任意、API入力は最大5000文字 |
 | thumbnailUrl | thumbnail_url | string / VARCHAR | 任意 |
 | status | status | enum / VARCHAR | `UNREAD`, `READ` |
 | readDate | read_date | date / DATE | 任意、API では `YYYY-MM-DD` |
 | favorite | favorite | boolean / BOOLEAN | お気に入り |
-| rating | rating | integer / INTEGER | `0` - `5`、未指定時は `0` |
+| rating | rating | integer / INTEGER | `0` - `5`、未指定時は `0`。domain では範囲外入力を `0` - `5` に clamp する |
 | notes | notes | text / TEXT | 任意、API入力は最大20000文字 |
 | createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
 | updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
@@ -61,7 +61,7 @@
 | --- | --- | --- | --- |
 | id | id | UUID | PK |
 | userId | user_id | UUID | 所有ユーザー |
-| name | name | string / VARCHAR | ユーザー単位でユニーク |
+| name | name | string / VARCHAR | 前後空白を除去し、空値と255文字超過を domain で拒否する。ユーザー単位でユニーク |
 | createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
 | updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
 | articleCount | - | integer | 一覧表示用の集計値。永続化カラムではない |
@@ -76,3 +76,12 @@
 
 記事とタグは多対多で関連付けます。
 `userId`, `articleId`, `tagId` を主キーにし、複合 FK で article / tag の user mismatch を拒否します。
+永続化 adapter は記事検索・保存を `ArticleRepository` 実装、タグ一覧・名称変更・統合・未使用削除を `TagRepository` 実装に分け、article-tag link の user mismatch は記事保存時にも検証します。
+
+## Migration Contract
+
+- schema は Flyway の versioned migration で更新する
+- `V1__baseline_schema.sql` は初回 schema と既存開発 DB の baseline 統合を兼ねるため、冪等な table / column 追加、既存制約の整理、既存データ補正を含む
+- `V2__username_auth_and_account_controls.sql` は username login、legacy email nullable 化、`token_valid_after` 追加を担当する
+- 共有環境や本番 DB に適用済みの migration は rewrite せず、以後の schema 変更は新しい migration として追加する
+- migration と JPA Entity の差分は JPA validate と PostgreSQL 実体を使った integration test で確認する

@@ -40,7 +40,7 @@
     max-width: none;
   }
 
-  .article-card-content {
+  .article-card-open {
     gap: 12px;
   }
 
@@ -253,7 +253,7 @@
     grid-template-columns: 1fr;
   }
 
-  .article-card-content {
+  .article-card-open {
     grid-template-columns: 1fr;
   }
 
@@ -611,7 +611,7 @@
     min-width: 0;
   }
 
-  .article-card-content {
+  .article-card-open {
     padding: 12px;
   }
 

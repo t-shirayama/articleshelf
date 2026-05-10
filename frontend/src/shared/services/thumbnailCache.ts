@@ -3,6 +3,8 @@ const DB_VERSION = 2
 const STORE_NAME = 'thumbnails'
 const FAILURE_RETRY_MS = 24 * 60 * 60 * 1000
 const MAX_THUMBNAIL_BYTES = 5 * 1024 * 1024
+const MAX_CACHE_RECORDS = 200
+const MAX_CACHE_BYTES = 50 * 1024 * 1024
 
 interface ThumbnailCacheRecord {
   url: string
@@ -12,6 +14,12 @@ interface ThumbnailCacheRecord {
 }
 
 const pendingLoads = new Map<string, Promise<string | null>>()
+
+export interface ThumbnailCacheLimits {
+  maxRecords: number
+  maxBytes: number
+  now: number
+}
 
 export function loadThumbnailFromCache(url: string): Promise<string | null> {
   const pending = pendingLoads.get(url)
@@ -50,11 +58,38 @@ async function loadThumbnail(url: string): Promise<string | null> {
     if (imageBlob.size > MAX_THUMBNAIL_BYTES) throw new Error('Thumbnail is too large to cache')
 
     await putRecord(db, { url, imageBlob, cachedAt: Date.now() })
+    await evictOldRecords(db)
     return URL.createObjectURL(imageBlob)
   } catch {
     await putRecord(db, { url, failedAt: Date.now() })
+    await evictOldRecords(db)
     return null
   }
+}
+
+export function selectThumbnailEvictionUrls(
+  records: ThumbnailCacheRecord[],
+  limits: ThumbnailCacheLimits = { maxRecords: MAX_CACHE_RECORDS, maxBytes: MAX_CACHE_BYTES, now: Date.now() }
+): string[] {
+  const expiredFailureUrls = new Set(
+    records
+      .filter((record) => !record.imageBlob && record.failedAt !== undefined && limits.now - record.failedAt >= FAILURE_RETRY_MS)
+      .map((record) => record.url)
+  )
+  const remaining = records.filter((record) => !expiredFailureUrls.has(record.url))
+  const evictionUrls = new Set(expiredFailureUrls)
+  let totalBytes = remaining.reduce((sum, record) => sum + (record.imageBlob?.size || 0), 0)
+  let totalRecords = remaining.length
+
+  const lruRecords = [...remaining].sort((left, right) => recordTimestamp(left) - recordTimestamp(right))
+  for (const record of lruRecords) {
+    if (totalRecords <= limits.maxRecords && totalBytes <= limits.maxBytes) break
+    evictionUrls.add(record.url)
+    totalRecords -= 1
+    totalBytes -= record.imageBlob?.size || 0
+  }
+
+  return [...evictionUrls]
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -120,4 +155,27 @@ function putRecord(db: IDBDatabase, record: ThumbnailCacheRecord): Promise<void>
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
   })
+}
+
+function evictOldRecords(db: IDBDatabase): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readwrite')
+    const store = transaction.objectStore(STORE_NAME)
+    const getAllRequest = store.getAll()
+
+    getAllRequest.onsuccess = () => {
+      const urls = selectThumbnailEvictionUrls(getAllRequest.result as ThumbnailCacheRecord[])
+      for (const url of urls) {
+        store.delete(url)
+      }
+    }
+    getAllRequest.onerror = () => reject(getAllRequest.error)
+    transaction.oncomplete = () => resolve()
+    transaction.onerror = () => reject(transaction.error)
+    transaction.onabort = () => reject(transaction.error)
+  })
+}
+
+function recordTimestamp(record: ThumbnailCacheRecord): number {
+  return record.cachedAt || record.failedAt || 0
 }

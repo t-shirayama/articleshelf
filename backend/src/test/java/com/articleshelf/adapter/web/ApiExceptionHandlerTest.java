@@ -5,6 +5,7 @@ import com.articleshelf.application.auth.AuthRateLimitExceededException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.DuplicateTagNameException;
 import com.articleshelf.domain.user.PasswordPolicyException;
+import com.articleshelf.application.observability.BackendMetrics;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,7 @@ class ApiExceptionHandlerTest {
         ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
         messageSource.setBasename("messages");
         messageSource.setDefaultEncoding("UTF-8");
-        handler = new ApiExceptionHandler(messageSource);
+        handler = new ApiExceptionHandler(messageSource, BackendMetrics.noop());
         LocaleContextHolder.setLocale(Locale.ENGLISH);
     }
 
@@ -45,7 +46,9 @@ class ApiExceptionHandlerTest {
                 new DuplicateArticleUrlException("https://example.com/article", existingArticleId)
         );
 
+        assertThat(response.code()).isEqualTo("ARTICLE_DUPLICATE_URL");
         assertThat(response.messages()).containsExactly("This URL is already registered.");
+        assertThat(response.fieldErrors()).isEmpty();
         assertThat(response.existingArticleId()).isEqualTo(existingArticleId);
     }
 
@@ -59,7 +62,9 @@ class ApiExceptionHandlerTest {
         );
 
         assertThat(duplicateName.messages()).containsExactly("Tag already exists.");
+        assertThat(duplicateName.code()).isEqualTo("TAG_DUPLICATE_NAME");
         assertThat(mergeSame.messages()).containsExactly("Choose a different tag to merge into.");
+        assertThat(mergeSame.code()).isEqualTo("TAG_MERGE_TARGET_SAME");
     }
 
     @Test
@@ -75,8 +80,11 @@ class ApiExceptionHandlerTest {
         );
 
         assertThat(invalidCredentials.messages()).containsExactly("Username or password is incorrect.");
+        assertThat(invalidCredentials.code()).isEqualTo("AUTH_INVALID_CREDENTIALS");
         assertThat(invalidRefresh.messages()).containsExactly("Session is invalid. Please log in again.");
+        assertThat(invalidRefresh.code()).isEqualTo("AUTH_REFRESH_INVALID");
         assertThat(inactiveUser.messages()).containsExactly("Username or password is incorrect.");
+        assertThat(inactiveUser.code()).isEqualTo("AUTH_INVALID_CREDENTIALS");
     }
 
     @Test
@@ -86,6 +94,7 @@ class ApiExceptionHandlerTest {
         );
 
         assertThat(response.messages()).containsExactly("Too many authentication attempts. Please wait and try again.");
+        assertThat(response.code()).isEqualTo("AUTH_RATE_LIMITED");
     }
 
     @Test
@@ -108,7 +117,9 @@ class ApiExceptionHandlerTest {
         );
 
         assertThat(invalidSize.messages()).containsExactly("Password must be 8 to 128 characters long.");
+        assertThat(invalidSize.code()).isEqualTo("PASSWORD_POLICY");
         assertThat(sameAsUsername.messages()).containsExactly("Password cannot be the same as the username.");
+        assertThat(sameAsUsername.code()).isEqualTo("PASSWORD_SAME_AS_USERNAME");
     }
 
     @Test
@@ -120,6 +131,7 @@ class ApiExceptionHandlerTest {
         assertThat(response.getStatusCode().value()).isEqualTo(405);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().messages()).containsExactly("Request is invalid.");
+        assertThat(response.getBody().code()).isEqualTo("REQUEST_INVALID");
     }
 
     @Test
@@ -129,12 +141,54 @@ class ApiExceptionHandlerTest {
         );
 
         assertThat(response.messages()).containsExactly("An unexpected error occurred.");
+        assertThat(response.code()).isEqualTo("INTERNAL_ERROR");
         assertThat(response.messages().get(0)).doesNotContain("internal implementation detail");
+    }
+
+    @Test
+    void validationResponseIncludesMachineReadableFieldErrors() throws Exception {
+        FieldError fieldError = new FieldError(
+                "request",
+                "url",
+                null,
+                false,
+                new String[]{"URL"},
+                null,
+                null
+        );
+        MethodArgumentNotValidExceptionFixture exception = new MethodArgumentNotValidExceptionFixture(fieldError);
+
+        ApiExceptionHandler.ErrorResponse response = handler.handleValidation(exception);
+
+        assertThat(response.code()).isEqualTo("VALIDATION_ERROR");
+        assertThat(response.messages()).containsExactly("URL must be a valid URL.");
+        assertThat(response.fieldErrors()).singleElement().satisfies(error -> {
+            assertThat(error.field()).isEqualTo("url");
+            assertThat(error.code()).isEqualTo("URL");
+            assertThat(error.message()).isEqualTo("URL must be a valid URL.");
+        });
     }
 
     private String formatFieldError(String field, String code, Object constraintValue) {
         Object[] arguments = constraintValue == null ? null : new Object[]{field, constraintValue};
         FieldError error = new FieldError("request", field, null, false, new String[]{code}, arguments, null);
         return ReflectionTestUtils.invokeMethod(handler, "formatFieldError", error);
+    }
+
+    private static class MethodArgumentNotValidExceptionFixture extends org.springframework.web.bind.MethodArgumentNotValidException {
+        MethodArgumentNotValidExceptionFixture(FieldError fieldError) throws NoSuchMethodException {
+            super(
+                    new org.springframework.core.MethodParameter(
+                            MethodArgumentNotValidExceptionFixture.class.getDeclaredMethod("request", Object.class),
+                            0
+                    ),
+                    new org.springframework.validation.BeanPropertyBindingResult(new Object(), "request")
+            );
+            getBindingResult().addError(fieldError);
+        }
+
+        @SuppressWarnings("unused")
+        private void request(Object request) {
+        }
     }
 }

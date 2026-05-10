@@ -1,6 +1,7 @@
 package com.articleshelf.application.article;
 
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.application.observability.BackendMetrics;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleRepository;
@@ -13,6 +14,8 @@ import com.articleshelf.domain.article.TagNotFoundException;
 import com.articleshelf.domain.article.TagRepository;
 import com.articleshelf.domain.article.TagUsage;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionOperations;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -31,8 +34,32 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ArticleServiceTest {
     private final InMemoryArticleRepository repository = new InMemoryArticleRepository();
+    private final RecordingTransactionOperations transactionOperations = new RecordingTransactionOperations();
     private final StubMetadataProvider metadataProvider = new StubMetadataProvider();
-    private final ArticleService service = new ArticleService(repository, repository, metadataProvider);
+    private final BackendMetrics metrics = BackendMetrics.noop();
+    private final ArticleTagResolver tagResolver = new ArticleTagResolver(repository);
+    private final ArticleUrlUniquenessGuard urlUniquenessGuard = new ArticleUrlUniquenessGuard(repository, transactionOperations);
+    private final ArticleService service = new ArticleService(
+            new SearchArticlesQuery(repository),
+            new FindArticleQuery(repository),
+            new AddArticleUseCase(
+                    repository,
+                    metadataProvider,
+                    transactionOperations,
+                    metrics,
+                    tagResolver,
+                    urlUniquenessGuard
+            ),
+            new UpdateArticleUseCase(
+                    repository,
+                    metadataProvider,
+                    transactionOperations,
+                    metrics,
+                    tagResolver,
+                    urlUniquenessGuard
+            ),
+            new DeleteArticleUseCase(repository)
+    );
     private final CurrentUser user = new CurrentUser(UUID.randomUUID(), "user", "User", List.of("USER"));
 
     @Test
@@ -53,6 +80,7 @@ class ArticleServiceTest {
 
         assertThat(response.title()).isEqualTo("OGP title");
         assertThat(response.summary()).isEqualTo("OGP summary");
+        assertThat(metadataProvider.fetchObservedTransaction).isFalse();
         assertThat(response.favorite()).isTrue();
         assertThat(response.tags()).extracting(TagResponse::name).containsExactly("Java", "Spring");
         assertThat(repository.findAllByUserId(user.id())).singleElement()
@@ -147,6 +175,29 @@ class ArticleServiceTest {
         assertThat(metadataProvider.fetchCount).isZero();
         assertThat(updated.title()).isEqualTo("Updated title");
         assertThat(updated.favorite()).isTrue();
+    }
+
+    @Test
+    void updateArticleFetchesMetadataOutsideTransactionWhenUrlChanges() {
+        metadataProvider.next = new ArticleMetadata("Original", "Summary", "https://example.com/thumb.png", true);
+        ArticleResponse response = service.addArticle(user, command("https://example.com/original", "Original"));
+        metadataProvider.next = new ArticleMetadata("Updated OGP", "Updated summary", "https://example.com/new-thumb.png", true);
+
+        ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                "https://example.com/updated",
+                "Updated title",
+                "Updated summary",
+                ArticleStatus.UNREAD,
+                null,
+                false,
+                1,
+                "",
+                List.of()
+        ));
+
+        assertThat(updated.url()).isEqualTo("https://example.com/updated");
+        assertThat(updated.thumbnailUrl()).isEqualTo("https://example.com/new-thumb.png");
+        assertThat(metadataProvider.fetchObservedTransaction).isFalse();
     }
 
     @Test
@@ -253,11 +304,32 @@ class ArticleServiceTest {
     private static class StubMetadataProvider implements ArticleMetadataProvider {
         private ArticleMetadata next = new ArticleMetadata("", "", "", true);
         private int fetchCount = 0;
+        private boolean fetchObservedTransaction = false;
 
         @Override
         public ArticleMetadata fetch(String url) {
             fetchCount += 1;
+            fetchObservedTransaction = RecordingTransactionOperations.isInTransaction();
             return next;
+        }
+    }
+
+    private static class RecordingTransactionOperations implements TransactionOperations {
+        private static final ThreadLocal<Boolean> IN_TRANSACTION = ThreadLocal.withInitial(() -> false);
+
+        @Override
+        public <T> T execute(TransactionCallback<T> action) {
+            boolean previous = IN_TRANSACTION.get();
+            IN_TRANSACTION.set(true);
+            try {
+                return action.doInTransaction(null);
+            } finally {
+                IN_TRANSACTION.set(previous);
+            }
+        }
+
+        private static boolean isInTransaction() {
+            return IN_TRANSACTION.get();
         }
     }
 

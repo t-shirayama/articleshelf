@@ -1,23 +1,47 @@
 import { getCurrentLocale, translate } from "../i18n"
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+const API_BASE_URL = resolveApiBaseUrl(import.meta.env)
 const CSRF_COOKIE = 'ARTICLESHELF_CSRF'
 
+interface ApiClientEnv {
+  VITE_API_BASE_URL?: string
+  PROD?: boolean
+}
+
 interface ApiErrorPayload {
+  code?: string
+  fieldErrors?: ApiFieldErrorPayload[]
   messages?: string[]
   existingArticleId?: string | null
 }
 
+interface ApiFieldErrorPayload {
+  field?: string
+  code?: string
+  message?: string
+}
+
 export class ApiRequestError extends Error {
   readonly status: number
+  readonly code?: string
   readonly messages: string[]
+  readonly fieldErrors: ApiFieldErrorPayload[]
   existingArticleId?: string
 
-  constructor(message: string, existingArticleId?: string | null, status = 0, messages: string[] = [message]) {
+  constructor(
+    message: string,
+    existingArticleId?: string | null,
+    status = 0,
+    messages: string[] = [message],
+    code?: string,
+    fieldErrors: ApiFieldErrorPayload[] = []
+  ) {
     super(message)
     this.name = 'ApiRequestError'
     this.status = status
+    this.code = code
     this.messages = messages
+    this.fieldErrors = fieldErrors
     this.existingArticleId = existingArticleId || undefined
   }
 }
@@ -56,6 +80,21 @@ export function setAccessToken(token: string): void {
 export function configureAuthRefresh(callback: (() => Promise<string | null>) | null): void {
   refreshAccessToken = callback
   refreshPromise = null
+}
+
+export function resetApiClientForTest(): void {
+  accessToken = ''
+  refreshAccessToken = null
+  refreshPromise = null
+}
+
+export function resolveApiBaseUrl(env: ApiClientEnv): string {
+  const configuredUrl = env.VITE_API_BASE_URL?.trim()
+  if (configuredUrl) return configuredUrl.replace(/\/$/, '')
+  if (env.PROD) {
+    throw new Error('VITE_API_BASE_URL is required for production frontend builds')
+  }
+  return 'http://localhost:8080'
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
@@ -103,7 +142,14 @@ async function performRequest<T>(path: string, options: RequestOptions, retried:
     const errorPayload = toApiErrorPayload(payload)
     const messages = errorPayload?.messages?.filter((message) => message.trim()) || []
     const message = messages.length ? messages.join(', ') : fallbackErrorMessage(response.status)
-    throw new ApiRequestError(message, errorPayload?.existingArticleId, response.status, messages.length ? messages : [message])
+    throw new ApiRequestError(
+      message,
+      errorPayload?.existingArticleId,
+      response.status,
+      messages.length ? messages : [message],
+      errorPayload?.code,
+      Array.isArray(errorPayload?.fieldErrors) ? errorPayload.fieldErrors : []
+    )
   }
   if (payload === null) {
     throw new ApiServerError(translate('errors.invalidResponse'), response.status)
@@ -148,7 +194,7 @@ async function readJson(response: Response): Promise<unknown | null> {
 function toApiErrorPayload(payload: unknown): ApiErrorPayload | null {
   if (!payload || typeof payload !== 'object') return null
   const candidate = payload as ApiErrorPayload
-  return Array.isArray(candidate.messages) || 'existingArticleId' in candidate ? candidate : null
+  return Array.isArray(candidate.messages) || 'existingArticleId' in candidate || 'code' in candidate ? candidate : null
 }
 
 function fallbackErrorMessage(status: number): string {

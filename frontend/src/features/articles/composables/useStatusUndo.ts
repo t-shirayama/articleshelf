@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import type { useArticlesStore } from "../stores/articles";
 import type { Article, ArticleStatus } from "../types";
+import { readDateForStatus, todayString } from "../domain/articleStatus";
 
 type ArticlesStore = ReturnType<typeof useArticlesStore>;
 type PersistedArticleStatus = Exclude<ArticleStatus, "ALL">;
@@ -22,7 +23,7 @@ export function useStatusUndo(store: ArticlesStore, t: Translate) {
     const previousReadDate = article.readDate || null;
     const nextStatus: PersistedArticleStatus =
       article.status === "READ" ? "UNREAD" : "READ";
-    const nextReadDate = nextStatus === "READ" ? todayString() : null;
+    const nextReadDate = readDateForStatus(nextStatus, null, todayString());
     const updated = await store.updateArticleStatus(
       article,
       nextStatus,
@@ -49,14 +50,6 @@ export function useStatusUndo(store: ArticlesStore, t: Translate) {
     statusSnackbarOpen.value = false;
     statusUndo.value = null;
     await store.updateArticleStatus(article, undo.status, undo.readDate);
-  }
-
-  function todayString(): string {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0");
-    const day = String(today.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
   }
 
   return {

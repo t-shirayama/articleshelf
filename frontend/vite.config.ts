@@ -16,6 +16,12 @@ export default defineConfig({
       reporter: ['text', 'html', 'lcov'],
       reportsDirectory: 'coverage',
       include: ['src/**/*.{ts,vue}'],
+      thresholds: {
+        lines: 19,
+        functions: 14,
+        branches: 16,
+        statements: 19
+      },
       exclude: [
         'src/**/*.test.ts',
         'src/**/*.integration.test.ts',

@@ -14,6 +14,7 @@ import {
   UserCog,
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import AccountSettingsDialog from "../../auth/components/AccountSettingsDialog.vue";
 import { useAuthStore } from "../../auth/stores/auth";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
@@ -31,6 +32,7 @@ import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
 import { useArticleActions } from "../composables/useArticleActions";
 import { useArticleFilterPresentation } from "../composables/useArticleFilterPresentation";
 import { useArticleModalState } from "../composables/useArticleModalState";
+import { useArticleSearchDebounce } from "../composables/useArticleSearchDebounce";
 import { useMotivationRotation } from "../composables/useMotivationRotation";
 import { useStatusUndo } from "../composables/useStatusUndo";
 import { useTagActions } from "../composables/useTagActions";
@@ -45,6 +47,8 @@ type CalendarMode = "created" | "read";
 const authStore = useAuthStore();
 const store = useArticlesStore();
 const { t, locale } = useI18n({ useScope: "global" });
+const route = useRoute();
+const router = useRouter();
 const filterDialogOpen = ref(false);
 const accountDialogOpen = ref(false);
 const accountDialogError = ref("");
@@ -54,7 +58,7 @@ const detailReturnView = ref<DetailReturnView>("list");
 const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
 const calendarMode = ref<CalendarMode>("created");
 const mobileDrawerOpen = ref(false);
-let searchTimer: ReturnType<typeof window.setTimeout> | undefined;
+let removeWorkspaceRouteGuard: (() => void) | null = null;
 
 const availableTagNames = computed<string[]>(() =>
   store.tags.map((tag) => tag.name),
@@ -159,20 +163,37 @@ const mobileBottomNavigationVisible = computed(
     !unsavedChangesDialogOpen.value,
 );
 
-watch(searchDraft, (value) => {
-  if (searchTimer) window.clearTimeout(searchTimer);
-  searchTimer = window.setTimeout(() => {
-    store.setSearch(value);
-  }, 250);
-});
+const { cancelSearch } = useArticleSearchDebounce(searchDraft, (value) => store.setSearch(value));
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
+  removeWorkspaceRouteGuard = router.beforeEach((to, from) => {
+    if (
+      to.fullPath === from.fullPath ||
+      !isWorkspaceRoute(to.path) ||
+      viewMode.value !== "detail" ||
+      !detailHasUnsavedChanges.value
+    ) {
+      return true;
+    }
+
+    requestNavigation(() => {
+      void router.push(to.fullPath);
+    });
+    return false;
+  });
   await loadInitialData();
+  await applyWorkspaceRoute();
+});
+
+watch(() => route.path, () => {
+  void applyWorkspaceRoute();
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
+  removeWorkspaceRouteGuard?.();
+  removeWorkspaceRouteGuard = null;
 });
 
 async function logout(): Promise<void> {
@@ -215,13 +236,9 @@ async function deleteAccount(input: { currentPassword: string }): Promise<void> 
 }
 
 function resetUserScopedState(): void {
+  cancelSearch();
   store.resetState();
   resetNavigation();
-}
-
-function showList(): void {
-  mobileDrawerOpen.value = false;
-  requestNavigation(navigateToList);
 }
 
 function showDetailReturnView(): void {
@@ -231,17 +248,24 @@ function showDetailReturnView(): void {
 
 function showCalendar(): void {
   mobileDrawerOpen.value = false;
-  requestNavigation(navigateToCalendar);
+  requestNavigation(() => {
+    void router.push("/calendar");
+    navigateToCalendar();
+  });
 }
 
 function showTags(): void {
   mobileDrawerOpen.value = false;
-  requestNavigation(navigateToTags);
+  requestNavigation(() => {
+    void router.push("/tags");
+    navigateToTags();
+  });
 }
 
 function setStatus(status: ArticleStatus): void {
   mobileDrawerOpen.value = false;
   requestNavigation(() => {
+    void router.push("/articles");
     navigateToList();
     rotateMotivation();
     void store.setStatus(status);
@@ -251,6 +275,7 @@ function setStatus(status: ArticleStatus): void {
 function setFavoriteOnly(): void {
   mobileDrawerOpen.value = false;
   requestNavigation(() => {
+    void router.push("/articles");
     navigateToList();
     rotateMotivation();
     void store.setFavoriteOnly();
@@ -260,6 +285,7 @@ function setFavoriteOnly(): void {
 function setAllArticles(): void {
   mobileDrawerOpen.value = false;
   requestNavigation(() => {
+    void router.push("/articles");
     navigateToList();
     rotateMotivation();
     void store.setAllArticles();
@@ -281,6 +307,7 @@ function openArticleModalFromMobile(): void {
 
 function openAccountSettings(): void {
   mobileDrawerOpen.value = false;
+  void router.push("/settings");
   accountDialogOpen.value = true;
 }
 
@@ -292,6 +319,30 @@ function changeLocale(value: unknown): void {
 
 async function loadInitialData(): Promise<void> {
   await Promise.all([store.fetchArticles(), store.fetchTags()]);
+}
+
+async function applyWorkspaceRoute(): Promise<void> {
+  if (route.path === "/calendar") {
+    navigateToCalendar();
+    return;
+  }
+  if (route.path === "/tags") {
+    navigateToTags();
+    return;
+  }
+  if (route.path === "/settings") {
+    navigateWorkspaceToList();
+    accountDialogOpen.value = true;
+    return;
+  }
+  if (typeof route.params.id === "string") {
+    if (viewMode.value !== "calendar" && detailReturnView.value !== "calendar") {
+      detailReturnView.value = "list";
+    }
+    await openDuplicateArticle(route.params.id);
+    return;
+  }
+  navigateWorkspaceToList();
 }
 
 async function retryInitialLoad(): Promise<void> {
@@ -317,16 +368,19 @@ function applyAdvancedFilters(filters: {
 
 function navigateToList(): void {
   detailFormError.value = "";
+  if (route.path !== "/articles") void router.push("/articles");
   navigateWorkspaceToList();
 }
 
 function navigateToDetailReturnView(): void {
   detailFormError.value = "";
   if (detailReturnView.value === "calendar") {
+    void router.push("/calendar");
     navigateToCalendar();
     return;
   }
 
+  void router.push("/articles");
   navigateWorkspaceToList();
 }
 
@@ -336,11 +390,13 @@ function currentDetailReturnView(): DetailReturnView {
 
 function openArticleFromList(article: Article): Promise<void> {
   detailReturnView.value = "list";
+  void router.push(`/articles/${article.id}`);
   return openArticle(article);
 }
 
 function openArticleFromCalendar(article: Article): Promise<void> {
   detailReturnView.value = "calendar";
+  void router.push(`/articles/${article.id}`);
   return openArticle(article);
 }
 
@@ -359,6 +415,16 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
   if (!detailHasUnsavedChanges.value) return;
   event.preventDefault();
   event.returnValue = "";
+}
+
+function isWorkspaceRoute(path: string): boolean {
+  return (
+    path === "/articles" ||
+    path.startsWith("/articles/") ||
+    path === "/calendar" ||
+    path === "/tags" ||
+    path === "/settings"
+  );
 }
 </script>
 
@@ -575,9 +641,9 @@ function handleBeforeUnload(event: BeforeUnloadEvent): void {
 
       <CalendarView
         v-else-if="viewMode === 'calendar'"
-        :articles="store.articles"
         v-model:visible-month-key="calendarVisibleMonthKey"
         v-model:mode="calendarMode"
+        :articles="store.articles"
         @open-article="openArticleFromCalendar"
       />
 

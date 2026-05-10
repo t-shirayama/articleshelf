@@ -2,6 +2,10 @@ package com.articleshelf.infrastructure.ogp;
 
 import org.junit.jupiter.api.Test;
 
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
+
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -46,5 +50,45 @@ class OgpRequestGuardTest {
                 .isInstanceOf(OgpRequestGuard.UnsafeOgpUrlException.class);
         assertThatThrownBy(() -> guard.validate("http://[fc00::1]/article"))
                 .isInstanceOf(OgpRequestGuard.UnsafeOgpUrlException.class);
+    }
+
+    @Test
+    void rejectsConnectionWhenDnsResolutionChangesToUnsafeAddress() throws UnknownHostException {
+        InetAddress publicAddress = InetAddress.getByName("93.184.216.34");
+        InetAddress privateAddress = InetAddress.getByName("10.0.0.1");
+        OgpRequestGuard rebindingGuard = new OgpRequestGuard(new OgpRequestGuard.AddressResolver() {
+            private int calls = 0;
+
+            @Override
+            public InetAddress[] resolve(String host) {
+                calls += 1;
+                return calls == 1
+                        ? new InetAddress[]{publicAddress}
+                        : new InetAddress[]{privateAddress};
+            }
+        });
+
+        assertThatThrownBy(() -> rebindingGuard.validateForConnection(URI.create("http://example.com/article")))
+                .isInstanceOf(OgpRequestGuard.UnsafeOgpUrlException.class);
+    }
+
+    @Test
+    void acceptsConnectionWhenDnsResolutionRotatesAcrossPublicAddresses() throws UnknownHostException {
+        InetAddress firstPublicAddress = InetAddress.getByName("93.184.216.34");
+        InetAddress secondPublicAddress = InetAddress.getByName("93.184.216.35");
+        OgpRequestGuard rotatingGuard = new OgpRequestGuard(new OgpRequestGuard.AddressResolver() {
+            private int calls = 0;
+
+            @Override
+            public InetAddress[] resolve(String host) {
+                calls += 1;
+                return calls == 1
+                        ? new InetAddress[]{firstPublicAddress}
+                        : new InetAddress[]{secondPublicAddress};
+            }
+        });
+
+        assertThatCode(() -> rotatingGuard.validateForConnection(URI.create("http://example.com/article")))
+                .doesNotThrowAnyException();
     }
 }

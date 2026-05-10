@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, watch } from 'vue'
+import { toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
-import { createEmptyArticleCreateForm, createFormToArticleInput } from '../domain/articleForms'
+import { useArticleCreateForm } from '../composables/useArticleCreateForm'
 import type { ArticleInput, Tag } from '../types'
 
 const props = withDefaults(defineProps<{
@@ -28,32 +28,11 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const form = reactive(createEmptyArticleCreateForm())
-const submitted = ref(false)
-const urlInput = ref<{ focus: () => void } | null>(null)
-const tagOptions = computed(() => [...new Set(props.tags.map((tag) => tag.name).filter(Boolean))])
-const urlError = computed(() => (form.url.trim() ? '' : t('articleForm.validation.urlRequired')))
-const readDateError = computed(() => (!form.readLater && !form.readDate ? t('articleForm.validation.readDateRequired') : ''))
-const formValid = computed(() => !urlError.value && !readDateError.value)
-
-watch(
-  () => props.open,
-  (open) => {
-    if (open) {
-      Object.assign(form, createEmptyArticleCreateForm())
-      submitted.value = false
-      focusUrlInput()
-    }
-  }
+const { form, submitted, urlInput, tagOptions, urlError, readDateError, createSubmitInput } = useArticleCreateForm(
+  toRef(props, 'open'),
+  toRef(props, 'tags'),
+  t,
 )
-
-function focusUrlInput(): void {
-  nextTick(() => {
-    window.requestAnimationFrame(() => {
-      urlInput.value?.focus()
-    })
-  })
-}
 
 function cancel(): void {
   if (props.saving) return
@@ -66,10 +45,9 @@ function handleDialogUpdate(open: boolean): void {
 }
 
 function submit(): void {
-  submitted.value = true
-  if (!formValid.value || props.saving) return
-
-  emit('submit', createFormToArticleInput(form))
+  const input = createSubmitInput(props.saving)
+  if (!input) return
+  emit('submit', input)
 }
 </script>
 

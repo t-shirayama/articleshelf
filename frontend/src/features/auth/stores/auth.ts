@@ -3,9 +3,10 @@ import { errorMessage } from '../../../shared/errors'
 import { translate } from '../../../shared/i18n'
 import { configureAuthRefresh, setAccessToken } from '../../../shared/api/client'
 import { authApi } from '../api/authApi'
+import { ProactiveRefreshTimer } from '../services/proactiveRefreshTimer'
 import type { AuthCredentials, ChangePasswordInput, DeleteAccountInput, RegisterInput, User } from '../types'
 
-let proactiveRefreshTimer: ReturnType<typeof window.setTimeout> | undefined
+const proactiveRefreshTimer = new ProactiveRefreshTimer()
 
 interface AuthState {
   user: User | null
@@ -121,8 +122,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = null
       this.accessToken = ''
       setAccessToken('')
-      if (proactiveRefreshTimer) window.clearTimeout(proactiveRefreshTimer)
-      proactiveRefreshTimer = undefined
+      proactiveRefreshTimer.clear()
     },
     applyAuthResponse(response: { user: User, accessToken: string }): void {
       this.user = response.user
@@ -131,26 +131,7 @@ export const useAuthStore = defineStore('auth', {
       this.scheduleProactiveRefresh(response.accessToken)
     },
     scheduleProactiveRefresh(token: string): void {
-      if (proactiveRefreshTimer) window.clearTimeout(proactiveRefreshTimer)
-      const exp = readJwtExp(token)
-      if (!exp) return
-      const refreshAt = exp * 1000 - Date.now() - 60_000
-      proactiveRefreshTimer = window.setTimeout(() => {
-        void this.refreshSession()
-      }, Math.max(refreshAt, 5_000))
+      proactiveRefreshTimer.schedule(token, () => this.refreshSession())
     }
   }
 })
-
-function readJwtExp(token: string): number | null {
-  const payload = token.split('.')[1]
-  if (!payload) return null
-  try {
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
-    const normalized = base64.padEnd(base64.length + ((4 - base64.length % 4) % 4), '=')
-    const decoded = JSON.parse(window.atob(normalized))
-    return typeof decoded.exp === 'number' ? decoded.exp : null
-  } catch {
-    return null
-  }
-}

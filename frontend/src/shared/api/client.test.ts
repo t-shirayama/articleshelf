@@ -5,6 +5,8 @@ import {
   ApiServerError,
   configureAuthRefresh,
   request,
+  resetApiClientForTest,
+  resolveApiBaseUrl,
   setAccessToken
 } from './client'
 import { setCurrentLocale } from '../i18n'
@@ -13,8 +15,7 @@ describe('api client error handling', () => {
   const fetchMock = vi.fn()
 
   beforeEach(() => {
-    setAccessToken('')
-    configureAuthRefresh(null)
+    resetApiClientForTest()
     setCurrentLocale('en')
     fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
@@ -22,8 +23,7 @@ describe('api client error handling', () => {
   })
 
   afterEach(() => {
-    setAccessToken('')
-    configureAuthRefresh(null)
+    resetApiClientForTest()
     vi.unstubAllGlobals()
     document.cookie = 'ARTICLESHELF_CSRF=; Max-Age=0'
   })
@@ -112,6 +112,29 @@ describe('api client error handling', () => {
       message: 'The server returned an unexpected response. Please reload.',
       status: 200
     })
+  })
+
+  it('passes AbortSignal through to fetch for cancellable requests', async () => {
+    const controller = new AbortController()
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }, 200))
+
+    await request('/api/articles', { signal: controller.signal })
+
+    expect(fetchMock.mock.calls[0][1].signal).toBe(controller.signal)
+  })
+})
+
+describe('api client environment', () => {
+  it('uses localhost when API base URL is missing in development', () => {
+    expect(resolveApiBaseUrl({ PROD: false })).toBe('http://localhost:8080')
+  })
+
+  it('requires API base URL in production', () => {
+    expect(() => resolveApiBaseUrl({ PROD: true })).toThrow('VITE_API_BASE_URL is required')
+  })
+
+  it('trims a trailing slash from configured API base URL', () => {
+    expect(resolveApiBaseUrl({ VITE_API_BASE_URL: 'https://api.example.com/' })).toBe('https://api.example.com')
   })
 })
 

@@ -26,10 +26,6 @@ const usernameError = computed(() => {
     ? ""
     : t("auth.errors.usernameInvalid");
 });
-const displayNameError = computed(() => {
-  if (!isRegister.value) return "";
-  return displayName.value.trim() ? "" : t("auth.errors.displayNameRequired");
-});
 const passwordError = computed(() => {
   if (!password.value) return t("auth.errors.passwordRequired");
   if (isRegister.value && password.value.length < 8) {
@@ -38,7 +34,7 @@ const passwordError = computed(() => {
   return "";
 });
 const formValid = computed(
-  () => !usernameError.value && !displayNameError.value && !passwordError.value,
+  () => !usernameError.value && !passwordError.value,
 );
 
 async function submit(): Promise<void> {
@@ -50,7 +46,7 @@ async function submit(): Promise<void> {
       await authStore.register({
         username: username.value.trim().toLowerCase(),
         password: password.value,
-        displayName: displayName.value,
+        displayName: displayName.value.trim(),
       });
       return;
     }
@@ -117,6 +113,8 @@ function handleModeUpdate(value: unknown): void {
             type="text"
             autocomplete="username"
             :placeholder="t('auth.usernamePlaceholder')"
+            :hint="isRegister ? t('auth.usernameHelp') : undefined"
+            :persistent-hint="isRegister"
             required
             :error-messages="submitted && usernameError ? [usernameError] : []"
           />
@@ -128,7 +126,8 @@ function handleModeUpdate(value: unknown): void {
             v-model="displayName"
             autocomplete="name"
             :placeholder="t('auth.displayNamePlaceholder')"
-            :error-messages="submitted && displayNameError ? [displayNameError] : []"
+            :hint="t('auth.displayNameHelp')"
+            persistent-hint
           />
         </div>
         <div class="auth-field">
@@ -138,6 +137,8 @@ function handleModeUpdate(value: unknown): void {
             v-model="password"
             type="password"
             :autocomplete="isRegister ? 'new-password' : 'current-password'"
+            :hint="isRegister ? t('auth.passwordHelp') : undefined"
+            :persistent-hint="isRegister"
             required
             :error-messages="submitted && passwordError ? [passwordError] : []"
           />

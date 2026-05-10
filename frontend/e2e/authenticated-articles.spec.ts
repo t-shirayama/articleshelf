@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test, type APIRequestContext, type Page, type TestInfo } from '@playwright/test'
 
 const RUN_ID = Date.now().toString(36)
@@ -20,6 +21,35 @@ test('user can register, create an article, logout and login again', async ({ pa
 
   await login(page, username)
   await expect(articleCard(page, articleTitle)).toBeVisible()
+})
+
+test('user can register without a display name', async ({ page }, testInfo) => {
+  const username = uniqueUsername('nodisplay', testInfo)
+
+  await page.addInitScript(() => window.localStorage.setItem('articleshelf.locale', 'ja'))
+  await page.goto('/')
+  await page.getByRole('button', { name: '登録', exact: true }).click()
+  await page.getByLabel('ユーザー名').fill(username)
+  await page.getByLabel('パスワード').fill('password123')
+  await page.getByRole('button', { name: '登録して始める' }).click()
+
+  await expect(page.getByRole('heading', { name: 'すべての記事' })).toBeVisible()
+  await expect(page.locator('.sidebar > .sidebar-account')).toContainText(username)
+})
+
+test('authenticated article list has no critical accessibility violations', async ({ page }, testInfo) => {
+  const username = uniqueUsername('axe', testInfo)
+
+  await register(page, username)
+
+  const results = await new AxeBuilder({ page })
+    .disableRules(['color-contrast'])
+    .analyze()
+  const blockingViolations = results.violations.filter((violation) => {
+    return violation.impact === 'critical' || violation.impact === 'serious'
+  })
+
+  expect(blockingViolations).toEqual([])
 })
 
 test('user can change password and must use the new password', async ({ page }, testInfo) => {
@@ -322,6 +352,13 @@ test('user is warned before leaving unsaved article edits', async ({ page }, tes
   await page.getByRole('button', { name: '編集' }).click()
   await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Unsaved draft note')
   await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+
+  await page.goBack()
+  await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')
+  await page.getByRole('button', { name: '編集を続ける' }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
+
   await page.getByRole('button', { name: '戻る' }).click()
 
   await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')

@@ -16,6 +16,7 @@
 - `backend` サービスに Spring Boot アプリを配置する
 - `backend` サービスは backend 用 Dockerfile の `dev` ステージを使い、`backend` ディレクトリをコンテナへマウントする
 - `frontend` サービスは frontend 用 Dockerfile の開発ステージを使い、`frontend` ディレクトリをコンテナへマウントする
+- `frontend` サービスは Node 公式 image の non-root `node` user で dev server を実行する
 - `db` サービスに PostgreSQL を配置する
 - バックエンドは `db` をホスト名として DB 接続する
 - 開発時は `docker compose up --build` でフロントエンド、バックエンド、DB をまとめて起動できる構成とする

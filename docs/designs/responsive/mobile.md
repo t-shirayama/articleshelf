@@ -255,6 +255,8 @@ Markdown:
 - ハンバーガー、ボトムナビ、星評価、既読切り替え、削除には `aria-label` を付ける
 - モーダルとドロワーは focus trap を設定する
 - 閉じた後は開いたボタンへ focus を戻す
+- カレンダーの日付一覧 dialog / bottom sheet は keyboard で日付セルから開け、閉じた後は元の日付セルへ focus を戻す
+- `prefers-reduced-motion: reduce` では transition / animation を最小化し、accordion や hover の動きで視線移動を起こさない
 - 色だけで状態を伝えず、ラベル、アイコン、バッジ形状を併用する
 - 通常テキストはコントラスト 4.5:1 以上を目安にする
 - エラーは入力欄近くに表示し、スクリーンリーダーにも伝わるようにする

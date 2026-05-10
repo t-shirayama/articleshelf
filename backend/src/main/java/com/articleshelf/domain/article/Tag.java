@@ -13,7 +13,7 @@ public class Tag {
     public Tag(UUID id, UUID userId, String name, Instant createdAt, Instant updatedAt) {
         this.id = id == null ? UUID.randomUUID() : id;
         this.userId = userId;
-        this.name = name == null ? "" : name.trim();
+        this.name = TagName.normalize(name);
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

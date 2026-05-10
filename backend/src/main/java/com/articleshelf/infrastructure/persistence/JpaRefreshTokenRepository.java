@@ -45,12 +45,8 @@ public class JpaRefreshTokenRepository implements RefreshTokenRepository {
     }
 
     @Override
-    public void replace(UUID currentId, UUID replacementId, Instant revokedAt) {
-        refreshTokenJpaRepository.findById(currentId).ifPresent(token -> {
-            token.setRevokedAt(revokedAt);
-            token.setReplacedByTokenId(replacementId);
-            refreshTokenJpaRepository.save(token);
-        });
+    public boolean replaceIfActive(UUID currentId, UUID replacementId, Instant revokedAt) {
+        return refreshTokenJpaRepository.replaceIfActive(currentId, replacementId, revokedAt) == 1;
     }
 
     @Override

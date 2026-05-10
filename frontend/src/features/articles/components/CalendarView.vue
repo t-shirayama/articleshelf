@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   CalendarDays,
@@ -9,17 +9,17 @@ import {
   PlusCircle,
 } from "lucide-vue-next";
 import type { Article } from "../types";
-
-type CalendarMode = "created" | "read";
-
-interface CalendarCell {
-  key: string;
-  label: number | null;
-  date: string;
-  weekday: number | null;
-  articles: Article[];
-  outside: boolean;
-}
+import {
+  articleDateKey,
+  createCalendarCells,
+  dateKey,
+  isDateKeyInRange,
+  monthKeyToDate,
+  toDateKey,
+  toMonthKey,
+  type CalendarCell,
+  type CalendarMode,
+} from "../domain/calendar";
 
 const props = defineProps<{
   articles: Article[];
@@ -36,6 +36,7 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 const selectedCalendarCell = ref<CalendarCell | null>(null);
 const calendarDayDialogOpen = ref(false);
+const lastCalendarCellTrigger = ref<HTMLElement | null>(null);
 const mode = computed({
   get: () => props.mode,
   set: (value: CalendarMode) => emit("update:mode", value),
@@ -74,7 +75,7 @@ const createdInMonth = computed(() =>
 );
 const readInMonth = computed(() =>
   props.articles.filter((article) =>
-    isInVisibleMonth(dateKey(article.readDate)),
+    isInVisibleMonth(articleDateKey(article, "read")),
   ),
 );
 const backlogDelta = computed(
@@ -82,48 +83,7 @@ const backlogDelta = computed(
 );
 
 const calendarCells = computed<CalendarCell[]>(() => {
-  const year = visibleMonth.value.getFullYear();
-  const month = visibleMonth.value.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
-  const cells: CalendarCell[] = [];
-
-  for (let index = 0; index < firstDay.getDay(); index += 1) {
-    cells.push({
-      key: `blank-start-${index}`,
-      label: null,
-      date: "",
-      weekday: null,
-      articles: [],
-      outside: true,
-    });
-  }
-
-  for (let day = 1; day <= lastDay.getDate(); day += 1) {
-    const date = new Date(year, month, day);
-    const key = toDateKey(date);
-    cells.push({
-      key,
-      label: day,
-      date: key,
-      weekday: date.getDay(),
-      articles: articlesForDate(key),
-      outside: false,
-    });
-  }
-
-  while (cells.length < 42) {
-    cells.push({
-      key: `blank-end-${cells.length}`,
-      label: null,
-      date: "",
-      weekday: null,
-      articles: [],
-      outside: true,
-    });
-  }
-
-  return cells;
+  return createCalendarCells(visibleMonth.value, props.articles, mode.value);
 });
 const selectedDayTitle = computed(() => {
   if (!selectedCalendarCell.value) return "";
@@ -136,16 +96,6 @@ const selectedDayTitle = computed(() => {
   });
 });
 
-function articlesForDate(key: string): Article[] {
-  return props.articles.filter((article) => {
-    const targetDate =
-      mode.value === "created"
-        ? dateKey(article.createdAt)
-        : dateKey(article.readDate);
-    return targetDate === key;
-  });
-}
-
 function moveMonth(offset: number): void {
   emit("update:visibleMonthKey", toMonthKey(new Date(
     visibleMonth.value.getFullYear(),
@@ -154,8 +104,17 @@ function moveMonth(offset: number): void {
   )));
 }
 
-function openCalendarCell(cell: CalendarCell): void {
+watch(calendarDayDialogOpen, (open) => {
+  if (open) return;
+  nextTick(() => {
+    lastCalendarCellTrigger.value?.focus();
+    lastCalendarCellTrigger.value = null;
+  });
+});
+
+function openCalendarCell(cell: CalendarCell, event?: Event): void {
   if (cell.outside || cell.articles.length === 0) return;
+  lastCalendarCellTrigger.value = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null;
   selectedCalendarCell.value = cell;
   calendarDayDialogOpen.value = true;
 }
@@ -166,36 +125,14 @@ function openArticleFromDaySheet(article: Article): void {
 }
 
 function isInVisibleMonth(key: string): boolean {
-  return Boolean(key) && key >= monthStartKey.value && key <= monthEndKey.value;
+  return isDateKeyInRange(key, monthStartKey.value, monthEndKey.value);
 }
 
-function dateKey(value?: string | null): string {
-  return value ? value.slice(0, 10) : "";
+function calendarCellLabel(cell: CalendarCell): string | undefined {
+  if (cell.outside || cell.articles.length === 0) return undefined;
+  return `${cell.date} ${t("calendar.articleCount", { count: cell.articles.length })}`;
 }
 
-function toDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function startOfMonth(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function toMonthKey(date: Date): string {
-  const monthStart = startOfMonth(date);
-  const year = monthStart.getFullYear();
-  const month = String(monthStart.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
-}
-
-function monthKeyToDate(monthKey: string): Date {
-  const [year, month] = monthKey.split("-").map(Number);
-  if (!year || !month || month < 1 || month > 12) return startOfMonth(new Date());
-  return new Date(year, month - 1, 1);
-}
 </script>
 
 <template>
@@ -296,7 +233,11 @@ function monthKeyToDate(monthKey: string): Date {
           'is-saturday': cell.weekday === 6,
         }"
         role="gridcell"
-        @click="openCalendarCell(cell)"
+        :tabindex="!cell.outside && cell.articles.length > 0 ? 0 : -1"
+        :aria-label="calendarCellLabel(cell)"
+        @click="openCalendarCell(cell, $event)"
+        @keydown.enter.prevent="openCalendarCell(cell, $event)"
+        @keydown.space.prevent="openCalendarCell(cell, $event)"
       >
         <template v-if="!cell.outside">
           <div class="calendar-day-header">
