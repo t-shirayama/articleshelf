@@ -53,7 +53,7 @@ class OgpRequestGuardTest {
     }
 
     @Test
-    void rejectsConnectionWhenDnsResolutionChangesBetweenChecks() throws UnknownHostException {
+    void rejectsConnectionWhenDnsResolutionChangesToUnsafeAddress() throws UnknownHostException {
         InetAddress publicAddress = InetAddress.getByName("93.184.216.34");
         InetAddress privateAddress = InetAddress.getByName("10.0.0.1");
         OgpRequestGuard rebindingGuard = new OgpRequestGuard(new OgpRequestGuard.AddressResolver() {
@@ -62,7 +62,7 @@ class OgpRequestGuardTest {
             @Override
             public InetAddress[] resolve(String host) {
                 calls += 1;
-                return calls < 3
+                return calls == 1
                         ? new InetAddress[]{publicAddress}
                         : new InetAddress[]{privateAddress};
             }
@@ -73,11 +73,22 @@ class OgpRequestGuardTest {
     }
 
     @Test
-    void acceptsConnectionWhenDnsResolutionStaysStableAndPublic() throws UnknownHostException {
-        InetAddress publicAddress = InetAddress.getByName("93.184.216.34");
-        OgpRequestGuard stableGuard = new OgpRequestGuard(host -> new InetAddress[]{publicAddress});
+    void acceptsConnectionWhenDnsResolutionRotatesAcrossPublicAddresses() throws UnknownHostException {
+        InetAddress firstPublicAddress = InetAddress.getByName("93.184.216.34");
+        InetAddress secondPublicAddress = InetAddress.getByName("93.184.216.35");
+        OgpRequestGuard rotatingGuard = new OgpRequestGuard(new OgpRequestGuard.AddressResolver() {
+            private int calls = 0;
 
-        assertThatCode(() -> stableGuard.validateForConnection(URI.create("http://example.com/article")))
+            @Override
+            public InetAddress[] resolve(String host) {
+                calls += 1;
+                return calls == 1
+                        ? new InetAddress[]{firstPublicAddress}
+                        : new InetAddress[]{secondPublicAddress};
+            }
+        });
+
+        assertThatCode(() -> rotatingGuard.validateForConnection(URI.create("http://example.com/article")))
                 .doesNotThrowAnyException();
     }
 }

@@ -3,11 +3,8 @@ package com.articleshelf.infrastructure.ogp;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 class OgpRequestGuard {
     private static final Set<String> BLOCKED_HOSTS = Set.of("localhost", "localhost.localdomain");
@@ -56,11 +53,7 @@ class OgpRequestGuard {
     URI validateForConnection(URI uri) {
         URI validated = validate(uri);
         String normalizedHost = stripTrailingDot(validated.getHost().toLowerCase(Locale.ROOT));
-        Set<String> firstResolution = resolveAndValidate(normalizedHost);
-        Set<String> secondResolution = resolveAndValidate(normalizedHost);
-        if (!firstResolution.equals(secondResolution)) {
-            throw new UnsafeOgpUrlException();
-        }
+        resolveAndValidate(normalizedHost);
         return validated;
     }
 
@@ -68,7 +61,7 @@ class OgpRequestGuard {
         resolveAndValidate(host);
     }
 
-    private Set<String> resolveAndValidate(String host) {
+    private void resolveAndValidate(String host) {
         try {
             InetAddress[] addresses = addressResolver.resolve(host);
             if (addresses.length == 0) {
@@ -79,9 +72,6 @@ class OgpRequestGuard {
                     throw new UnsafeOgpUrlException();
                 }
             }
-            return Arrays.stream(addresses)
-                    .map(InetAddress::getHostAddress)
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (UnknownHostException exception) {
             throw new UnsafeOgpUrlException();
         }
