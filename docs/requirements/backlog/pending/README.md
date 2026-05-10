@@ -31,7 +31,6 @@
 - [Frontend CSP と Markdown security tests 強化](add-frontend-csp-and-markdown-security-tests.md)
 - [Frontend focus management と reduced motion 改善](improve-frontend-focus-and-reduced-motion.md)
 - [Frontend quality gates 強化](add-frontend-quality-gates.md)
-- [Frontend 検索・フィルタ仕様の契約整理](align-frontend-search-filter-contract.md)
 - [Machine-readable API エラー導入](introduce-machine-readable-api-errors.md)
 - [PDF インポート実データ品質改善](pdf-import-real-data-quality-improvement.md)
 - [Supply chain security scans 追加](add-supply-chain-security-scans.md)
