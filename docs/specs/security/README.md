@@ -28,6 +28,7 @@
 - `FRONTEND_ORIGIN` は明示的な origin を指定し、CORS で `*` は使わない
 - production profile では `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` を必須にする
 - 本番 secret は 32 文字以上にし、`dev-` 始まり、`change-me` を含む値は起動時に拒否する
+- backend の production Docker final image は dedicated non-root user で実行する
 - 通常起動では初期ユーザーを自動作成しない。検証環境で必要な場合のみ `ARTICLESHELF_INITIAL_USER_ENABLED=true` を明示する
 
 ## 4. ユーザースコープとデータ保護
