@@ -65,6 +65,7 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - `Content-Type` が `text/html` 以外の場合は本文を解析しない
 - HTML は最大 1MB の bytes を読んだ後、`Content-Type` charset、meta charset、UTF-8 fallback の順で decode する
 - OGP 取得は timeout と専用 User-Agent を設定する
+- OGP 取得は DB transaction 外で同期実行し、外部サイトの遅延や失敗を保存 transaction に持ち込まない
 
 ## 7. 入力検証とエラー応答
 

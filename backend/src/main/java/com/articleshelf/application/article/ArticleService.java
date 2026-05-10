@@ -12,10 +12,12 @@ import com.articleshelf.domain.article.Tag;
 import com.articleshelf.domain.article.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionOperations;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -24,11 +26,18 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final TagRepository tagRepository;
     private final ArticleMetadataProvider metadataProvider;
+    private final TransactionOperations transactionOperations;
 
-    public ArticleService(ArticleRepository articleRepository, TagRepository tagRepository, ArticleMetadataProvider metadataProvider) {
+    public ArticleService(
+            ArticleRepository articleRepository,
+            TagRepository tagRepository,
+            ArticleMetadataProvider metadataProvider,
+            TransactionOperations transactionOperations
+    ) {
         this.articleRepository = articleRepository;
         this.tagRepository = tagRepository;
         this.metadataProvider = metadataProvider;
+        this.transactionOperations = transactionOperations;
     }
 
     @Transactional(readOnly = true)
@@ -46,69 +55,64 @@ public class ArticleService {
                 .orElseThrow(() -> new ArticleNotFoundException(id));
     }
 
-    @Transactional
     public ArticleResponse addArticle(CurrentUser user, AddArticleCommand command) {
-        articleRepository.findByUrlAndUserId(command.url(), user.id())
-                .ifPresent(article -> {
-                    throw new DuplicateArticleUrlException(command.url(), article.getId());
-                });
+        validateUniqueUrl(user, command.url(), null);
 
         ArticleMetadata metadata = metadataProvider.fetch(command.url());
         if (!metadata.accessible()) {
             throw new ArticleUrlUnavailableException(command.url());
         }
-        Article article = new Article(
-                null,
-                user.id(),
-                command.url(),
-                firstPresent(command.title(), metadata.title(), command.url()),
-                firstPresent(command.summary(), metadata.description(), ""),
-                metadata.imageUrl(),
-                command.status(),
-                command.readDate(),
-                Boolean.TRUE.equals(command.favorite()),
-                command.rating() == null ? 0 : command.rating(),
-                command.notes(),
-                resolveTags(user, command.tags()),
-                null,
-                null
-        );
 
-        return ArticleResponse.from(articleRepository.save(article));
+        return Objects.requireNonNull(transactionOperations.execute(status -> {
+            Article article = new Article(
+                    null,
+                    user.id(),
+                    command.url(),
+                    firstPresent(command.title(), metadata.title(), command.url()),
+                    firstPresent(command.summary(), metadata.description(), ""),
+                    metadata.imageUrl(),
+                    command.status(),
+                    command.readDate(),
+                    Boolean.TRUE.equals(command.favorite()),
+                    command.rating() == null ? 0 : command.rating(),
+                    command.notes(),
+                    resolveTags(user, command.tags()),
+                    null,
+                    null
+            );
+
+            return ArticleResponse.from(articleRepository.save(article));
+        }));
     }
 
-    @Transactional
     public ArticleResponse updateArticle(CurrentUser user, UUID id, UpdateArticleCommand command) {
-        Article current = articleRepository.findByIdAndUserId(id, user.id()).orElseThrow(() -> new ArticleNotFoundException(id));
-        articleRepository.findByUrlAndUserId(command.url(), user.id())
-                .filter(article -> !article.getId().equals(id))
-                .ifPresent(article -> {
-                    throw new DuplicateArticleUrlException(command.url(), article.getId());
-                });
+        Article current = loadArticleAndValidateUrl(user, id, command.url());
         boolean shouldRefreshMetadata = !command.url().equals(current.getUrl()) || current.getThumbnailUrl().isBlank();
         ArticleMetadata metadata = shouldRefreshMetadata ? metadataProvider.fetch(command.url()) : ArticleMetadata.empty();
         if (!metadata.accessible() && !command.url().equals(current.getUrl())) {
             throw new ArticleUrlUnavailableException(command.url());
         }
 
-        Article updated = new Article(
-                current.getId(),
-                current.getUserId(),
-                command.url(),
-                firstPresent(command.title(), current.getTitle()),
-                command.summary(),
-                firstPresent(metadata.imageUrl(), current.getThumbnailUrl()),
-                command.status() == null ? current.getStatus() : command.status(),
-                command.readDate(),
-                command.favorite() == null ? current.isFavorite() : command.favorite(),
-                command.rating() == null ? current.getRating() : command.rating(),
-                command.notes(),
-                resolveTags(user, command.tags()),
-                current.getCreatedAt(),
-                current.getUpdatedAt()
-        );
+        return Objects.requireNonNull(transactionOperations.execute(status -> {
+            Article updated = new Article(
+                    current.getId(),
+                    current.getUserId(),
+                    command.url(),
+                    firstPresent(command.title(), current.getTitle()),
+                    command.summary(),
+                    firstPresent(metadata.imageUrl(), current.getThumbnailUrl()),
+                    command.status() == null ? current.getStatus() : command.status(),
+                    command.readDate(),
+                    command.favorite() == null ? current.isFavorite() : command.favorite(),
+                    command.rating() == null ? current.getRating() : command.rating(),
+                    command.notes(),
+                    resolveTags(user, command.tags()),
+                    current.getCreatedAt(),
+                    current.getUpdatedAt()
+            );
 
-        return ArticleResponse.from(articleRepository.save(updated));
+            return ArticleResponse.from(articleRepository.save(updated));
+        }));
     }
 
     @Transactional
@@ -131,6 +135,22 @@ public class ArticleService {
                 .distinct()
                 .forEach(name -> tags.add(tagRepository.saveTag(user.id(), name)));
         return tags;
+    }
+
+    private Article loadArticleAndValidateUrl(CurrentUser user, UUID id, String url) {
+        return Objects.requireNonNull(transactionOperations.execute(status -> {
+            Article current = articleRepository.findByIdAndUserId(id, user.id()).orElseThrow(() -> new ArticleNotFoundException(id));
+            validateUniqueUrl(user, url, id);
+            return current;
+        }));
+    }
+
+    private void validateUniqueUrl(CurrentUser user, String url, UUID currentArticleId) {
+        transactionOperations.executeWithoutResult(status -> articleRepository.findByUrlAndUserId(url, user.id())
+                .filter(article -> currentArticleId == null || !article.getId().equals(currentArticleId))
+                .ifPresent(article -> {
+                    throw new DuplicateArticleUrlException(url, article.getId());
+                }));
     }
 
     private String normalizeFilter(String value) {

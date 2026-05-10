@@ -14,6 +14,7 @@
 - 複数タグ、おすすめ度、登録日範囲、既読日範囲、並び替えは取得後にフロントエンド側の Pinia store で適用する
 - `POST /api/articles` で記事を追加
 - `PUT /api/articles/{id}` で記事を更新
+- 記事追加 / URL 変更を伴う更新では、URL 重複確認と保存だけを短い transaction にし、外部 HTTP アクセスである OGP 取得は DB transaction 外で同期実行する
 - 記事一覧カードの未読 / 既読切り替えとお気に入り切り替えは、フロントエンドで楽観的に反映してから `PUT /api/articles/{id}` で保存する
 - `GET /api/tags` でタグ一覧を取得
 - `POST /api/tags` でタグを追加
@@ -24,5 +25,6 @@
 - 取得したサムネイル Blob は IndexedDB に保存し、最大 200 records または 50MB を超える場合は `cachedAt` / `failedAt` が古いものから削除する
 - CORS 非対応、非画像、5MB 超過、取得失敗のサムネイルは proxy せず、安全側にプレースホルダー表示へ倒す。失敗記録は 24 時間 retry を抑制し、期限切れ後は eviction 対象にする
 - OGP HTML は `OgpHtmlParser` が meta tag / title 抽出を担当し、`Content-Type` charset、meta charset、UTF-8 fallback の順で文字コードを決定する
+- OGP 取得失敗、timeout、SSRF guard 失敗は記事追加時または URL 変更時に `ArticleUrlUnavailableException` として扱い、DB 保存 transaction を開始しない
 - 取得した画像は IndexedDB に画像 Blob として保存したものを表示する
 - 画像取得に失敗したURLは一定時間再試行せず、外部サイトへのアクセス増加を避けてプレースホルダー表示に戻す
