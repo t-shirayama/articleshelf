@@ -51,5 +51,5 @@ For Markdown link validation, use a local script or shell snippet that resolves 
 - Do not turn requirements docs into implementation specs.
 - Do not duplicate detailed data model, API, UI, security, or test rules in multiple places.
 - Keep README files as indexes or short source-of-truth summaries.
-- For Backlog, verify `docs/requirements/backlog/README.md` and each state folder README stay updated, task filenames use lowercase kebab-case, and task files use the standard headings.
+- For Backlog, verify `docs/requirements/backlog/README.md` and each state folder README stay updated, task filenames use lowercase kebab-case, task files use the standard headings, and priorities use `P0`-`P4`.
 - Build / unit / integration / E2E are not required for docs-only audits unless scripts or executable behavior changed.

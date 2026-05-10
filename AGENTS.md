@@ -133,6 +133,7 @@
 - `docs/requirements/backlog/` は、タスク、残作業、構想段階の案、TODO、技術的負債の唯一の記録先として扱う
 - Backlog タスクは1ファイル1タスクとし、ファイル名は英小文字 kebab-case の短い名前にする
 - タスク本文は `# タスク名`、`## 状態`、`## 優先度`、`## 目的`、`## 対象`、`## 対応内容`、`## 完了条件`、`## 根拠` を標準見出しにする
+- Backlog タスク追加時は `P0` から `P4` の優先度を必ず分類し、定義は `docs/requirements/backlog/README.md` の「優先度」に従う
 - 状態変更はファイル移動で表す。未対応は `pending/`、対応中は `in-progress/` に置く
 - 完了時は `archive/YYYY-MM.md` へ要約を追記し、タスクファイルは削除する
 - `docs/requirements/backlog/README.md` と各状態フォルダの `README.md` は必ず索引として更新する

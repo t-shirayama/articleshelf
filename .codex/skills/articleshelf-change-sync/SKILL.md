@@ -16,7 +16,7 @@ Use this skill to avoid implementation/documentation drift in ArticleShelf.
    - Feature or API behavior: `docs/specs/features/README.md`, `docs/specs/api/README.md`, or `docs/specs/auth/account-api.md`
    - UI behavior or visual rules: `docs/designs/README.md` and usually `docs/specs/ui/README.md`
    - Architecture, persistence, or responsibility boundaries: `docs/architecture/README.md` or `docs/architecture/*`
-   - Future tasks, known gaps, temporary workarounds, TODOs, or technical debt: `docs/requirements/backlog/pending/` as one file per task, plus the relevant backlog README indexes
+   - Future tasks, known gaps, temporary workarounds, TODOs, or technical debt: `docs/requirements/backlog/pending/` as one file per task with a `P0`-`P4` priority, plus the relevant backlog README indexes
    - Setup, scripts, or onboarding: `README.md`
    - Agent or workflow rules: `AGENTS.md`
    Keep source-of-truth ownership clear: requirements describe what must be true, specs describe current behavior and contracts, architecture describes structure and responsibility boundaries, designs describe visual layout, testing describes verification, and Backlog keeps future work.
