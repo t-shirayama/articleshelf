@@ -26,7 +26,7 @@ jobs:
           fi
       - id: filter
         name: Detect changed areas
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             backend:
@@ -249,7 +249,7 @@ jobs:
         run: docker compose -p articleshelf-e2e -f docker-compose.e2e.yml logs --tail 300
       - name: Upload Playwright artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-artifacts
           path: |
