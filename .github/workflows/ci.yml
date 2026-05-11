@@ -26,7 +26,7 @@ jobs:
           fi
       - id: filter
         name: Detect changed areas
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             backend:
