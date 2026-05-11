@@ -630,6 +630,11 @@
     padding: 22px 18px;
   }
 
+  .auth-mode-switch-copy {
+    display: grid;
+    gap: 3px;
+  }
+
   .app-shell {
     padding: 8px;
     padding-bottom: calc(78px + env(safe-area-inset-bottom));

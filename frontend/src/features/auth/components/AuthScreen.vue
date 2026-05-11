@@ -197,15 +197,28 @@ function handleModeUpdate(value: unknown): void {
           </p>
         </div>
 
-        <VBtnToggle
-          :model-value="mode"
-          mandatory
-          class="auth-mode-toggle"
-          @update:model-value="handleModeUpdate"
-        >
-          <VBtn value="login">{{ t("auth.login") }}</VBtn>
-          <VBtn value="register">{{ t("auth.register") }}</VBtn>
-        </VBtnToggle>
+        <div class="auth-mode-switch">
+          <div class="auth-mode-switch-copy">
+            <span>{{ t("auth.modeSwitchLabel") }}</span>
+            <small>{{ t("auth.modeSwitchHint") }}</small>
+          </div>
+          <VBtnToggle
+            :model-value="mode"
+            mandatory
+            class="auth-mode-toggle"
+            :aria-label="t('auth.modeSwitchLabel')"
+            @update:model-value="handleModeUpdate"
+          >
+            <VBtn value="login">
+              <LogIn :size="17" />
+              <span>{{ t("auth.login") }}</span>
+            </VBtn>
+            <VBtn value="register">
+              <UserPlus :size="17" />
+              <span>{{ t("auth.register") }}</span>
+            </VBtn>
+          </VBtnToggle>
+        </div>
 
         <form class="auth-form" @submit.prevent="submit">
           <div class="auth-field">

@@ -52,6 +52,8 @@ export const en = {
       loginDescription: 'Log in to open your article shelf.',
       registerDescription: 'Create an account to manage your own articles.',
       submitRegister: 'Sign up and start',
+      modeSwitchLabel: 'Log in / sign up switch',
+      modeSwitchHint: 'Choose the action you want to use',
       username: 'Username',
       displayName: 'Display name (optional)',
       password: 'Password',
