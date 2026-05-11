@@ -22,6 +22,21 @@ describe('StatusUndoSnackbar', () => {
 
     app.unmount()
   })
+
+  it('emits primary and secondary snackbar actions', () => {
+    const open = ref(true)
+    const primary = vi.fn()
+    const secondary = vi.fn()
+    const { root, app } = mountActionSnackbar(open, primary, secondary)
+
+    root.querySelector<HTMLButtonElement>('.snackbar-primary-action')?.click()
+    root.querySelector<HTMLButtonElement>('.snackbar-secondary-action')?.click()
+
+    expect(primary).toHaveBeenCalled()
+    expect(secondary).toHaveBeenCalled()
+
+    app.unmount()
+  })
 })
 
 function mountStatusUndoSnackbar(open: { value: boolean }, undo: () => void): { root: HTMLElement, app: App<Element> } {
@@ -41,6 +56,32 @@ function mountStatusUndoSnackbar(open: { value: boolean }, undo: () => void): { 
   })
   app.component('VBtn', {
     template: '<button class="undo-button" @click="$emit(\'click\')"><slot /></button>'
+  })
+  app.mount(root)
+  return { root, app }
+}
+
+function mountActionSnackbar(
+  open: { value: boolean },
+  primary: () => void,
+  secondary: () => void
+): { root: HTMLElement, app: App<Element> } {
+  const root = document.createElement('div')
+  document.body.append(root)
+  const app = createApp({
+    components: { StatusUndoSnackbar },
+    setup() {
+      return { open, primary, secondary }
+    },
+    template: '<StatusUndoSnackbar v-model:open="open" message="Saved" primary-action-label="Edit" secondary-action-label="Again" @primary-action="primary" @secondary-action="secondary" />'
+  })
+  app.use(i18n)
+  app.component('VSnackbar', {
+    emits: ['update:modelValue'],
+    template: '<div class="snackbar" @close="$emit(\'update:modelValue\', false)"><slot /><slot name="actions" /></div>'
+  })
+  app.component('VBtn', {
+    template: '<button v-bind="$attrs" @click="$emit(\'click\')"><slot /></button>'
   })
   app.mount(root)
   return { root, app }

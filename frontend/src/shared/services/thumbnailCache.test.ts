@@ -31,6 +31,34 @@ describe('thumbnailCache eviction', () => {
 
     expect(selectThumbnailEvictionUrls(records, { maxRecords: 10, maxBytes: 1000, now })).toEqual(['expired-failure'])
   })
+
+  it('keeps records when both count and byte limits are satisfied', () => {
+    const records = [
+      record('image', 100, 1000),
+      { url: 'fresh-failure', failedAt: 2000 },
+    ]
+
+    expect(selectThumbnailEvictionUrls(records, { maxRecords: 2, maxBytes: 100, now: 3000 })).toEqual([])
+  })
+
+  it('uses failed timestamps for least-recently-used eviction order', () => {
+    const records = [
+      { url: 'old-failure', failedAt: 1000 },
+      record('image', 100, 2000),
+      { url: 'new-failure', failedAt: 3000 },
+    ]
+
+    expect(selectThumbnailEvictionUrls(records, { maxRecords: 2, maxBytes: 1000, now: 4000 })).toEqual(['old-failure'])
+  })
+
+  it('counts records without timestamps as oldest eviction candidates', () => {
+    const records = [
+      { url: 'legacy-empty' },
+      record('new-image', 100, 2000),
+    ]
+
+    expect(selectThumbnailEvictionUrls(records, { maxRecords: 1, maxBytes: 1000, now: 3000 })).toEqual(['legacy-empty'])
+  })
 })
 
 function record(url: string, size: number, cachedAt: number) {

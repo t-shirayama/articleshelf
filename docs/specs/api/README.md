@@ -17,7 +17,7 @@ Article request から command への変換は `ArticleRequestMapper`、session 
 
 ## 詳細文書
 
-- [記事 API](articles.md)
+- [記事 API](articles.md): 記事一覧、詳細、追加、保存前プレビュー、更新、削除
 - [タグ API](tags.md)
 - [エラーレスポンス](errors.md)
 - [認証仕様](../auth/README.md): JWT/ユーザー認証の前提

@@ -85,11 +85,12 @@ export const useArticlesStore = defineStore('articles', {
     async selectArticleById(articleId: string): Promise<void> {
       this.selectedArticle = await articlesApi.findArticle(articleId)
     },
-    async createArticle(article: ArticleInput): Promise<void> {
+    async createArticle(article: ArticleInput): Promise<Article> {
       const created = await articlesApi.createArticle(article)
       await this.fetchTags()
       await this.fetchArticles()
       this.selectedArticle = created
+      return created
     },
     async updateArticle(article: ArticleInput): Promise<void> {
       if (!article.id) throw new Error(translate('articles.missingUpdateTarget'))

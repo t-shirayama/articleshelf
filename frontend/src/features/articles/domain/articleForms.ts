@@ -86,17 +86,21 @@ export function hasArticleDetailFormChanges(form: ArticleDetailForm, article: Ar
 
 export function createFormToArticleInput(form: ArticleCreateForm): ArticleInput {
   const readLater = form.readLater
-  return {
+  const input: ArticleInput = {
     url: form.url.trim(),
-    title: form.title,
-    summary: form.summary,
     status: readLater ? 'UNREAD' : 'READ',
     readDate: readLater ? null : form.readDate || null,
     favorite: form.favorite,
     rating: form.rating,
-    notes: form.notes,
     tags: normalizeTagNames(form.tags)
   }
+  const title = form.title.trim()
+  const summary = form.summary.trim()
+  const notes = form.notes.trim()
+  if (title) input.title = title
+  if (summary) input.summary = summary
+  if (notes) input.notes = notes
+  return input
 }
 
 export function favoriteToggleInput(article: Article): ArticleInput {

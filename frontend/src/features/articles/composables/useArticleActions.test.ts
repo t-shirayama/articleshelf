@@ -8,7 +8,8 @@ describe('useArticleActions', () => {
   it('creates an article and returns to the list', async () => {
     const store = createStore()
     const rotateMotivation = vi.fn()
-    const options = createOptions({ store, rotateMotivation })
+    const onCreateSuccess = vi.fn()
+    const options = createOptions({ store, rotateMotivation, onCreateSuccess })
     const actions = useArticleActions(options)
     const input = articleInput()
 
@@ -16,6 +17,7 @@ describe('useArticleActions', () => {
 
     expect(store.createArticle).toHaveBeenCalledWith(input)
     expect(rotateMotivation).toHaveBeenCalled()
+    expect(onCreateSuccess).toHaveBeenCalledWith(createArticle())
     expect(options.modalOpen.value).toBe(false)
     expect(options.viewMode.value).toBe('list')
     expect(actions.isCreatingArticle.value).toBe(false)
@@ -116,7 +118,7 @@ function createOptions(overrides: ArticleActionsOverrides = {}): ArticleActionsO
 function createStore() {
   return {
     error: '',
-    createArticle: vi.fn().mockResolvedValue(undefined),
+    createArticle: vi.fn().mockResolvedValue(createArticle()),
     updateArticle: vi.fn().mockResolvedValue(undefined),
     deleteArticle: vi.fn().mockResolvedValue(undefined),
     selectArticle: vi.fn().mockResolvedValue(undefined),

@@ -55,7 +55,7 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 
 ## 6. OGP 取得と SSRF 対策
 
-ユーザー入力 URL に対して backend が直接 HTTP fetch するため、OGP 取得は SSRF 対策を必須にする。
+ユーザー入力 URL に対して backend が直接 HTTP fetch するため、OGP 取得は SSRF 対策を必須にする。記事保存時の OGP 取得と保存前 preview API は同じ `ArticleMetadataProvider` 経由で外部取得し、同じ防御境界を適用する。
 
 - scheme は `http` / `https` のみ許可する
 - URL userinfo は許可しない

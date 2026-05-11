@@ -54,6 +54,8 @@ const accountDialogOpen = ref(false);
 const accountDialogError = ref("");
 const detailFormError = ref("");
 const searchDraft = ref("");
+const createSnackbarOpen = ref(false);
+const createdArticleId = ref("");
 const detailReturnView = ref<DetailReturnView>("list");
 const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
 const calendarMode = ref<CalendarMode>("created");
@@ -115,6 +117,7 @@ const {
   rotateMotivation,
   navigateToList,
   closeForDuplicateOpen,
+  onCreateSuccess: handleArticleCreateSuccess,
 });
 const {
   statusSnackbarOpen,
@@ -403,6 +406,24 @@ function openArticleFromCalendar(article: Article): Promise<void> {
 function openDuplicateArticleFromCurrentView(articleId: string): Promise<void> {
   detailReturnView.value = currentDetailReturnView();
   return openDuplicateArticle(articleId);
+}
+
+function handleArticleCreateSuccess(article: Article): void {
+  createdArticleId.value = article.id;
+  createSnackbarOpen.value = true;
+}
+
+function editCreatedArticle(): void {
+  if (!createdArticleId.value) return;
+  createSnackbarOpen.value = false;
+  detailReturnView.value = "list";
+  void router.push(`/articles/${createdArticleId.value}`);
+  void openDuplicateArticle(createdArticleId.value);
+}
+
+function continueCreatingArticle(): void {
+  createSnackbarOpen.value = false;
+  openArticleModal();
 }
 
 function toMonthKey(date: Date): string {
@@ -762,6 +783,16 @@ function isWorkspaceRoute(path: string): boolean {
     :message="statusSnackbarMessage"
     @update:open="statusSnackbarOpen = $event"
     @undo="undoArticleStatus"
+  />
+
+  <StatusUndoSnackbar
+    :open="createSnackbarOpen"
+    :message="t('articles.saveDone')"
+    :primary-action-label="t('articles.editSavedDetail')"
+    :secondary-action-label="t('articles.saveAnother')"
+    @update:open="createSnackbarOpen = $event"
+    @primary-action="editCreatedArticle"
+    @secondary-action="continueCreatingArticle"
   />
 
   <UnsavedChangesDialog

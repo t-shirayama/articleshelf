@@ -41,6 +41,23 @@ describe('articleForms', () => {
     expect(input.readDate).toBe('2026-05-07')
   })
 
+  it('omits blank title and summary from create input', () => {
+    const input = createFormToArticleInput({
+      url: 'https://example.com/no-details',
+      title: '   ',
+      summary: '',
+      readLater: true,
+      readDate: null,
+      favorite: false,
+      rating: 0,
+      notes: '',
+      tags: []
+    })
+
+    expect('title' in input).toBe(false)
+    expect('summary' in input).toBe(false)
+  })
+
   it('detects changed detail form and normalizes tags', () => {
     const article: Article = {
       id: 'a1',

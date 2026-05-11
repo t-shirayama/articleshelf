@@ -1,5 +1,5 @@
 import { request } from '../../../shared/api/client'
-import type { Article, ArticleFilters, ArticleInput, Tag } from '../types'
+import type { Article, ArticleFilters, ArticleInput, ArticlePreview, Tag } from '../types'
 
 export const articlesApi = {
   findArticles(filters: ArticleFilters): Promise<Article[]> {
@@ -17,6 +17,12 @@ export const articlesApi = {
     return request<Article>('/api/articles', {
       method: 'POST',
       body: JSON.stringify(article)
+    })
+  },
+  previewArticle(url: string): Promise<ArticlePreview> {
+    return request<ArticlePreview>('/api/articles/preview', {
+      method: 'POST',
+      body: JSON.stringify({ url })
     })
   },
   updateArticle(id: string, article: ArticleInput): Promise<Article> {

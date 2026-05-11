@@ -3,6 +3,7 @@ package com.articleshelf.adapter.web;
 import com.articleshelf.application.article.ArticleResponse;
 import com.articleshelf.application.article.ArticleService;
 import com.articleshelf.application.article.ArticleListQuery;
+import com.articleshelf.application.article.ArticlePreviewResponse;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
@@ -56,6 +57,14 @@ public class ArticleController {
     @ResponseStatus(HttpStatus.CREATED)
     public ArticleResponse addArticle(@AuthenticationPrincipal CurrentUser user, @Valid @RequestBody ArticleRequest request) {
         return articleService.addArticle(user, articleRequestMapper.toAddCommand(request));
+    }
+
+    @PostMapping("/preview")
+    public ArticlePreviewResponse previewArticle(
+            @AuthenticationPrincipal CurrentUser user,
+            @Valid @RequestBody ArticlePreviewRequest request
+    ) {
+        return articleService.previewArticle(user, request.url());
     }
 
     @PutMapping("/{id}")

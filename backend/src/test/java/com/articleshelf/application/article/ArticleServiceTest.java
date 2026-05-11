@@ -50,6 +50,7 @@ class ArticleServiceTest {
                     tagResolver,
                     urlUniquenessGuard
             ),
+            new PreviewArticleUseCase(metadataProvider, urlUniquenessGuard),
             new UpdateArticleUseCase(
                     repository,
                     metadataProvider,
@@ -108,6 +109,45 @@ class ArticleServiceTest {
                 .isInstanceOf(ArticleUrlUnavailableException.class);
 
         assertThat(repository.findAllByUserId(user.id())).isEmpty();
+    }
+
+    @Test
+    void previewArticleReturnsMetadataWithoutSaving() {
+        metadataProvider.next = new ArticleMetadata("Preview title", "Preview summary", "https://example.com/cover.png", true);
+
+        ArticlePreviewResponse response = service.previewArticle(user, " https://example.com/preview ");
+
+        assertThat(response.url()).isEqualTo("https://example.com/preview");
+        assertThat(response.title()).isEqualTo("Preview title");
+        assertThat(response.summary()).isEqualTo("Preview summary");
+        assertThat(response.thumbnailUrl()).isEqualTo("https://example.com/cover.png");
+        assertThat(response.previewAvailable()).isTrue();
+        assertThat(response.errorReason()).isNull();
+        assertThat(repository.findAllByUserId(user.id())).isEmpty();
+    }
+
+    @Test
+    void previewArticleReturnsPartialSuccessWhenMetadataIsUnavailable() {
+        metadataProvider.next = ArticleMetadata.unavailable();
+
+        ArticlePreviewResponse response = service.previewArticle(user, "https://example.com/unavailable");
+
+        assertThat(response.url()).isEqualTo("https://example.com/unavailable");
+        assertThat(response.title()).isEmpty();
+        assertThat(response.summary()).isEmpty();
+        assertThat(response.thumbnailUrl()).isEmpty();
+        assertThat(response.previewAvailable()).isFalse();
+        assertThat(response.errorReason()).isEqualTo("OGP_FETCH_FAILED");
+    }
+
+    @Test
+    void previewArticleRejectsDuplicateUrlWithoutFetchingMetadata() {
+        service.addArticle(user, command("https://example.com/preview-duplicate", "Existing"));
+        metadataProvider.fetchCount = 0;
+
+        assertThatThrownBy(() -> service.previewArticle(user, "https://example.com/preview-duplicate"))
+                .isInstanceOf(DuplicateArticleUrlException.class);
+        assertThat(metadataProvider.fetchCount).isZero();
     }
 
     @Test

@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -127,6 +128,64 @@ class AuthAndArticleIntegrationTest {
                 .andExpect(jsonPath("$.existingArticleId").isNotEmpty());
 
         createArticle(userB, url, "Other user");
+    }
+
+    @Test
+    void articlePreviewReturnsMetadataPartialSuccessAndDuplicateConflicts() throws Exception {
+        AuthSession session = register(uniqueUsername("preview"));
+        String previewUrl = "https://example.com/preview-" + UUID.randomUUID();
+        when(metadataProvider.fetch(previewUrl))
+                .thenReturn(new ArticleMetadata("Preview title", "Preview summary", "https://example.com/preview.png", true));
+
+        mockMvc.perform(post("/api/articles/preview")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"url\":\"%s\"}".formatted(previewUrl)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value(previewUrl))
+                .andExpect(jsonPath("$.title").value("Preview title"))
+                .andExpect(jsonPath("$.summary").value("Preview summary"))
+                .andExpect(jsonPath("$.thumbnailUrl").value("https://example.com/preview.png"))
+                .andExpect(jsonPath("$.previewAvailable").value(true))
+                .andExpect(jsonPath("$.errorReason").value(nullValue()));
+
+        String unavailableUrl = "https://example.com/unavailable-" + UUID.randomUUID();
+        when(metadataProvider.fetch(unavailableUrl))
+                .thenReturn(ArticleMetadata.unavailable());
+
+        mockMvc.perform(post("/api/articles/preview")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"url\":\"%s\"}".formatted(unavailableUrl)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value(unavailableUrl))
+                .andExpect(jsonPath("$.title").value(""))
+                .andExpect(jsonPath("$.summary").value(""))
+                .andExpect(jsonPath("$.thumbnailUrl").value(""))
+                .andExpect(jsonPath("$.previewAvailable").value(false))
+                .andExpect(jsonPath("$.errorReason").value("OGP_FETCH_FAILED"));
+
+        String duplicateUrl = "https://example.com/preview-duplicate-" + UUID.randomUUID();
+        when(metadataProvider.fetch(duplicateUrl))
+                .thenReturn(new ArticleMetadata("", "", "", true));
+        createArticle(session, duplicateUrl, "Existing");
+
+        mockMvc.perform(post("/api/articles/preview")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"url\":\"%s\"}".formatted(duplicateUrl)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.messages[0]").value("This URL is already registered."))
+                .andExpect(jsonPath("$.existingArticleId").isNotEmpty());
+
+        mockMvc.perform(post("/api/articles/preview")
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"url\":\"not-a-url\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.messages[0]").value("URL must be a valid URL."));
     }
 
     @Test

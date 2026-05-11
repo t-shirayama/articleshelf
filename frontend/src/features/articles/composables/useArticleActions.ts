@@ -20,6 +20,7 @@ interface ArticleActionOptions {
   rotateMotivation: () => void;
   navigateToList: () => void;
   closeForDuplicateOpen: () => void;
+  onCreateSuccess?: (article: Article) => void;
 }
 
 export function useArticleActions(options: ArticleActionOptions) {
@@ -34,10 +35,11 @@ export function useArticleActions(options: ArticleActionOptions) {
     options.duplicateArticleId.value = "";
     isCreatingArticle.value = true;
     try {
-      await options.store.createArticle(article);
+      const created = await options.store.createArticle(article);
       options.rotateMotivation();
       options.modalOpen.value = false;
       options.viewMode.value = "list";
+      options.onCreateSuccess?.(created);
     } catch (error: unknown) {
       options.articleFormError.value =
         errorMessage(error, options.t("articles.saveError"));
