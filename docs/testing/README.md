@@ -45,9 +45,11 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
+- バックエンド PR gate: `docker compose run --rm backend mvn test spotbugs:check` を CI で必須化し、JUnit / PostgreSQL IT / Clean Architecture dependency test / SpotBugs をまとめて確認する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する
 - refresh token rotation、pessimistic lock、条件付き update を変更した場合は、auth unit / integration に加えて PostgreSQL 実体での persistence / auth 確認を優先する
+- Java、Spring Boot、Mockito、JaCoCo、Surefire、SpotBugs の version を更新した場合は、backend PR gate を再実行し、Mockito javaagent / JaCoCo `argLine` / JVM warning が再発していないか確認する
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 - 依存関係とコンテナの脆弱性確認は `codeql.yml` と `supply-chain.yml` で実行し、通常の `ci.yml` とは別 workflow として管理する
 - backend request ID filter と metrics instrumentation は unit test と build で確認し、metrics tag に token、username、URL、メモ本文などを含めないことをレビュー観点にする

@@ -50,10 +50,8 @@ jobs:
     if: ${{ needs.changes.outputs.run_all == 'true' || needs.changes.outputs.backend == 'true' }}
     steps:
       - uses: actions/checkout@v6
-      - name: Run backend static analysis
-        run: docker compose run --rm backend mvn clean compile spotbugs:check
-      - name: Run backend architecture dependency check
-        run: docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest
+      - name: Run backend test and static analysis gate
+        run: docker compose run --rm backend mvn test spotbugs:check
       - name: Show db logs on failure
         if: failure()
         run: docker compose logs --tail 200 db
