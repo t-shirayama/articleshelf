@@ -210,6 +210,7 @@ export const en = {
       save: 'Save',
       validation: {
         urlRequired: 'Enter a URL',
+        urlInvalid: 'Enter a valid URL starting with http or https',
         readDateRequired: 'Enter a read date when saving as read'
       }
     },

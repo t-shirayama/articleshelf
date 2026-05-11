@@ -210,6 +210,7 @@ export const ja = {
       save: '保存する',
       validation: {
         urlRequired: 'URLを入力してください',
+        urlInvalid: 'http または https で始まる正しいURLを入力してください',
         readDateRequired: '既読として保存する場合は既読日を入力してください'
       }
     },

@@ -27,6 +27,11 @@ export function useArticlePreview(url: Ref<string>, t: Translate) {
   async function requestPreview(): Promise<void> {
     const requestedUrl = trimmedUrl.value
     if (!requestedUrl || (requestedUrl === previewedUrl.value && (preview.value || duplicateArticleId.value))) return
+    if (!isPreviewableUrl(requestedUrl)) {
+      clearPreviewState()
+      previewError.value = t('articleForm.validation.urlInvalid')
+      return
+    }
 
     const sequence = ++requestSequence
     loading.value = true
@@ -74,6 +79,15 @@ export function useArticlePreview(url: Ref<string>, t: Translate) {
 
   function isCurrent(sequence: number, requestedUrl: string): boolean {
     return sequence === requestSequence && requestedUrl === trimmedUrl.value
+  }
+
+  function isPreviewableUrl(value: string): boolean {
+    try {
+      const parsedUrl = new URL(value)
+      return Boolean(parsedUrl.hostname) && (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:')
+    } catch {
+      return false
+    }
   }
 
   return {

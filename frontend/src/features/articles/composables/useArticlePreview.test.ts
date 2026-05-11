@@ -87,6 +87,24 @@ describe('useArticlePreview', () => {
     expect(state.duplicateArticleId.value).toBe('')
     expect(state.saveDisabledByPreview.value).toBe(false)
   })
+
+  it('skips preview requests for syntactically invalid or unsupported URLs', async () => {
+    const url = ref('not-a-url')
+    const state = useArticlePreview(url, (key) => key)
+
+    await state.requestPreview()
+
+    expect(articlesApi.previewArticle).not.toHaveBeenCalled()
+    expect(state.previewError.value).toBe('articleForm.validation.urlInvalid')
+    expect(state.loading.value).toBe(false)
+
+    url.value = 'ftp://example.com/article'
+    await nextTick()
+    await state.requestPreview()
+
+    expect(articlesApi.previewArticle).not.toHaveBeenCalled()
+    expect(state.previewError.value).toBe('articleForm.validation.urlInvalid')
+  })
 })
 
 function preview(overrides: Partial<ArticlePreview> = {}): ArticlePreview {
