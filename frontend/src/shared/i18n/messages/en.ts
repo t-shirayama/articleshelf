@@ -199,6 +199,7 @@ export const en = {
       newTagPlaceholder: 'Example: Vue',
       details: 'Article details',
       detailsToggle: 'Add tags, notes, or rating',
+      detailsHelp: 'You can also add them later from the article details page',
       previewLoading: 'Fetching preview',
       previewThumbnailAlt: 'Article preview thumbnail',
       previewUnavailableTitle: 'Could not fetch a preview',

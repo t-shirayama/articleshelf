@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ChevronDown } from 'lucide-vue-next'
 import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
@@ -150,7 +151,20 @@ function submit(): void {
 
         <VExpansionPanels v-model="detailsPanel" class="article-form-details" variant="accordion">
           <VExpansionPanel value="details">
-            <VExpansionPanelTitle>{{ t('articleForm.detailsToggle') }}</VExpansionPanelTitle>
+            <VExpansionPanelTitle hide-actions>
+              <div class="article-form-details-title">
+                <span class="article-form-details-copy">
+                  <strong>{{ t('articleForm.detailsToggle') }}</strong>
+                  <small>{{ t('articleForm.detailsHelp') }}</small>
+                </span>
+                <ChevronDown
+                  class="article-form-details-icon"
+                  :class="{ 'is-open': detailsPanel === 'details' }"
+                  :size="18"
+                  aria-hidden="true"
+                />
+              </div>
+            </VExpansionPanelTitle>
             <VExpansionPanelText>
               <div class="modal-field title-input-group">
                 <VTextField

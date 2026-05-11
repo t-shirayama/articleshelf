@@ -199,6 +199,7 @@ export const ja = {
       newTagPlaceholder: '例: Vue',
       details: '記事の詳細',
       detailsToggle: 'タグ・メモ・おすすめ度を追加',
+      detailsHelp: '保存後に詳細画面からでも追加できます',
       previewLoading: 'プレビューを取得しています',
       previewThumbnailAlt: '記事プレビューのサムネイル',
       previewUnavailableTitle: 'プレビューを取得できませんでした',

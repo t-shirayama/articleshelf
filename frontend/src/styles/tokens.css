@@ -42,7 +42,7 @@
   --danger: #b33b2f;
   --shadow: 0 18px 60px rgba(55, 48, 37, 0.12);
   --header-control-height: 48px;
-  --article-thumb-width: 224px;
+  --article-thumb-width: 248px;
   --article-thumb-height: 140px;
   --shell-panel-padding: 24px;
   --scrollbar-thumb: rgba(105, 112, 109, 0.28);
@@ -54,4 +54,3 @@
 * {
   box-sizing: border-box;
 }
-
