@@ -51,4 +51,32 @@ describe('renderMarkdown', () => {
     expect(html).not.toContain('<img')
     expect(html).toContain('&lt;div&gt;')
   })
+
+  it('renders highlighted code blocks with file names and line numbers', () => {
+    const html = renderMarkdown('```ts filename="src/app.ts" showLineNumbers\nconst value = 1\nconsole.log(value)\n```')
+
+    expect(html).toContain('markdown-code-block has-line-numbers')
+    expect(html).toContain('markdown-code-file">src/app.ts')
+    expect(html).toContain('markdown-code-language">ts')
+    expect(html).toContain('markdown-code-line-number')
+    expect(html).toContain('const')
+  })
+
+  it('escapes unknown language code blocks as inert text', () => {
+    const html = renderMarkdown('```unknown file=demo.txt\n<div>safe</div>\n```')
+
+    expect(html).toContain('language-unknown')
+    expect(html).toContain('markdown-code-file">demo.txt')
+    expect(html).toContain('&lt;div&gt;safe&lt;/div&gt;')
+  })
+
+  it('supports bare title metadata and empty source', () => {
+    expect(renderMarkdown('')).toContain('')
+
+    const html = renderMarkdown('```js title=example.js\n\n```')
+
+    expect(html).toContain('markdown-code-file">example.js')
+    expect(html).toContain('language-js')
+    expect(html).toContain('markdown-code-line-content"> ')
+  })
 })
