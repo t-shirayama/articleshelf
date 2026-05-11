@@ -222,13 +222,15 @@
 
 .auth-page {
   position: relative;
+  height: 100dvh;
+  min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
 }
 
 .auth-page::before {
-  position: absolute;
-  inset: -14%;
+  position: fixed;
+  inset: 0;
   z-index: -1;
   background:
     radial-gradient(circle at 38% 42%, rgba(216, 239, 238, 0.8), transparent 24%),
@@ -243,7 +245,7 @@
   gap: clamp(28px, 5vw, 86px);
   align-items: center;
   width: min(1440px, 100%);
-  min-height: min(780px, calc(100vh - 84px));
+  min-height: min(780px, calc(100dvh - 84px));
 }
 
 .auth-showcase {
