@@ -44,7 +44,7 @@ export interface ArticleFilters {
 export interface ArticleInput {
   id?: string
   url: string
-  title: string
+  title?: string
   summary?: string | null
   status: Exclude<ArticleStatus, 'ALL'>
   readDate?: string | null
@@ -52,6 +52,15 @@ export interface ArticleInput {
   rating: number
   notes?: string | null
   tags: string[]
+}
+
+export interface ArticlePreview {
+  url: string
+  title: string
+  summary: string
+  thumbnailUrl: string
+  previewAvailable: boolean
+  errorReason: string | null
 }
 
 export interface MotivationCardData {

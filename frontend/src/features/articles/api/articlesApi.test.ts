@@ -44,6 +44,7 @@ describe('articlesApi', () => {
 
     await articlesApi.findArticle('a1')
     await articlesApi.createArticle(input)
+    await articlesApi.previewArticle('https://example.com')
     await articlesApi.updateArticle('a1', input)
     await articlesApi.deleteArticle('a1')
     await articlesApi.findTags()
@@ -55,6 +56,7 @@ describe('articlesApi', () => {
     expect(vi.mocked(request).mock.calls).toEqual([
       ['/api/articles/a1'],
       ['/api/articles', { method: 'POST', body: JSON.stringify(input) }],
+      ['/api/articles/preview', { method: 'POST', body: JSON.stringify({ url: 'https://example.com' }) }],
       ['/api/articles/a1', { method: 'PUT', body: JSON.stringify(input) }],
       ['/api/articles/a1', { method: 'DELETE' }],
       ['/api/tags'],

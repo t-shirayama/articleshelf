@@ -12,6 +12,7 @@ public class ArticleService {
     private final SearchArticlesQuery searchArticlesQuery;
     private final FindArticleQuery findArticleQuery;
     private final AddArticleUseCase addArticleUseCase;
+    private final PreviewArticleUseCase previewArticleUseCase;
     private final UpdateArticleUseCase updateArticleUseCase;
     private final DeleteArticleUseCase deleteArticleUseCase;
 
@@ -19,12 +20,14 @@ public class ArticleService {
             SearchArticlesQuery searchArticlesQuery,
             FindArticleQuery findArticleQuery,
             AddArticleUseCase addArticleUseCase,
+            PreviewArticleUseCase previewArticleUseCase,
             UpdateArticleUseCase updateArticleUseCase,
             DeleteArticleUseCase deleteArticleUseCase
     ) {
         this.searchArticlesQuery = searchArticlesQuery;
         this.findArticleQuery = findArticleQuery;
         this.addArticleUseCase = addArticleUseCase;
+        this.previewArticleUseCase = previewArticleUseCase;
         this.updateArticleUseCase = updateArticleUseCase;
         this.deleteArticleUseCase = deleteArticleUseCase;
     }
@@ -50,6 +53,10 @@ public class ArticleService {
 
     public ArticleResponse addArticle(CurrentUser user, AddArticleCommand command) {
         return addArticleUseCase.addArticle(user, command);
+    }
+
+    public ArticlePreviewResponse previewArticle(CurrentUser user, String url) {
+        return previewArticleUseCase.preview(user, url);
     }
 
     public ArticleResponse updateArticle(CurrentUser user, UUID id, UpdateArticleCommand command) {

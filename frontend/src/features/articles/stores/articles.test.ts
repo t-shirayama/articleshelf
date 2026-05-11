@@ -9,6 +9,7 @@ vi.mock('../api/articlesApi', () => ({
     findArticles: vi.fn(),
     findArticle: vi.fn(),
     createArticle: vi.fn(),
+    previewArticle: vi.fn(),
     updateArticle: vi.fn(),
     deleteArticle: vi.fn(),
     findTags: vi.fn(),

@@ -39,6 +39,18 @@
 - `tags` は最大20件、各タグ名は最大255文字。空白を除去し、空文字を除外して重複をまとめる
 - `url` がアクセス不可、タイムアウト、または 4xx/5xx 応答の場合は保存しない
 
+## `POST /api/articles/preview`
+
+- 説明: 記事保存前に URL からプレビュー用メタデータを取得
+- 認証: 必須
+- リクエスト: `url`
+- `url` は必須かつURL形式、最大2048文字
+- 成功時は `200 OK` で `url`, `title`, `summary`, `thumbnailUrl`, `previewAvailable`, `errorReason` を返す
+- OGP取得に成功した場合、`previewAvailable` は `true`、`errorReason` は `null`
+- OGP取得不可、タイムアウト、または解析不可の場合も preview API としては `200 OK` を返し、`previewAvailable: false`, `errorReason: "OGP_FETCH_FAILED"` と空の `title`, `summary`, `thumbnailUrl` を返す
+- `previewAvailable` はプレビュー情報として利用可能かを表し、保存可否の最終判断ではない。保存時は `POST /api/articles` が改めて URL 確認を行う
+- 同一ユーザー内で重複 URL の場合は `409 Conflict` とし、共通エラー body の `existingArticleId` に登録済み記事 ID を含める
+
 ## `PUT /api/articles/{id}`
 
 - 説明: 記事を更新

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
 import { useArticleCreateForm } from '../composables/useArticleCreateForm'
+import { useArticlePreview } from '../composables/useArticlePreview'
 import type { ArticleInput, Tag } from '../types'
 
 const props = withDefaults(defineProps<{
@@ -33,6 +34,24 @@ const { form, submitted, urlInput, tagOptions, urlError, readDateError, createSu
   toRef(props, 'tags'),
   t,
 )
+const {
+  preview,
+  duplicateArticleId: previewDuplicateArticleId,
+  previewError,
+  loading: previewLoading,
+  saveDisabledByPreview,
+  requestPreview,
+  schedulePreview,
+  reset: resetPreview,
+} = useArticlePreview(toRef(form, 'url'), t)
+const detailsPanel = ref<string | null>(null)
+
+watch(() => props.open, (open) => {
+  if (!open) {
+    resetPreview()
+    detailsPanel.value = null
+  }
+})
 
 function cancel(): void {
   if (props.saving) return
@@ -45,6 +64,7 @@ function handleDialogUpdate(open: boolean): void {
 }
 
 function submit(): void {
+  if (saveDisabledByPreview.value) return
   const input = createSubmitInput(props.saving)
   if (!input) return
   emit('submit', input)
@@ -58,7 +78,7 @@ function submit(): void {
         <h2>{{ t('articleForm.titleAdd') }}</h2>
         <div class="article-modal-header-actions">
           <VBtn class="action-button action-button-secondary" type="button" variant="outlined" :disabled="props.saving" @click.stop.prevent="cancel">{{ t('common.close') }}</VBtn>
-          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving" @click="submit">{{ t('common.saveArticle') }}</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving || saveDisabledByPreview" @click="submit">{{ t('common.saveArticle') }}</VBtn>
         </div>
       </header>
 
@@ -87,66 +107,111 @@ function submit(): void {
             :placeholder="t('articleForm.urlPlaceholder')"
             hide-details="auto"
             :error-messages="submitted && urlError ? [urlError] : []"
+            @paste="schedulePreview"
+            @blur="requestPreview"
           />
         </div>
 
-        <div class="modal-field title-input-group">
-          <VTextField
-            v-model="form.title"
-            :label="t('articleForm.titleOptional')"
-            hide-details
-            :placeholder="t('articleForm.titlePlaceholder')"
-          />
-          <p>{{ t('articleForm.titleHelp') }}</p>
-        </div>
-
-        <div class="modal-field modal-tag-field">
-          <div class="modal-subsection-heading">
-            <span>{{ t('common.tags') }}</span>
+        <div v-if="previewLoading || preview || previewError" class="article-preview-panel" :class="{ 'is-warning': preview && !preview.previewAvailable, 'is-duplicate': previewDuplicateArticleId }" aria-live="polite">
+          <div v-if="previewLoading" class="article-preview-loading">
+            {{ t('articleForm.previewLoading') }}
           </div>
-          <TagEditor
-            v-model="form.tags"
-            :options="tagOptions"
-          />
+          <template v-else-if="previewDuplicateArticleId">
+            <div class="article-preview-copy">
+              <strong>{{ t('articleForm.previewDuplicate') }}</strong>
+              <span>{{ t('articleForm.previewDuplicateHelp') }}</span>
+            </div>
+            <VBtn
+              class="action-button action-button-primary duplicate-article-link"
+              color="primary"
+              size="small"
+              type="button"
+              variant="flat"
+              @click="emit('open-duplicate', previewDuplicateArticleId)"
+            >
+              {{ t('articles.duplicateOpen') }}
+            </VBtn>
+          </template>
+          <template v-else-if="preview">
+            <img v-if="preview.thumbnailUrl" class="article-preview-thumbnail" :src="preview.thumbnailUrl" :alt="t('articleForm.previewThumbnailAlt')" loading="lazy">
+            <div class="article-preview-copy">
+              <strong>{{ preview.previewAvailable ? preview.title || preview.url : t('articleForm.previewUnavailableTitle') }}</strong>
+              <span v-if="preview.previewAvailable">{{ preview.summary || preview.url }}</span>
+              <span v-else>{{ t('articleForm.previewUnavailableBody') }}</span>
+            </div>
+          </template>
+          <template v-else>
+            <div class="article-preview-copy">
+              <strong>{{ t('articleForm.previewFailedTitle') }}</strong>
+              <span>{{ previewError }}</span>
+            </div>
+          </template>
         </div>
 
-        <div class="modal-field rating-field">
-          <div class="modal-subsection-heading">
-            <span>{{ t('common.rating') }}</span>
-          </div>
-          <StarRating v-model="form.rating" />
-        </div>
+        <VExpansionPanels v-model="detailsPanel" class="article-form-details" variant="accordion">
+          <VExpansionPanel value="details">
+            <VExpansionPanelTitle>{{ t('articleForm.detailsToggle') }}</VExpansionPanelTitle>
+            <VExpansionPanelText>
+              <div class="modal-field title-input-group">
+                <VTextField
+                  v-model="form.title"
+                  :label="t('articleForm.titleOptional')"
+                  hide-details
+                  :placeholder="t('articleForm.titlePlaceholder')"
+                />
+                <p>{{ t('articleForm.titleHelp') }}</p>
+              </div>
 
-        <div class="modal-field field-row modal-status-row">
-          <label class="read-later-check">
-            <input v-model="form.readLater" type="checkbox">
-            <span class="read-later-box" aria-hidden="true" />
-            <span class="read-later-copy">
-              <strong>{{ t('articleForm.readLater') }}</strong>
-              <small>{{ t('articleForm.readLaterHelp') }}</small>
-            </span>
-          </label>
-          <DateField
-            v-model="form.readDate"
-            class="articleshelf-date-field"
-            :label="t('common.readDate')"
-            :disabled="form.readLater"
-            clearable
-            :error-messages="submitted && readDateError ? [readDateError] : []"
-          />
-        </div>
+              <div class="modal-field modal-tag-field">
+                <div class="modal-subsection-heading">
+                  <span>{{ t('common.tags') }}</span>
+                </div>
+                <TagEditor
+                  v-model="form.tags"
+                  :options="tagOptions"
+                />
+              </div>
 
-        <div class="modal-field">
-          <VTextarea
-            v-model="form.notes"
-            counter="20000"
-            :label="t('common.notes')"
-            rows="5"
-            auto-grow
-            hide-details
-            :placeholder="t('articleForm.notesPlaceholder')"
-          />
-        </div>
+              <div class="modal-field rating-field">
+                <div class="modal-subsection-heading">
+                  <span>{{ t('common.rating') }}</span>
+                </div>
+                <StarRating v-model="form.rating" />
+              </div>
+
+              <div class="modal-field field-row modal-status-row">
+                <label class="read-later-check">
+                  <input v-model="form.readLater" type="checkbox">
+                  <span class="read-later-box" aria-hidden="true" />
+                  <span class="read-later-copy">
+                    <strong>{{ t('articleForm.readLater') }}</strong>
+                    <small>{{ t('articleForm.readLaterHelp') }}</small>
+                  </span>
+                </label>
+                <DateField
+                  v-model="form.readDate"
+                  class="articleshelf-date-field"
+                  :label="t('common.readDate')"
+                  :disabled="form.readLater"
+                  clearable
+                  :error-messages="submitted && readDateError ? [readDateError] : []"
+                />
+              </div>
+
+              <div class="modal-field">
+                <VTextarea
+                  v-model="form.notes"
+                  counter="20000"
+                  :label="t('common.notes')"
+                  rows="5"
+                  auto-grow
+                  hide-details
+                  :placeholder="t('articleForm.notesPlaceholder')"
+                />
+              </div>
+            </VExpansionPanelText>
+          </VExpansionPanel>
+        </VExpansionPanels>
       </VCardText>
     </VCard>
   </VDialog>

@@ -401,6 +401,20 @@
     padding: 4px 18px 16px;
   }
 
+  .article-preview-panel {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .article-preview-thumbnail {
+    width: 72px;
+    height: 52px;
+  }
+
+  .article-preview-panel .duplicate-article-link {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
   .delete-confirm-dialog .v-card-actions {
     padding: 12px 18px 18px;
   }
@@ -902,6 +916,21 @@
 
   .read-later-copy small {
     white-space: normal;
+  }
+
+  .article-preview-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .article-preview-thumbnail {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .article-preview-copy,
+  .article-preview-thumbnail + .article-preview-copy {
+    grid-column: auto;
   }
 }
 
