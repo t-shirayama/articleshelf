@@ -25,7 +25,7 @@ jobs:
           echo "::notice title=Dependency Review skipped::Enable Dependency graph in repository settings and set the DEPENDENCY_REVIEW_ENABLED repository variable to true to enforce this PR gate."
       - uses: actions/checkout@v6
         if: ${{ vars.DEPENDENCY_REVIEW_ENABLED == 'true' }}
-      - uses: actions/dependency-review-action@v4
+      - uses: actions/dependency-review-action@v5
         if: ${{ vars.DEPENDENCY_REVIEW_ENABLED == 'true' }}
         with:
           fail-on-severity: moderate
