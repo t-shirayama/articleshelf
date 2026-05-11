@@ -35,4 +35,4 @@ P2
 
 ## 根拠
 
-現状の coverage threshold は lines 19%、functions 14%、branches 16%、statements 19% で、品質ゲートというより現在値に合わせた最低ラインに見えやすい。ポートフォリオでは全体 coverage よりも重要領域の高い保証を示す方が説得力がある。
+現状の global coverage threshold は lines 43%、functions 35%、branches 29%、statements 42% まで引き上げ済みだが、全体 coverage だけでは重要領域の検証密度を説明しづらい。ポートフォリオでは全体 coverage に加えて、重要領域の高い保証を示す方が説得力がある。

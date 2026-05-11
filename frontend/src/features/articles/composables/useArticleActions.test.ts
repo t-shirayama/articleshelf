@@ -1,71 +1,150 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
+import { ApiRequestError } from '../../../shared/api/client'
 import { useArticleActions } from './useArticleActions'
-import type { useArticlesStore } from '../stores/articles'
-import type { Article } from '../types'
+import type { Article, ArticleInput } from '../types'
 
-type ArticlesStore = ReturnType<typeof useArticlesStore>
+describe('useArticleActions', () => {
+  it('creates an article and returns to the list', async () => {
+    const store = createStore()
+    const rotateMotivation = vi.fn()
+    const options = createOptions({ store, rotateMotivation })
+    const actions = useArticleActions(options)
+    const input = articleInput()
 
-describe('useArticleActions error handling', () => {
-  it('keeps list delete failures inside the list error banner', async () => {
-    const store = {
-      error: '',
-      deleteArticle: vi.fn().mockRejectedValue(new Error('Could not delete on API'))
-    } as unknown as ArticlesStore
-    const actions = useArticleActions({
-      store,
-      t: (key) => key,
-      viewMode: ref('list'),
-      detailHasUnsavedChanges: ref(false),
-      articleFormError: ref(''),
-      detailFormError: ref(''),
-      duplicateArticleId: ref(''),
-      modalOpen: ref(false),
-      rotateMotivation: vi.fn(),
-      navigateToList: vi.fn(),
-      closeForDuplicateOpen: vi.fn()
-    })
+    await actions.createArticle(input)
 
-    actions.requestDeleteArticle(article())
-    await actions.confirmListDelete()
-
-    expect(store.error).toBe('Could not delete on API')
-    expect(actions.deleteCandidate.value).toBeNull()
+    expect(store.createArticle).toHaveBeenCalledWith(input)
+    expect(rotateMotivation).toHaveBeenCalled()
+    expect(options.modalOpen.value).toBe(false)
+    expect(options.viewMode.value).toBe('list')
+    expect(actions.isCreatingArticle.value).toBe(false)
   })
 
-  it('keeps stale article open failures on the list instead of navigating to detail', async () => {
-    const viewMode = ref<'list' | 'calendar' | 'detail' | 'tags'>('list')
+  it('surfaces duplicate article ids from API request errors', async () => {
+    const store = createStore()
+    store.createArticle.mockRejectedValueOnce(new ApiRequestError('Duplicate', 'article-2'))
+    const options = createOptions({ store })
+    const actions = useArticleActions(options)
+
+    await actions.createArticle(articleInput())
+
+    expect(options.articleFormError.value).toBe('Duplicate')
+    expect(options.duplicateArticleId.value).toBe('article-2')
+    expect(options.modalOpen.value).toBe(true)
+  })
+
+  it('saves and deletes detail articles with guarded loading flags', async () => {
+    const store = createStore()
+    const navigateToList = vi.fn()
+    const options = createOptions({ store, navigateToList })
+    options.detailHasUnsavedChanges.value = true
+    const actions = useArticleActions(options)
+
+    await actions.saveArticle(articleInput({ id: 'article-1' }))
+    await actions.deleteArticle('article-1')
+
+    expect(store.updateArticle).toHaveBeenCalledWith(articleInput({ id: 'article-1' }))
+    expect(store.deleteArticle).toHaveBeenCalledWith('article-1')
+    expect(options.detailHasUnsavedChanges.value).toBe(false)
+    expect(navigateToList).toHaveBeenCalled()
+    expect(actions.isSavingDetail.value).toBe(false)
+    expect(actions.isDeletingArticle.value).toBe(false)
+  })
+
+  it('handles list deletion and open detail failures', async () => {
+    const store = createStore()
+    store.deleteArticle.mockRejectedValueOnce(new Error('delete failed'))
+    store.selectArticle.mockRejectedValueOnce(new Error('fetch failed'))
+    const options = createOptions({ store })
+    const actions = useArticleActions(options)
+    const article = createArticle()
+
+    actions.requestDeleteArticle(article)
+    expect(actions.deleteCandidate.value).toEqual(article)
+
+    await actions.confirmListDelete()
+    await actions.openArticle(article)
+
+    expect(actions.deleteCandidate.value).toBeNull()
+    expect(store.error).toBe('fetch failed')
+  })
+
+  it('opens duplicate articles and delegates favorite changes', async () => {
+    const store = createStore()
+    const closeForDuplicateOpen = vi.fn()
     const rotateMotivation = vi.fn()
-    const store = {
-      error: '',
-      selectArticle: vi.fn().mockRejectedValue(new Error('Article was not found'))
-    } as unknown as ArticlesStore
-    const actions = useArticleActions({
-      store,
-      t: (key) => key,
-      viewMode,
-      detailHasUnsavedChanges: ref(false),
-      articleFormError: ref(''),
-      detailFormError: ref(''),
-      duplicateArticleId: ref(''),
-      modalOpen: ref(false),
-      rotateMotivation,
-      navigateToList: vi.fn(),
-      closeForDuplicateOpen: vi.fn()
-    })
+    const options = createOptions({ store, closeForDuplicateOpen, rotateMotivation })
+    const actions = useArticleActions(options)
+    const article = createArticle()
 
-    await actions.openArticle(article())
+    await actions.toggleFavorite(article)
+    await actions.openDuplicateArticle('article-2')
 
-    expect(store.error).toBe('Article was not found')
-    expect(viewMode.value).toBe('list')
-    expect(rotateMotivation).not.toHaveBeenCalled()
+    expect(store.toggleFavorite).toHaveBeenCalledWith(article)
+    expect(closeForDuplicateOpen).toHaveBeenCalled()
+    expect(store.selectArticleById).toHaveBeenCalledWith('article-2')
+    expect(rotateMotivation).toHaveBeenCalled()
+    expect(options.viewMode.value).toBe('detail')
   })
 })
 
-function article(): Article {
+type ArticleActionsOptions = Parameters<typeof useArticleActions>[0]
+type MockArticleStore = ReturnType<typeof createStore>
+type ArticleActionsOverrides = Partial<Omit<ArticleActionsOptions, 'store'>> & {
+  store?: MockArticleStore | ArticleActionsOptions['store']
+}
+
+function createOptions(overrides: ArticleActionsOverrides = {}): ArticleActionsOptions {
+  const { store, ...rest } = overrides
+  return {
+    store: (store ?? createStore()) as unknown as ArticleActionsOptions['store'],
+    t: (key: string) => key,
+    viewMode: ref<'list' | 'calendar' | 'detail' | 'tags'>('list'),
+    detailHasUnsavedChanges: ref(false),
+    articleFormError: ref(''),
+    detailFormError: ref(''),
+    duplicateArticleId: ref(''),
+    modalOpen: ref(true),
+    rotateMotivation: vi.fn(),
+    navigateToList: vi.fn(),
+    closeForDuplicateOpen: vi.fn(),
+    ...rest
+  }
+}
+
+function createStore() {
+  return {
+    error: '',
+    createArticle: vi.fn().mockResolvedValue(undefined),
+    updateArticle: vi.fn().mockResolvedValue(undefined),
+    deleteArticle: vi.fn().mockResolvedValue(undefined),
+    selectArticle: vi.fn().mockResolvedValue(undefined),
+    toggleFavorite: vi.fn().mockResolvedValue(undefined),
+    selectArticleById: vi.fn().mockResolvedValue(undefined)
+  }
+}
+
+function articleInput(overrides: Partial<ArticleInput> = {}): ArticleInput {
+  return {
+    id: undefined,
+    url: 'https://example.com',
+    title: 'Article',
+    summary: '',
+    status: 'UNREAD',
+    readDate: null,
+    favorite: false,
+    rating: 0,
+    notes: '',
+    tags: [],
+    ...overrides
+  }
+}
+
+function createArticle(): Article {
   return {
     id: 'article-1',
-    url: 'https://example.com/article',
+    url: 'https://example.com',
     title: 'Article',
     summary: '',
     thumbnailUrl: '',

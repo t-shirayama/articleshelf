@@ -55,7 +55,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
-Frontend unit coverage は lines 19%、statements 19%、functions 14%、branches 16% を現行下限にし、`src/**/*.{ts,vue}` の実装を対象にする。
+Frontend unit coverage は lines 43%、statements 42%、functions 35%、branches 29% を現行下限にし、`src/**/*.{ts,vue}` の実装を対象にする。
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
 UI / E2E 確認では、主要 dialog の focus 復帰、記事カードの詳細 open button と右上 action button の独立操作、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 ArticleWorkspace の検索 debounce は `useArticleSearchDebounce` の unit test で、最後の入力値だけが反映されることと unmount / logout 相当の cancel で遅延反映されないことを確認する。

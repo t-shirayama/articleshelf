@@ -17,10 +17,10 @@ export default defineConfig({
       reportsDirectory: 'coverage',
       include: ['src/**/*.{ts,vue}'],
       thresholds: {
-        lines: 19,
-        functions: 14,
-        branches: 16,
-        statements: 19
+        lines: 43,
+        functions: 35,
+        branches: 29,
+        statements: 42
       },
       exclude: [
         'src/**/*.test.ts',
