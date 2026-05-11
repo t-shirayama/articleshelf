@@ -5,7 +5,7 @@
 ## 前提条件
 
 - Docker / Docker Compose 導入済み
-- Java 17+
+- Java 25
 - Node.js 24.x / npm
 - Git
 

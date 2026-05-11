@@ -18,7 +18,7 @@
     <description>ArticleShelf backend API</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <postgresql.version>42.7.11</postgresql.version>
     </properties>
 

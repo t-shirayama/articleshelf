@@ -80,7 +80,7 @@ docker compose up --build
 | 領域           | 採用技術                                        |
 | -------------- | ----------------------------------------------- |
 | フロントエンド | Vue.js / TypeScript / Vuetify / Vite            |
-| バックエンド   | Java 21 / Spring Boot 4                         |
+| バックエンド   | Java 25 / Spring Boot 4                         |
 | データベース   | PostgreSQL 18                                   |
 | 実行環境       | Docker / Docker Compose                         |
 | 公開構成       | Cloudflare Pages / Render / Supabase PostgreSQL |
