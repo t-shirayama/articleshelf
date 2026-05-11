@@ -16,7 +16,7 @@ FROM dev AS build
 COPY src ./src
 RUN mvn -B -ntp -DskipTests package
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 RUN addgroup -S articleshelf && adduser -S -G articleshelf articleshelf
 COPY --from=build --chown=articleshelf:articleshelf /workspace/target/articleshelf-backend-0.1.0.jar app.jar
