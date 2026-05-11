@@ -6,7 +6,7 @@
 
 - Docker / Docker Compose 導入済み
 - Java 17+
-- Node.js 18+ / npm / yarn
+- Node.js 24.x / npm
 - Git
 
 ## 環境構築手順
