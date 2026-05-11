@@ -31,7 +31,7 @@ export default defineConfig({
   webServer: useExistingServerOnly
     ? undefined
     : {
-        command: 'sh ./frontend/scripts/e2e-webserver.sh',
+        command: 'node ./frontend/scripts/e2e-webserver.mjs',
         cwd: '..',
         url: 'http://localhost:5173',
         reuseExistingServer: !process.env.CI,

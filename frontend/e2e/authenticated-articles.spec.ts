@@ -232,11 +232,14 @@ test('user can filter articles by search, tag and rating', async ({ page }, test
   const filterDialog = page.getByRole('dialog')
   await filterDialog.getByRole('combobox', { name: '既存タグから追加' }).click()
   await page.getByRole('option', { name: 'Vue' }).click()
+  await expect(filterDialog.locator('.tag-editor-chip', { hasText: 'Vue' })).toBeVisible()
   await filterDialog.getByRole('button', { name: '4 / 5', exact: true }).click()
+  await expect(filterDialog.getByRole('button', { name: '4 / 5', exact: true })).toHaveClass(/is-active/)
   await filterDialog.getByRole('button', { name: '適用する' }).click()
 
   await expect(articleCard(page, matchingTitle)).toBeVisible()
   await expect(articleCard(page, nonMatchingTitle)).toHaveCount(0)
+  await expect(page.locator('.filter-open-badge')).toHaveText('2')
   await expect(page.getByText('適用中')).toBeVisible()
 })
 
