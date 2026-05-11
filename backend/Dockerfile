@@ -1,4 +1,4 @@
-FROM maven:3.9.14-eclipse-temurin-21 AS dev
+FROM maven:3.9.14-eclipse-temurin-25 AS dev
 WORKDIR /workspace
 COPY pom.xml .
 RUN for attempt in 1 2 3; do \
