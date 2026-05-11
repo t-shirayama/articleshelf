@@ -424,6 +424,10 @@ function usesBottomNavigation() {
   return Boolean(requestedViewport && requestedViewport.width < 600);
 }
 
+function capturesOnlyPublicAuthScreens() {
+  return captureTarget === "auth" && !isResponsiveCapture;
+}
+
 async function captureOfficialTargets(browser, page) {
   if (captureTarget === "account-settings-dialog") {
     await captureAccountSettingsDialog(page);
@@ -561,6 +565,12 @@ async function main() {
   });
 
   try {
+    if (capturesOnlyPublicAuthScreens()) {
+      await captureAuthLogin(browser);
+      console.log(`Captured screenshots in ${outputDir}`);
+      return;
+    }
+
     const captureData = await createCaptureData();
     const context = await createContext(browser);
     const page = await context.newPage();

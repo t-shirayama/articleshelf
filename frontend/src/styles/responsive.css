@@ -1,4 +1,35 @@
 @media (max-width: 1180px) {
+  .auth-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 440px);
+    gap: 28px;
+  }
+
+  .auth-showcase {
+    min-height: 580px;
+  }
+
+  .auth-showcase-copy h2 {
+    font-size: clamp(2.1rem, 4.8vw, 3.6rem);
+  }
+
+  .auth-visual-stack {
+    right: 0;
+    width: min(360px, 58%);
+  }
+
+  .auth-progress-card {
+    left: 12px;
+    width: 286px;
+  }
+
+  .auth-recent-card {
+    width: 326px;
+  }
+
+  .auth-tags-card {
+    width: 286px;
+  }
+
   .app-shell {
     grid-template-columns: 276px minmax(0, 1fr);
     gap: 14px;
@@ -399,6 +430,52 @@
 }
 
 @media (max-width: 959px) {
+  .auth-page {
+    align-items: start;
+    justify-items: stretch;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .auth-layout {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .auth-showcase {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .auth-showcase-copy {
+    align-self: start;
+    max-width: 640px;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .auth-showcase-copy h2 {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .auth-showcase-copy p {
+    max-width: 560px;
+    line-height: 1.75;
+  }
+
+  .auth-benefits,
+  .auth-visual-stack {
+    display: none;
+  }
+
+  .auth-panel {
+    justify-self: stretch;
+    width: 100%;
+    max-width: 520px;
+  }
+
   html,
   body,
   #app {
@@ -521,6 +598,24 @@
 }
 
 @media (max-width: 599px) {
+  .auth-page {
+    padding: 14px;
+  }
+
+  .auth-showcase-copy h2 {
+    font-size: 2rem;
+    line-height: 1.28;
+  }
+
+  .auth-showcase-copy p {
+    font-size: 0.94rem;
+  }
+
+  .auth-panel {
+    gap: 16px;
+    padding: 22px 18px;
+  }
+
   .app-shell {
     padding: 8px;
     padding-bottom: calc(78px + env(safe-area-inset-bottom));
