@@ -27,10 +27,14 @@
 - [Centralized cookie CSRF guard](centralized-cookie-csrf-guard.md)
 - [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)
 - [OGP egress network isolation](ogp-egress-network-isolation.md)
+- [Application logging design](application-logging-design.md)
+- [Chrome extension local distribution](chrome-extension-local-distribution.md)
 
 ### P3
 
-- 該当なし
+- [Improve auth form card contrast](improve-auth-form-card-contrast.md)
+- [Remove auth mode help copy](remove-auth-mode-help-copy.md)
+- [Refine auth hero mockup layout](refine-auth-hero-mockup-layout.md)
 
 ### P4
 
