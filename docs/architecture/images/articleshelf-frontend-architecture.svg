@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">ArticleShelf Frontend Architecture / 構成</title>
+  <desc id="desc">ArticleShelf frontend architecture diagram showing app, features, shared, styles, backend API, and design docs responsibilities.</desc>
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font: 700 56px Arial, Helvetica, sans-serif; fill: #071229; }
+      .subtitle { font: 700 28px Arial, Helvetica, sans-serif; fill: #6b7280; }
+      .banner { fill: #073273; }
+      .bannerText { font: 700 26px Arial, Helvetica, sans-serif; fill: #ffffff; }
+      .box { fill: #f8fbff; stroke: #0743a3; stroke-width: 2.4; rx: 14; }
+      .boxTeal { fill: #f5ffff; stroke: #008178; stroke-width: 2.4; rx: 14; }
+      .boxPurple { fill: #fbf8ff; stroke: #5b3bb1; stroke-width: 2.4; rx: 14; }
+      .external { fill: #ffffff; stroke: #5b6578; stroke-width: 2; rx: 12; }
+      .rule { fill: #ffffff; stroke: #0752b8; stroke-width: 2.4; rx: 12; }
+      .hBlue { font: 700 31px Arial, Helvetica, sans-serif; fill: #0841a4; }
+      .hTeal { font: 700 31px Arial, Helvetica, sans-serif; fill: #00766d; }
+      .hPurple { font: 700 31px Arial, Helvetica, sans-serif; fill: #5b3bb1; }
+      .subhead { font: 700 21px Arial, Helvetica, sans-serif; fill: #00766d; }
+      .text { font: 18px Arial, Helvetica, sans-serif; fill: #111827; }
+      .small { font: 16px Arial, Helvetica, sans-serif; fill: #111827; }
+      .noteBlue { font: 700 17px Arial, Helvetica, sans-serif; fill: #0841a4; }
+      .noteTeal { font: 700 17px Arial, Helvetica, sans-serif; fill: #008178; }
+      .notePurple { font: 700 17px Arial, Helvetica, sans-serif; fill: #5b3bb1; }
+      .arrow { stroke: #082f6b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .arrowDashed { stroke: #6d55c7; stroke-width: 3; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrowPurple); }
+      .arrowTealDashed { stroke: #008178; stroke-width: 3; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrowTeal); }
+      .divider { stroke: #0f56b3; stroke-width: 2; stroke-dasharray: 3 4; }
+      .dividerTeal { stroke: #008178; stroke-width: 2; stroke-dasharray: 3 4; }
+      .bullet { font: 18px Arial, Helvetica, sans-serif; fill: #111827; }
+      .num { fill: #0752b8; }
+      .numText { font: 700 18px Arial, Helvetica, sans-serif; fill: #ffffff; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#082f6b"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#6d55c7"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#008178"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="1" y="1" width="1446" height="1084" stroke="#111827" stroke-width="2"/>
+  <text class="title" x="224" y="66">ArticleShelf Frontend Architecture / 構成</text>
+  <text class="subtitle" x="305" y="114">Feature-oriented structure を意識した Vue 3 + TypeScript フロントエンド</text>
+  <rect class="banner" x="466" y="138" width="522" height="54" rx="14"/>
+  <text class="bannerText" x="727" y="174" text-anchor="middle">責務を feature / shared / app に分ける</text>
+
+  <rect class="external" x="23" y="399" width="129" height="186" rx="12"/>
+  <rect x="41" y="421" width="78" height="83" rx="5" fill="#eef7ff" stroke="#073273" stroke-width="5"/>
+  <rect x="101" y="456" width="31" height="58" rx="4" fill="#ffffff" stroke="#5b6578" stroke-width="4"/>
+  <circle cx="52" cy="430" r="4" fill="#ffffff"/><circle cx="64" cy="430" r="4" fill="#ffffff"/><circle cx="76" cy="430" r="4" fill="#ffffff"/>
+  <text class="text" x="87" y="543" text-anchor="middle">Browser /</text>
+  <text class="text" x="87" y="570" text-anchor="middle">User</text>
+  <path class="arrow" d="M151 492 H205"/>
+
+  <rect class="box" x="208" y="214" width="193" height="449" rx="14"/>
+  <text class="hBlue" x="304" y="267" text-anchor="middle">App</text>
+  <text class="bullet" x="226" y="327">• Router</text>
+  <text class="bullet" x="226" y="365">• App Bootstrap</text>
+  <text class="bullet" x="226" y="403">• Global Layout</text>
+  <text class="bullet" x="226" y="441">• i18n Setup</text>
+  <text class="bullet" x="226" y="479">• Pinia Setup</text>
+  <line class="divider" x1="222" y1="560" x2="387" y2="560"/>
+  <text class="noteBlue" x="304" y="600" text-anchor="middle">画面遷移とアプリ全体の</text>
+  <text class="noteBlue" x="304" y="626" text-anchor="middle">初期化を担当</text>
+  <path class="arrow" d="M401 388 H467"/>
+  <text class="noteBlue" x="412" y="423">画面を</text>
+  <text class="noteBlue" x="412" y="449">組み立</text>
+  <text class="noteBlue" x="412" y="475">てる</text>
+
+  <rect class="boxTeal" x="468" y="215" width="386" height="496" rx="14"/>
+  <text class="hTeal" x="661" y="255" text-anchor="middle">Features</text>
+  <rect class="boxTeal" x="493" y="267" width="156" height="192" rx="10"/>
+  <text class="subhead" x="571" y="298" text-anchor="middle">Articles</text>
+  <text class="small" x="507" y="328">• Views</text><text class="small" x="507" y="351">• Components</text><text class="small" x="507" y="374">• Composables</text><text class="small" x="507" y="397">• Store / State</text><text class="small" x="507" y="420">• API Adapter</text><text class="small" x="507" y="443">• Domain Helper</text>
+  <rect class="boxTeal" x="672" y="267" width="160" height="192" rx="10"/>
+  <text class="subhead" x="752" y="298" text-anchor="middle">Tags / Search</text>
+  <text class="small" x="686" y="328">• Views</text><text class="small" x="686" y="351">• Components</text><text class="small" x="686" y="374">• Composables</text><text class="small" x="686" y="397">• Store / State</text><text class="small" x="686" y="420">• API Adapter</text><text class="small" x="686" y="443">• Domain Helper</text>
+  <rect class="boxTeal" x="493" y="474" width="156" height="183" rx="10"/>
+  <text class="subhead" x="571" y="505" text-anchor="middle">Calendar</text>
+  <text class="small" x="507" y="535">• Views</text><text class="small" x="507" y="558">• Components</text><text class="small" x="507" y="581">• Composables</text><text class="small" x="507" y="604">• Store / State</text><text class="small" x="507" y="627">• API Adapter</text><text class="small" x="507" y="650">• Domain Helper</text>
+  <rect class="boxTeal" x="672" y="474" width="160" height="183" rx="10"/>
+  <text class="subhead" x="752" y="505" text-anchor="middle">Auth</text>
+  <text class="small" x="686" y="535">• Views</text><text class="small" x="686" y="558">• Components</text><text class="small" x="686" y="581">• Composables</text><text class="small" x="686" y="604">• Store / State</text><text class="small" x="686" y="627">• API Adapter</text><text class="small" x="686" y="650">• Domain Helper</text>
+  <text class="noteTeal" x="661" y="692" text-anchor="middle">機能ごとに UI / state / API をまとめる</text>
+
+  <path class="arrowTealDashed" d="M956 390 H858"/>
+  <text class="noteTeal" x="866" y="428">共通部品を</text>
+  <text class="noteTeal" x="881" y="454">再利用</text>
+
+  <rect class="boxTeal" x="957" y="214" width="210" height="449" rx="14"/>
+  <text class="hTeal" x="1062" y="267" text-anchor="middle">Shared</text>
+  <text class="bullet" x="975" y="327">• UI Components</text>
+  <text class="bullet" x="975" y="365">• API Client</text>
+  <text class="bullet" x="975" y="403">• Utilities</text>
+  <text class="bullet" x="975" y="441">• Types</text>
+  <text class="bullet" x="975" y="479">• Common Composables</text>
+  <text class="bullet" x="975" y="517">• Form / Validation Helpers</text>
+  <line class="dividerTeal" x1="973" y1="561" x2="1151" y2="561"/>
+  <text class="noteTeal" x="1062" y="600" text-anchor="middle">複数 feature で</text>
+  <text class="noteTeal" x="1062" y="626" text-anchor="middle">再利用する部品</text>
+
+  <path class="arrow" d="M1167 390 H1209 V294 H1283"/>
+  <text class="noteBlue" x="1190" y="264">API 通信</text>
+  <path class="arrow" d="M1167 390 H1209 V510 H1283"/>
+  <path class="arrowDashed" d="M1167 545 H1283"/>
+  <rect class="external" x="1284" y="248" width="140" height="176" rx="12"/>
+  <rect x="1329" y="302" width="48" height="48" rx="8" fill="#e9f7ff" stroke="#073273" stroke-width="3"/>
+  <text class="text" x="1354" y="381" text-anchor="middle">Backend</text>
+  <text class="text" x="1354" y="407" text-anchor="middle">REST API</text>
+  <rect class="external" x="1284" y="472" width="140" height="176" rx="12"/>
+  <path d="M1328 492 H1366 L1384 510 V568 H1328 Z" fill="#ffffff" stroke="#073273" stroke-width="3"/>
+  <path d="M1366 492 V510 H1384" fill="none" stroke="#073273" stroke-width="3"/>
+  <text class="text" x="1354" y="594" text-anchor="middle">Design Docs /</text>
+  <text class="text" x="1354" y="620" text-anchor="middle">Screenshots</text>
+
+  <rect class="boxPurple" x="418" y="770" width="426" height="186" rx="14"/>
+  <text class="hPurple" x="631" y="806" text-anchor="middle">Styles</text>
+  <text class="bullet" x="443" y="839">• Global Styles</text>
+  <text class="bullet" x="443" y="869">• Theme Tokens</text>
+  <text class="bullet" x="651" y="839">• Responsive Rules</text>
+  <text class="bullet" x="651" y="869">• Layout Helpers</text>
+  <line class="divider" x1="434" y1="899" x2="827" y2="899"/>
+  <text class="notePurple" x="631" y="935" text-anchor="middle">見た目と一貫性を支える</text>
+  <path class="arrowDashed" d="M418 840 C360 840 360 750 305 665"/>
+  <text class="notePurple" x="352" y="735">used by</text>
+  <path class="arrowDashed" d="M646 770 V714"/>
+  <text class="notePurple" x="589" y="749">used by</text>
+  <path class="arrowDashed" d="M844 840 C890 825 910 710 957 665"/>
+  <text class="notePurple" x="843" y="742">used by</text>
+  <path class="arrowDashed" d="M844 890 H988"/>
+
+  <rect class="rule" x="991" y="680" width="436" height="320" rx="12"/>
+  <rect x="991" y="680" width="436" height="45" rx="12" fill="#0752b8"/>
+  <text class="bannerText" x="1209" y="711" text-anchor="middle">依存ルール</text>
+  <g transform="translate(1008 748)">
+    <circle class="num" cx="12" cy="0" r="13"/><text class="numText" x="12" y="1">1</text><text class="small" x="38" y="6">App は router / i18n / 全体初期化を担当する</text>
+    <line class="divider" x1="0" y1="25" x2="393" y2="25"/>
+    <circle class="num" cx="12" cy="39" r="13"/><text class="numText" x="12" y="40">2</text><text class="small" x="38" y="45">Feature は機能単位で views / components /</text><text class="small" x="38" y="68">state / API をまとめる</text>
+    <line class="divider" x1="0" y1="88" x2="393" y2="88"/>
+    <circle class="num" cx="12" cy="103" r="13"/><text class="numText" x="12" y="104">3</text><text class="small" x="38" y="109">Shared は複数 feature で使う共通部品を提供する</text>
+    <line class="divider" x1="0" y1="128" x2="393" y2="128"/>
+    <circle class="num" cx="12" cy="143" r="13"/><text class="numText" x="12" y="144">4</text><text class="small" x="38" y="149">API 通信は adapter / client に集約する</text>
+    <line class="divider" x1="0" y1="168" x2="393" y2="168"/>
+    <circle class="num" cx="12" cy="183" r="13"/><text class="numText" x="12" y="184">5</text><text class="small" x="38" y="189">Styles は app / feature / shared に一貫した見た目を提供する</text>
+    <line class="divider" x1="0" y1="208" x2="393" y2="208"/>
+    <circle class="num" cx="12" cy="223" r="13"/><text class="numText" x="12" y="224">6</text><text class="small" x="38" y="229">仕様変更時は specs / designs / screenshots も更新する</text>
+  </g>
+
+  <rect class="external" x="23" y="1010" width="1400" height="58" rx="9"/>
+  <circle class="num" cx="59" cy="1039" r="17"/><text class="numText" x="59" y="1041">1</text>
+  <text class="noteBlue" x="94" y="1046">主要レイヤー：</text>
+  <text class="noteBlue" x="238" y="1046">app / features / shared / styles</text>
+</svg>

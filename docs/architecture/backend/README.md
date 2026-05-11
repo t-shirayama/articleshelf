@@ -3,6 +3,11 @@
 バックエンドは DDD / クリーンアーキテクチャの考え方で実装します。
 依存関係は内側から外側へ流れるように設計し、ドメインモデルが中心になります。
 
+![ArticleShelf バックエンド依存関係図](../images/articleshelf-backend-architecture.svg)
+
+この図は `domain`、`application`、`adapter`、`infrastructure`、`config` の責務境界と、Port / 実装 / Spring wiring の依存方向を示す。
+詳細な依存ルール、パッケージ構成、品質ゲートは、この README と testing / CI docs を正本とする。
+
 ## レイヤー構成
 
 - `domain`: ドメインモデル、集約、値オブジェクト、ドメインサービス、リポジトリインターフェース

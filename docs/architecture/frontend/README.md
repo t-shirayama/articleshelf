@@ -1,5 +1,10 @@
 # Frontend Architecture
 
+![ArticleShelf フロントエンド構成図](../images/articleshelf-frontend-architecture.svg)
+
+この図は `app`、`features`、`shared`、`styles` の責務境界と、Backend REST API / design docs への接続を示す。
+詳細な責務と実装上の判断は、この README と design docs / specs を正本とする。
+
 ## レイヤー構成
 
 - `features/articles`: 記事管理機能の画面、コンポーネント、Pinia store、API adapter、ドメイン helper
