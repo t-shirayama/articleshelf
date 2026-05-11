@@ -1,4 +1,4 @@
-FROM maven:3.9.14-eclipse-temurin-21 AS dev
+FROM maven:3.9.14-eclipse-temurin-25 AS dev
 WORKDIR /workspace
 COPY pom.xml .
 RUN for attempt in 1 2 3; do \
@@ -16,7 +16,7 @@ FROM dev AS build
 COPY src ./src
 RUN mvn -B -ntp -DskipTests package
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 RUN addgroup -S articleshelf && adduser -S -G articleshelf articleshelf
 COPY --from=build --chown=articleshelf:articleshelf /workspace/target/articleshelf-backend-0.1.0.jar app.jar
