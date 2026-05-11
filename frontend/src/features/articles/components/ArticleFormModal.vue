@@ -70,6 +70,10 @@ function submit(): void {
   if (!input) return
   emit('submit', input)
 }
+
+function toggleDetailsPanel(): void {
+  detailsPanel.value = detailsPanel.value === 'details' ? null : 'details'
+}
 </script>
 
 <template>
@@ -149,23 +153,29 @@ function submit(): void {
           </template>
         </div>
 
-        <VExpansionPanels v-model="detailsPanel" class="article-form-details" variant="accordion">
-          <VExpansionPanel value="details">
-            <VExpansionPanelTitle hide-actions>
-              <div class="article-form-details-title">
-                <span class="article-form-details-copy">
-                  <strong>{{ t('articleForm.detailsToggle') }}</strong>
-                  <small>{{ t('articleForm.detailsHelp') }}</small>
-                </span>
-                <ChevronDown
-                  class="article-form-details-icon"
-                  :class="{ 'is-open': detailsPanel === 'details' }"
-                  :size="18"
-                  aria-hidden="true"
-                />
-              </div>
-            </VExpansionPanelTitle>
-            <VExpansionPanelText>
+        <section class="article-form-details">
+          <button
+            class="article-form-details-trigger"
+            type="button"
+            :aria-expanded="detailsPanel === 'details'"
+            @click="toggleDetailsPanel"
+          >
+            <div class="article-form-details-title">
+              <span class="article-form-details-copy">
+                <strong>{{ t('articleForm.detailsToggle') }}</strong>
+                <small>{{ t('articleForm.detailsHelp') }}</small>
+              </span>
+              <ChevronDown
+                class="article-form-details-icon"
+                :class="{ 'is-open': detailsPanel === 'details' }"
+                :size="18"
+                aria-hidden="true"
+              />
+            </div>
+          </button>
+
+          <Transition name="detail-accordion">
+            <div v-if="detailsPanel === 'details'" class="article-form-details-content">
               <div class="modal-field title-input-group">
                 <VTextField
                   v-model="form.title"
@@ -223,9 +233,9 @@ function submit(): void {
                   :placeholder="t('articleForm.notesPlaceholder')"
                 />
               </div>
-            </VExpansionPanelText>
-          </VExpansionPanel>
-        </VExpansionPanels>
+            </div>
+          </Transition>
+        </section>
       </VCardText>
     </VCard>
   </VDialog>

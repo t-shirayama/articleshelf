@@ -92,7 +92,7 @@ test('user can log out all sessions and delete their account', async ({ page }, 
   await expect(page.getByText('ユーザー名またはパスワードが正しくありません。')).toBeVisible()
 })
 
-test('duplicate article url shows an error and can open the existing article', async ({ page }, testInfo) => {
+test('duplicate article url can open the existing article from preview', async ({ page }, testInfo) => {
   const username = uniqueUsername('duplicate', testInfo)
   const sharedUrl = uniqueUrl('duplicate', testInfo)
   const originalTitle = `Original ${uniqueSuffix(testInfo)}`
@@ -104,11 +104,12 @@ test('duplicate article url shows an error and can open the existing article', a
   })
 
   await openArticleModal(page)
-  await page.getByRole('textbox', { name: 'URL', exact: true }).fill(sharedUrl)
-  await page.getByRole('textbox', { name: 'タイトル（任意）', exact: true }).fill(`Duplicate ${uniqueSuffix(testInfo)}`)
-  await page.getByRole('button', { name: '保存する' }).click()
+  const urlInput = page.getByRole('textbox', { name: 'URL', exact: true })
+  await urlInput.fill(sharedUrl)
+  await urlInput.blur()
 
-  await expect(page.getByRole('alert')).toContainText('このURLはすでに登録されています')
+  await expect(page.getByText('この記事はすでに保存されています')).toBeVisible()
+  await expect(page.getByRole('button', { name: '保存する' })).toBeDisabled()
   await page.getByRole('button', { name: '登録済みの記事を開く' }).click()
 
   await expect(page.getByRole('heading', { level: 2, name: originalTitle })).toBeVisible()
@@ -127,7 +128,7 @@ test('user can edit article details and persist notes tags and rating', async ({
   })
 
   await openArticleFromList(page, articleTitle)
-  await page.getByRole('button', { name: '編集' }).click()
+  await page.getByRole('button', { name: '編集', exact: true }).click()
   await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Edited memo with details')
   await page.getByRole('button', { name: '記事の詳細' }).click()
   await page.getByRole('textbox', { name: 'タイトル', exact: true }).fill(`${articleTitle} updated`)
@@ -135,7 +136,7 @@ test('user can edit article details and persist notes tags and rating', async ({
   await page.getByRole('textbox', { name: '新しいタグ', exact: true }).press('Enter')
   await page.getByRole('button', { name: 'おすすめ度 4 を選択' }).click()
   await page.getByRole('textbox', { name: '概要', exact: true }).fill('Edited summary')
-  await page.getByRole('button', { name: '保存' }).click()
+  await page.getByRole('button', { name: '保存', exact: true }).click()
 
   await expect(page.getByRole('heading', { level: 2, name: `${articleTitle} updated` })).toBeVisible()
   await expect(page.getByText('Edited memo with details')).toBeVisible()
@@ -349,7 +350,7 @@ test('user is warned before leaving unsaved article edits', async ({ page }, tes
   })
 
   await openArticleFromList(page, articleTitle)
-  await page.getByRole('button', { name: '編集' }).click()
+  await page.getByRole('button', { name: '編集', exact: true }).click()
   await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Unsaved draft note')
   await expect(page.getByRole('textbox', { name: 'メモ', exact: true })).toHaveValue('Unsaved draft note')
 
@@ -605,6 +606,7 @@ async function createArticle(
   input: { url: string, title: string, notes?: string, tags?: string[], rating?: number }
 ): Promise<void> {
   await openArticleModal(page)
+  await openArticleFormDetails(page)
   await page.getByRole('textbox', { name: 'URL', exact: true }).fill(input.url)
   await page.getByRole('textbox', { name: 'タイトル（任意）', exact: true }).fill(input.title)
 
@@ -625,6 +627,13 @@ async function createArticle(
 
   await page.getByRole('button', { name: '保存する' }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
+}
+
+async function openArticleFormDetails(page: Page): Promise<void> {
+  const titleInput = page.getByRole('textbox', { name: 'タイトル（任意）', exact: true })
+  if (await titleInput.isVisible().catch(() => false)) return
+  await page.getByRole('button', { name: /タグ・メモ・おすすめ度を追加/ }).click()
+  await expect(titleInput).toBeVisible()
 }
 
 async function openArticleFromList(page: Page, title: string): Promise<void> {
