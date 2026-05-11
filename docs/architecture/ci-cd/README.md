@@ -39,7 +39,7 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 - Dependency Review は依存追加・更新 PR で moderate 以上の既知脆弱性を検知する。GitHub 側の Dependency graph が無効な repository では action が実行できないため、Dependency graph を有効化し、repository variable `DEPENDENCY_REVIEW_ENABLED=true` を設定した環境だけで必須 gate として実行する
 - CodeQL は Java / JavaScript / TypeScript の security query を code scanning として実行する
 - Trivy は repository filesystem の dependency / secret / misconfiguration と backend Docker image の high / critical vulnerability を検知する
-- GitHub-owned actions は major tag、third-party actions は version tag を使い、`.github/dependabot.yml` の GitHub Actions 更新 PR で追従する。SHA pinning は運用負荷と Dependabot 追従性のバランスを見て、外部公開規模が上がった段階で再検討する
+- GitHub-owned actions は major tag、third-party actions は version tag を使い、`.github/dependabot.yml` の GitHub Actions 更新 PR で追従する。Dependabot の更新 PR は `develop` 宛てに作成し、`main` への直接反映を避ける。SHA pinning は運用負荷と Dependabot 追従性のバランスを見て、外部公開規模が上がった段階で再検討する
 
 ## 4. デプロイとの関係
 
