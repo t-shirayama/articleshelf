@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">ArticleShelf Backend Architecture / 依存関係</title>
+  <desc id="desc">ArticleShelf backend architecture diagram showing DDD and clean architecture layers, dependency direction, ports, adapters, infrastructure, config, PostgreSQL, and external OGP access.</desc>
+  <defs>
+    <style>
+      .bg { fill: #ffffff; }
+      .title { font: 700 56px Arial, Helvetica, sans-serif; fill: #071229; }
+      .subtitle { font: 700 28px Arial, Helvetica, sans-serif; fill: #6b7280; }
+      .banner { fill: #073273; }
+      .bannerText { font: 700 26px Arial, Helvetica, sans-serif; fill: #ffffff; }
+      .box { fill: #f8fbff; stroke: #0743a3; stroke-width: 2.4; rx: 14; }
+      .boxTeal { fill: #f5ffff; stroke: #008178; stroke-width: 2.4; rx: 14; }
+      .boxPurple { fill: #fbf8ff; stroke: #5b3bb1; stroke-width: 2.4; rx: 14; }
+      .external { fill: #ffffff; stroke: #5b6578; stroke-width: 2; rx: 12; }
+      .rule { fill: #ffffff; stroke: #0752b8; stroke-width: 2.4; rx: 12; }
+      .ellipse { fill: #eff8ff; stroke: #8cbcf5; stroke-width: 2.4; }
+      .domainCircle { fill: #f7fff3; stroke: #00a082; stroke-width: 2.4; }
+      .domainInner { fill: #fbfff8; stroke: #78aa49; stroke-width: 1.8; rx: 12; }
+      .port { fill: #ffffff; stroke: #008178; stroke-width: 1.7; rx: 9; }
+      .hBlue { font: 700 30px Arial, Helvetica, sans-serif; fill: #0841a4; }
+      .hTeal { font: 700 30px Arial, Helvetica, sans-serif; fill: #00766d; }
+      .hGreen { font: 700 26px Arial, Helvetica, sans-serif; fill: #4f8c2f; }
+      .hPurple { font: 700 30px Arial, Helvetica, sans-serif; fill: #5b3bb1; }
+      .text { font: 18px Arial, Helvetica, sans-serif; fill: #111827; }
+      .small { font: 16px Arial, Helvetica, sans-serif; fill: #111827; }
+      .noteBlue { font: 700 17px Arial, Helvetica, sans-serif; fill: #0841a4; }
+      .noteTeal { font: 700 17px Arial, Helvetica, sans-serif; fill: #008178; }
+      .noteGreen { font: 700 17px Arial, Helvetica, sans-serif; fill: #4f8c2f; }
+      .notePurple { font: 700 17px Arial, Helvetica, sans-serif; fill: #5b3bb1; }
+      .arrow { stroke: #082f6b; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .arrowThin { stroke: #082f6b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .arrowDashed { stroke: #6d55c7; stroke-width: 3; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrowPurple); }
+      .arrowTealDashed { stroke: #008178; stroke-width: 3; fill: none; stroke-dasharray: 8 8; marker-end: url(#arrowTeal); }
+      .divider { stroke: #0f56b3; stroke-width: 2; stroke-dasharray: 3 4; }
+      .dividerTeal { stroke: #008178; stroke-width: 2; stroke-dasharray: 3 4; }
+      .num { fill: #0752b8; }
+      .numText { font: 700 18px Arial, Helvetica, sans-serif; fill: #ffffff; text-anchor: middle; dominant-baseline: middle; }
+    </style>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#082f6b"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#6d55c7"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#008178"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="1" y="1" width="1446" height="1084" stroke="#111827" stroke-width="2"/>
+  <text class="title" x="212" y="64">ArticleShelf Backend Architecture / 依存関係</text>
+  <text class="subtitle" x="352" y="111">DDD + Clean Architecture を意識した Spring Boot バックエンド</text>
+  <rect class="banner" x="483" y="134" width="304" height="56" rx="10"/>
+  <text class="bannerText" x="635" y="171" text-anchor="middle">依存の向きは内側へ</text>
+  <path class="arrow" d="M468 172 C410 196 350 236 299 276"/>
+  <path class="arrow" d="M800 173 C862 202 900 231 950 276"/>
+
+  <rect class="box" x="27" y="244" width="236" height="346" rx="12"/>
+  <text class="hBlue" x="145" y="296" text-anchor="middle">Adapter</text>
+  <text class="text" x="43" y="344">• Controller</text>
+  <text class="text" x="43" y="377">• Request / Response DTO</text>
+  <text class="text" x="43" y="410">• Validation</text>
+  <text class="text" x="43" y="443">• HTTP Entry Point</text>
+  <line class="divider" x1="43" y1="508" x2="247" y2="508"/>
+  <text class="noteBlue" x="145" y="543" text-anchor="middle">Web / API 入出力を担当</text>
+  <path class="arrow" d="M263 351 H314"/>
+
+  <rect class="external" x="49" y="652" width="166" height="206" rx="12"/>
+  <rect x="70" y="679" width="80" height="94" rx="6" fill="#eef7ff" stroke="#073273" stroke-width="5"/>
+  <rect x="133" y="716" width="36" height="65" rx="4" fill="#ffffff" stroke="#5b6578" stroke-width="4"/>
+  <circle cx="82" cy="688" r="4" fill="#ffffff"/><circle cx="94" cy="688" r="4" fill="#ffffff"/><circle cx="106" cy="688" r="4" fill="#ffffff"/>
+  <text class="text" x="132" y="814" text-anchor="middle">Client /</text>
+  <text class="text" x="132" y="840" text-anchor="middle">Frontend</text>
+  <path class="arrowThin" d="M132 652 V595"/><path class="arrowThin" d="M132 590 V649"/>
+
+  <ellipse class="ellipse" cx="617" cy="471" rx="322" ry="267"/>
+  <text class="hTeal" x="617" y="247" text-anchor="middle">Application</text>
+  <text class="text" x="536" y="272">• Use Case</text>
+  <text class="text" x="536" y="296">• Application Service</text>
+  <text class="text" x="536" y="320">• Port Interface</text>
+  <text class="text" x="536" y="344">• Transaction Boundary</text>
+  <path class="arrow" d="M617 364 V420"/>
+
+  <circle class="domainCircle" cx="617" cy="514" r="143"/>
+  <rect class="domainInner" x="530" y="428" width="174" height="158" rx="12"/>
+  <text class="hGreen" x="617" y="458" text-anchor="middle">Domain</text>
+  <text class="text" x="548" y="488">• Entity</text>
+  <text class="text" x="548" y="516">• Value Object</text>
+  <text class="text" x="548" y="544">• Domain Service</text>
+  <text class="text" x="548" y="572">• Business Rule</text>
+  <line class="dividerTeal" x1="536" y1="586" x2="696" y2="586"/>
+  <text class="noteGreen" x="617" y="615" text-anchor="middle">外部技術に依存しない</text>
+  <text class="noteTeal" x="617" y="695" text-anchor="middle">Domain に依存</text>
+
+  <rect class="port" x="323" y="408" width="142" height="38" rx="9"/>
+  <text class="small" x="394" y="433" text-anchor="middle">ArticleRepository</text>
+  <rect class="port" x="323" y="472" width="127" height="38" rx="9"/>
+  <text class="small" x="386" y="497" text-anchor="middle">TagRepository</text>
+  <rect class="port" x="323" y="542" width="127" height="38" rx="9"/>
+  <text class="small" x="386" y="567" text-anchor="middle">UserRepository</text>
+  <path class="arrowTealDashed" d="M466 427 H530"/>
+  <path class="arrowTealDashed" d="M451 491 H530"/>
+  <path class="arrowTealDashed" d="M451 561 H530"/>
+
+  <rect class="port" x="775" y="442" width="116" height="58" rx="9"/>
+  <text class="small" x="833" y="466" text-anchor="middle">RefreshToken</text>
+  <text class="small" x="833" y="488" text-anchor="middle">Repository</text>
+  <rect class="port" x="775" y="556" width="122" height="58" rx="9"/>
+  <text class="small" x="836" y="580" text-anchor="middle">ArticleMetadata</text>
+  <text class="small" x="836" y="602" text-anchor="middle">Provider</text>
+  <path class="arrowTealDashed" d="M755 471 H704"/>
+  <path class="arrowTealDashed" d="M775 585 H704"/>
+
+  <rect class="boxTeal" x="976" y="244" width="236" height="346" rx="12"/>
+  <text class="hTeal" x="1094" y="298" text-anchor="middle">Infrastructure</text>
+  <text class="text" x="994" y="347">• JPA Repository Impl</text>
+  <text class="text" x="994" y="381">• OGP Fetch Client</text>
+  <text class="text" x="994" y="415">• Security / Token</text>
+  <text class="text" x="1014" y="440">Persistence</text>
+  <text class="text" x="994" y="478">• External Service Access</text>
+  <line class="dividerTeal" x1="994" y1="513" x2="1195" y2="513"/>
+  <text class="noteTeal" x="1094" y="552" text-anchor="middle">Port の実装を提供</text>
+  <path class="arrowTealDashed" d="M976 406 H835"/>
+  <text class="noteTeal" x="850" y="386">Port を実装</text>
+
+  <path class="arrow" d="M1212 390 H1247 V312 H1281"/>
+  <path class="arrow" d="M1212 390 H1247 V514 H1281"/>
+  <rect class="external" x="1281" y="247" width="142" height="130" rx="12"/>
+  <ellipse cx="1352" cy="291" rx="34" ry="28" fill="#e9f7ff" stroke="#073273" stroke-width="3"/>
+  <text class="text" x="1352" y="358" text-anchor="middle">PostgreSQL</text>
+  <rect class="external" x="1281" y="445" width="142" height="142" rx="12"/>
+  <circle cx="1352" cy="508" r="34" fill="#e9f7ff" stroke="#0752b8" stroke-width="3"/>
+  <path d="M1319 508 H1385 M1352 474 C1338 494 1338 522 1352 542 M1352 474 C1366 494 1366 522 1352 542 M1327 487 C1341 495 1363 495 1377 487 M1327 529 C1341 521 1363 521 1377 529" stroke="#0752b8" stroke-width="2" fill="none"/>
+  <text class="text" x="1352" y="566" text-anchor="middle">External</text>
+  <text class="text" x="1352" y="590" text-anchor="middle">Websites (OGP)</text>
+
+  <rect class="boxPurple" x="444" y="790" width="332" height="181" rx="12"/>
+  <text class="hPurple" x="610" y="826" text-anchor="middle">Config</text>
+  <text class="text" x="529" y="851">• Spring Configuration</text>
+  <text class="text" x="529" y="879">• Bean Wiring</text>
+  <text class="text" x="529" y="907">• Security Config</text>
+  <line class="divider" x1="461" y1="922" x2="760" y2="922"/>
+  <text class="notePurple" x="610" y="956" text-anchor="middle">依存関係を組み立てる</text>
+  <path class="arrowDashed" d="M444 866 C350 860 310 710 244 570"/>
+  <text class="notePurple" x="320" y="766">Bean wiring</text>
+  <path class="arrowDashed" d="M617 790 V743"/>
+  <text class="notePurple" x="633" y="771">Bean wiring</text>
+  <path class="arrowDashed" d="M776 866 C855 835 908 690 976 570"/>
+  <text class="notePurple" x="801" y="766">Bean wiring</text>
+
+  <rect class="rule" x="966" y="671" width="445" height="326" rx="12"/>
+  <rect x="966" y="671" width="445" height="48" rx="12" fill="#0752b8"/>
+  <text class="bannerText" x="1188" y="704" text-anchor="middle">依存ルール</text>
+  <g transform="translate(986 747)">
+    <circle class="num" cx="12" cy="0" r="13"/><text class="numText" x="12" y="1">1</text><text class="small" x="38" y="6">Domain は他レイヤーに依存しない</text>
+    <line class="divider" x1="0" y1="25" x2="397" y2="25"/>
+    <circle class="num" cx="12" cy="40" r="13"/><text class="numText" x="12" y="41">2</text><text class="small" x="38" y="46">Application は Domain にのみ依存する</text>
+    <line class="divider" x1="0" y1="65" x2="397" y2="65"/>
+    <circle class="num" cx="12" cy="80" r="13"/><text class="numText" x="12" y="81">3</text><text class="small" x="38" y="86">Adapter は HTTP / DTO 変換を担当する</text>
+    <line class="divider" x1="0" y1="105" x2="397" y2="105"/>
+    <circle class="num" cx="12" cy="120" r="13"/><text class="numText" x="12" y="121">4</text><text class="small" x="38" y="126">Infrastructure は Port を実装し外部技術と接続する</text>
+    <line class="divider" x1="0" y1="145" x2="397" y2="145"/>
+    <circle class="num" cx="12" cy="160" r="13"/><text class="numText" x="12" y="161">5</text><text class="small" x="38" y="166">Config は Spring の配線を担当する</text>
+    <line class="divider" x1="0" y1="185" x2="397" y2="185"/>
+    <circle class="num" cx="12" cy="200" r="13"/><text class="numText" x="12" y="201">6</text><text class="small" x="38" y="206">依存関係は CleanArchitectureDependencyTest で検査する</text>
+  </g>
+
+  <rect class="external" x="35" y="1015" width="1390" height="53" rx="9"/>
+  <circle class="num" cx="71" cy="1041" r="17"/><text class="numText" x="71" y="1043">1</text>
+  <text class="noteBlue" x="106" y="1048">主要レイヤー：</text>
+  <text class="noteBlue" x="237" y="1048">domain / application / infrastructure / adapter / config</text>
+</svg>

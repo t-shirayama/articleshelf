@@ -85,7 +85,7 @@
 
 ## 環境・ツール
 
-- **バックエンド**: Spring Boot 3.x, Java 17
+- **バックエンド**: Spring Boot 4, Java 25
 - **フロントエンド**: Vue 3, Vite
 - **DB**: PostgreSQL 14+
 - **コンテナ**: Docker + Docker Compose

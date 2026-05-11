@@ -13,7 +13,8 @@ vi.mock('../api/authApi', () => ({
     logoutAll: vi.fn(),
     me: vi.fn(),
     changePassword: vi.fn(),
-    deleteAccount: vi.fn()
+    deleteAccount: vi.fn(),
+    adminResetPassword: vi.fn()
   }
 }))
 
@@ -83,6 +84,46 @@ describe('auth store', () => {
     expect(authApi.deleteAccount).toHaveBeenCalledWith({ currentPassword: 'password123' })
     expect(store.user).toBeNull()
     expect(store.accessToken).toBe('')
+  })
+
+  it('initializes by refreshing the session and configuring auth retry', async () => {
+    const store = useAuthStore()
+    vi.mocked(authApi.refresh).mockResolvedValueOnce({
+      user: user(),
+      accessToken: token()
+    })
+
+    await store.initialize()
+
+    expect(store.authReady).toBe(true)
+    expect(store.user?.username).toBe('reader')
+    expect(setAccessToken).toHaveBeenLastCalledWith(token())
+  })
+
+  it('clears session when refresh fails', async () => {
+    const store = useAuthStore()
+    store.applyAuthResponse({ user: user(), accessToken: token() })
+    vi.mocked(authApi.refresh).mockRejectedValueOnce(new Error('expired'))
+
+    const result = await store.refreshSession()
+
+    expect(result).toBeNull()
+    expect(store.user).toBeNull()
+    expect(store.accessToken).toBe('')
+  })
+
+  it('surfaces login and account action failures', async () => {
+    const store = useAuthStore()
+    vi.mocked(authApi.login).mockRejectedValueOnce(new Error('bad credentials'))
+    vi.mocked(authApi.logoutAll).mockRejectedValueOnce(new Error('logout failed'))
+
+    await expect(store.login({ username: 'reader', password: 'wrong' })).rejects.toThrow('bad credentials')
+    expect(store.error).toBe('bad credentials')
+    expect(store.loading).toBe(false)
+
+    await expect(store.logoutAll()).rejects.toThrow('logout failed')
+    expect(store.error).toBe('logout failed')
+    expect(store.user).toBeNull()
   })
 })
 

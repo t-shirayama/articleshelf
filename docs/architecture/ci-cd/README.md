@@ -34,7 +34,7 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 - `backend-unit` は JaCoCo coverage 付きで domain / application 中心の UT を実行し、domain / application line coverage 80% 未満を失敗にする
 - `backend-integration` は Spring Boot と PostgreSQL 実体で認証境界、Repository 検索、DB 制約、JPA validate を確認する
 - frontend は ESLint、型チェック、Vite build、bundle size check を CI の早い段階で確認する
-- `frontend-unit` は Vitest coverage threshold を適用し、lines 19%、statements 19%、functions 14%、branches 16% 未満を失敗にする
+- `frontend-unit` は Vitest coverage threshold を適用し、lines 43%、statements 42%、functions 35%、branches 29% 未満を失敗にする
 - E2E はフロントエンド、バックエンド、DB を Compose 経由で起動し、主要導線と認証後記事一覧の axe accessibility scan の破壊を検知する
 - Dependency Review は依存追加・更新 PR で moderate 以上の既知脆弱性を検知する。GitHub 側の Dependency graph が無効な repository では action が実行できないため、Dependency graph を有効化し、repository variable `DEPENDENCY_REVIEW_ENABLED=true` を設定した環境だけで必須 gate として実行する
 - CodeQL は Java / JavaScript / TypeScript の security query を code scanning として実行する
