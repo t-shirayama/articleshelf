@@ -222,7 +222,8 @@
 
 .auth-page {
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .auth-page::before {

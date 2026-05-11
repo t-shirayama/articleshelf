@@ -5,7 +5,7 @@ import { getMotivationCards } from '../data/motivationCards'
 export function useMotivationRotation() {
   const { locale } = useI18n()
   const motivationCards = computed(() => getMotivationCards(locale.value))
-  const motivationIndex = ref(randomMotivationIndex())
+  const motivationIndex = ref(randomMotivationIndex(motivationCards.value.length))
   const currentMotivation = computed(() => motivationCards.value[motivationIndex.value % motivationCards.value.length])
 
   function rotateMotivation(): void {
