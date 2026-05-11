@@ -9,6 +9,14 @@ describe('useMotivationRotation', () => {
     setCurrentLocale('en')
   })
 
+  it('starts from a random motivation card', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.5)
+    const { rotation, app } = mountRotation()
+
+    expect(rotation.currentMotivation.value.id).not.toBe(1)
+    app.unmount()
+  })
+
   it('rotates to a different motivation card', () => {
     vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.9)
     const { rotation, app } = mountRotation()
