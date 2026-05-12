@@ -221,6 +221,7 @@ async function readAuthSession() {
 function renderState(message) {
   setStatus(message)
   loginButton.hidden = Boolean(currentToken)
+  loginButton.disabled = Boolean(currentToken)
   saveUnreadButton.hidden = !currentToken
   saveReadButton.hidden = !currentToken
   saveUnreadButton.disabled = !currentPageSupported || !currentToken
