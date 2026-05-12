@@ -6,6 +6,7 @@ ArticleShelf の機能仕様の入口です。
 ## 詳細文書
 
 - [記事機能](articles.md): 記事一覧、記事詳細、記事追加
+- [Chrome 拡張機能](browser-extension.md): 現在ページの URL / title を記事追加モーダルへ渡す補助導線
 - [カレンダー](calendar.md): 登録日 / 既読日の月表示
 - [タグと検索](tags-and-search.md): タグ管理、検索・フィルター
 - [UI仕様](../ui/README.md): 画面挙動、状態遷移、エラー表示、レスポンシブ
@@ -13,8 +14,4 @@ ArticleShelf の機能仕様の入口です。
 
 ## 現在の補足
 
-- アカウント設定ダイアログには、Chrome 拡張機能の GitHub Releases から取得する zip ダウンロードリンクと導入手順を表示する
-- Chrome 拡張機能の初期版は token を保持せず、現在ページの `url` / `title` を `GET /articles?source=extension&articleUrl=...&articleTitle=...` として認証済み Web アプリへ渡す
-- 未認証時は `/login?returnTo=...` を経由し、ログイン後に拡張機能経由の追加導線へ戻る
-- `develop`/`main` の本番相当ブランチで `v*` タグ push、または `workflow_dispatch` の手動実行時に Chrome 拡張配布 zip を GitHub Release へ登録する
-- 配布 URL は `https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip` を既定とし、ローカル配布は `VITE_EXTENSION_DOWNLOAD_URL` で上書きできる
+- Chrome 拡張機能の要件は [Chrome 拡張機能要件](../../requirements/functional/browser-extension.md)、現在仕様は [Chrome 拡張機能仕様](browser-extension.md) を正本とする

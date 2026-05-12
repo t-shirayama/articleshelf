@@ -3,6 +3,8 @@
 ArticleShelf へ現在のページを渡す Chrome 拡張機能です。
 Chrome Web Store には公開せず、GitHub Releases の配布 zip をダウンロードして Developer mode で読み込む前提で管理します。
 
+要件は [Chrome 拡張機能要件](../docs/requirements/functional/browser-extension.md)、現在仕様は [Chrome 拡張機能仕様](../docs/specs/features/browser-extension.md) を正本とします。
+
 ## 役割
 
 - 現在のタブの `url` と `title` を取得する

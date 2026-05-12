@@ -26,6 +26,9 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 - `supply-chain.yml`
   - pull request では、repository の Dependency graph と `DEPENDENCY_REVIEW_ENABLED=true` が有効な場合に Dependency Review で lockfile / dependency 差分を確認する
   - pull request / `main` / `develop` push / weekly schedule で Trivy filesystem scan と backend Docker image scan を実行する
+- `chrome-extension-release.yml`
+  - `v*` タグ push または `workflow_dispatch` で `chrome-extension` を build し、`articleshelf-chrome-extension.zip` を GitHub Release asset として公開する
+  - 拡張機能の配布仕様は [Chrome 拡張機能仕様](../../specs/features/browser-extension.md) を正本とする
 
 ## 3. 品質ゲート
 
