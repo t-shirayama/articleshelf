@@ -86,9 +86,12 @@ function confirmDelete(): void {
       <span>{{ t('detail.emptySelection') }}</span>
     </div>
 
-    <VForm v-else class="detail-form" @submit.prevent="submit">
+    <VForm v-else class="detail-form" :aria-busy="props.saving || props.deleting" @submit.prevent="submit">
+      <span v-if="props.saving" class="sr-only" role="status" aria-live="polite">
+        {{ t('common.saving') }}
+      </span>
       <div class="detail-topbar">
-        <VBtn class="action-button action-button-secondary compact-button detail-back-button" variant="outlined" @click="emit('back')">
+        <VBtn class="action-button action-button-secondary compact-button detail-back-button" variant="outlined" :disabled="props.saving || props.deleting" @click="emit('back')">
           <template #prepend>
             <ArrowLeft :size="17" />
           </template>
@@ -96,8 +99,8 @@ function confirmDelete(): void {
         </VBtn>
 
         <VBtnToggle v-model="detailMode" class="mode-toggle detail-mode-toggle" mandatory>
-          <VBtn value="view">{{ t('detail.view') }}</VBtn>
-          <VBtn value="edit">{{ t('detail.edit') }}</VBtn>
+          <VBtn value="view" :disabled="props.saving || props.deleting">{{ t('detail.view') }}</VBtn>
+          <VBtn value="edit" :disabled="props.saving || props.deleting">{{ t('detail.edit') }}</VBtn>
         </VBtnToggle>
 
         <div class="detail-topbar-actions">
@@ -107,6 +110,7 @@ function confirmDelete(): void {
             icon
             :title="t('common.favorite')"
             variant="text"
+            :disabled="props.saving || props.deleting"
             @click="toggleFavorite"
           >
             <Heart :size="19" :fill="(isEditing ? form.favorite : article.favorite) ? 'currentColor' : 'none'" />
@@ -119,8 +123,8 @@ function confirmDelete(): void {
             class="detail-action-icon-button detail-save-button"
             :disabled="!isEditing || props.saving"
             :loading="props.saving"
-            :title="t('common.save')"
-            :aria-label="t('common.save')"
+            :title="props.saving ? t('common.saving') : t('common.save')"
+            :aria-label="props.saving ? t('common.saving') : t('common.save')"
           >
             <Save :size="18" />
           </VBtn>
@@ -132,7 +136,7 @@ function confirmDelete(): void {
             :aria-label="t('common.delete')"
             variant="outlined"
             :loading="props.deleting"
-            :disabled="props.deleting"
+            :disabled="props.saving || props.deleting"
             @click="deleteDialogOpen = true"
           >
             <Trash2 :size="18" />
@@ -193,6 +197,7 @@ function confirmDelete(): void {
                       :label="t('common.title')"
                       required
                       variant="outlined"
+                      :disabled="props.saving"
                       :error-messages="submitted && titleError ? [titleError] : []"
                     />
                   </div>
@@ -204,12 +209,13 @@ function confirmDelete(): void {
                       type="url"
                       required
                       variant="outlined"
+                      :disabled="props.saving"
                       :error-messages="submitted && urlError ? [urlError] : []"
                     />
                   </div>
 
                   <div class="detail-edit-field-row">
-                    <VTextarea v-model="form.summary" :label="t('common.summary')" rows="4" auto-grow hide-details variant="outlined" />
+                    <VTextarea v-model="form.summary" :label="t('common.summary')" rows="4" auto-grow hide-details variant="outlined" :disabled="props.saving" />
                   </div>
 
                   <div class="detail-edit-field-row detail-edit-tag-row">
@@ -220,13 +226,14 @@ function confirmDelete(): void {
                       v-model="form.tags"
                       class="detail-edit-tag-editor"
                       :options="tagOptions"
+                      :disabled="props.saving"
                     />
                   </div>
                 </div>
               </Transition>
             </section>
 
-            <ArticleNotesEditor v-model:preview-open="notesPreviewOpen" :form="form" :notes-text="notesText" />
+            <ArticleNotesEditor v-model:preview-open="notesPreviewOpen" :form="form" :notes-text="notesText" :disabled="props.saving" />
           </template>
           <template v-else>
             <ArticleDetailViewSections :article="{ ...article, notes: form.notes }" :summary-text="summaryText" :notes-text="notesText" />
@@ -240,6 +247,7 @@ function confirmDelete(): void {
           :submitted="submitted"
           :status-options="statusOptions"
           :read-date-error="readDateError"
+          :saving="props.saving"
         />
       </div>
 

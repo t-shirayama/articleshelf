@@ -22,6 +22,7 @@ const extensionDownloadPath = "/downloads/articleshelf-chrome-extension.zip";
 const currentPassword = ref("");
 const newPassword = ref("");
 const deletePassword = ref("");
+const pendingAction = ref<"password" | "logoutAll" | "delete" | null>(null);
 
 watch(
   () => props.open,
@@ -30,18 +31,40 @@ watch(
     currentPassword.value = "";
     newPassword.value = "";
     deletePassword.value = "";
+    pendingAction.value = null;
+  },
+);
+
+watch(
+  () => props.loading,
+  (loading) => {
+    if (!loading) pendingAction.value = null;
   },
 );
 
 function submitPasswordChange(): void {
+  if (props.loading) return;
+  pendingAction.value = "password";
   emit("changePassword", {
     currentPassword: currentPassword.value,
     newPassword: newPassword.value,
   });
 }
 
+function submitLogoutAll(): void {
+  if (props.loading) return;
+  pendingAction.value = "logoutAll";
+  emit("logoutAll");
+}
+
 function submitDeleteAccount(): void {
+  if (props.loading) return;
+  pendingAction.value = "delete";
   emit("deleteAccount", { currentPassword: deletePassword.value });
+}
+
+function handleDialogUpdate(open: boolean): void {
+  if (!open && !props.loading) emit("close");
 }
 </script>
 
@@ -50,9 +73,20 @@ function submitDeleteAccount(): void {
     :model-value="open"
     max-width="560"
     content-class="account-dialog-overlay"
-    @update:model-value="!$event && emit('close')"
+    @update:model-value="handleDialogUpdate"
   >
-    <VCard class="account-settings-dialog">
+    <VCard class="account-settings-dialog" :aria-busy="loading">
+      <span v-if="loading" class="sr-only" role="status" aria-live="polite">
+        {{
+          pendingAction === "password"
+            ? t("auth.account.changingPassword")
+            : pendingAction === "logoutAll"
+              ? t("auth.account.loggingOutAll")
+              : pendingAction === "delete"
+                ? t("auth.account.deletingAccount")
+                : t("common.processing")
+        }}
+      </span>
       <header class="article-modal-header account-settings-header">
         <h2>{{ t("auth.account.title") }}</h2>
         <div class="article-modal-header-actions">
@@ -60,6 +94,7 @@ function submitDeleteAccount(): void {
             icon
             variant="text"
             :aria-label="t('common.close')"
+            :disabled="loading"
             @click="emit('close')"
           >
             <X :size="18" />
@@ -83,6 +118,7 @@ function submitDeleteAccount(): void {
           <p>{{ t("auth.account.extensionDescription") }}</p>
           <div class="account-settings-extension-actions">
             <VBtn
+              class="account-change-password-button"
               color="primary"
               variant="flat"
               :href="extensionDownloadPath"
@@ -127,11 +163,11 @@ function submitDeleteAccount(): void {
             />
             <VBtn
               color="primary"
-              :loading="loading"
-              :disabled="!currentPassword || !newPassword"
+              :loading="loading && pendingAction === 'password'"
+              :disabled="loading || !currentPassword || !newPassword"
               @click="submitPasswordChange"
             >
-              {{ t("auth.account.changePassword") }}
+              {{ loading && pendingAction === "password" ? t("auth.account.changingPassword") : t("auth.account.changePassword") }}
             </VBtn>
           </div>
         </section>
@@ -145,12 +181,14 @@ function submitDeleteAccount(): void {
           </div>
           <p>{{ t("auth.account.logoutAllDescription") }}</p>
           <VBtn
+            class="account-logout-all-button"
             variant="outlined"
             color="primary"
-            :loading="loading"
-            @click="emit('logoutAll')"
+            :loading="loading && pendingAction === 'logoutAll'"
+            :disabled="loading"
+            @click="submitLogoutAll"
           >
-            {{ t("auth.account.logoutAll") }}
+            {{ loading && pendingAction === "logoutAll" ? t("auth.account.loggingOutAll") : t("auth.account.logoutAll") }}
           </VBtn>
         </section>
 
@@ -166,16 +204,18 @@ function submitDeleteAccount(): void {
             v-model="deletePassword"
             type="password"
             autocomplete="current-password"
+            data-delete-password="true"
             :label="t('auth.account.currentPassword')"
             :disabled="loading"
           />
           <VBtn
+            class="account-delete-button"
             color="error"
-            :loading="loading"
-            :disabled="!deletePassword"
+            :loading="loading && pendingAction === 'delete'"
+            :disabled="loading || !deletePassword"
             @click="submitDeleteAccount"
           >
-            {{ t("auth.account.deleteAccount") }}
+            {{ loading && pendingAction === "delete" ? t("auth.account.deletingAccount") : t("auth.account.deleteAccount") }}
           </VBtn>
         </section>
       </VCardText>

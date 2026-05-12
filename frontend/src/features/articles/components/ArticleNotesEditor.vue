@@ -6,6 +6,7 @@ import type { ArticleDetailForm } from '../domain/articleForms'
 defineProps<{
   form: ArticleDetailForm
   notesText: string
+  disabled?: boolean
 }>()
 
 const previewOpen = defineModel<boolean>('previewOpen', { required: true })
@@ -24,6 +25,7 @@ const previewOpen = defineModel<boolean>('previewOpen', { required: true })
         color="primary"
         size="small"
         type="button"
+        :disabled="disabled"
         @click="previewOpen = !previewOpen"
       >
         <template #prepend>
@@ -50,6 +52,7 @@ const previewOpen = defineModel<boolean>('previewOpen', { required: true })
       :aria-label="$t('common.notes')"
       rows="13"
       variant="outlined"
+      :disabled="disabled"
     />
   </section>
 </template>

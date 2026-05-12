@@ -38,6 +38,10 @@ const localError = ref("");
 const isRegister = computed(() => mode.value === "register");
 const title = computed(() => (isRegister.value ? t("auth.registerTitle") : t("auth.login")));
 const submitLabel = computed(() => (isRegister.value ? t("auth.submitRegister") : t("auth.login")));
+const processingLabel = computed(() => (
+  isRegister.value ? t("auth.registerProcessing") : t("auth.loginProcessing")
+));
+const submitButtonLabel = computed(() => (authStore.loading ? processingLabel.value : submitLabel.value));
 const submitted = ref(false);
 const usernameError = computed(() => {
   const value = username.value.trim().toLowerCase();
@@ -85,6 +89,7 @@ function resolvePostAuthPath(): string {
 }
 
 function switchMode(nextMode: AuthMode): void {
+  if (authStore.loading) return;
   mode.value = nextMode;
   submitted.value = false;
   localError.value = "";
@@ -241,18 +246,18 @@ watch(
             :aria-label="t('auth.modeSwitchLabel')"
             @update:model-value="handleModeUpdate"
           >
-            <VBtn value="login">
+            <VBtn value="login" :disabled="authStore.loading">
               <LogIn :size="17" />
               <span>{{ t("auth.login") }}</span>
             </VBtn>
-            <VBtn value="register">
+            <VBtn value="register" :disabled="authStore.loading">
               <UserPlus :size="17" />
               <span>{{ t("auth.register") }}</span>
             </VBtn>
           </VBtnToggle>
         </div>
 
-        <form class="auth-form" @submit.prevent="submit">
+        <form class="auth-form" :aria-busy="authStore.loading" @submit.prevent="submit">
           <div class="auth-field">
             <label class="auth-field-label" for="auth-username">{{ t("auth.username") }}</label>
             <VTextField
@@ -264,6 +269,7 @@ watch(
               :hint="isRegister ? t('auth.usernameHelp') : undefined"
               :persistent-hint="isRegister"
               required
+              :disabled="authStore.loading"
               :error-messages="submitted && usernameError ? [usernameError] : []"
             />
           </div>
@@ -276,6 +282,7 @@ watch(
               :placeholder="t('auth.displayNamePlaceholder')"
               :hint="t('auth.displayNameHelp')"
               persistent-hint
+              :disabled="authStore.loading"
             />
           </div>
           <div class="auth-field">
@@ -288,6 +295,7 @@ watch(
               :hint="isRegister ? t('auth.passwordHelp') : undefined"
               :persistent-hint="isRegister"
               required
+              :disabled="authStore.loading"
               :error-messages="submitted && passwordError ? [passwordError] : []"
             />
           </div>
@@ -296,14 +304,19 @@ watch(
             <span>{{ localError || authStore.error }}</span>
           </div>
 
+          <span v-if="authStore.loading" class="sr-only" role="status" aria-live="polite">
+            {{ processingLabel }}
+          </span>
+
           <VBtn
             color="primary"
             type="submit"
             :loading="authStore.loading"
+            :disabled="authStore.loading"
             block
             size="large"
           >
-            {{ submitLabel }}
+            {{ submitButtonLabel }}
           </VBtn>
         </form>
       </section>

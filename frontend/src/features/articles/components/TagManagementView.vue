@@ -193,7 +193,7 @@ function confirmDelete(): void {
               color="primary"
               :loading="saving"
               :disabled="saving || !renameDraft.trim()"
-              :aria-label="t('tags.saveName')"
+              :aria-label="saving ? t('common.saving') : t('tags.saveName')"
               @click="confirmRename"
             >
               <Check :size="18" />
@@ -202,6 +202,7 @@ function confirmDelete(): void {
               icon
               size="small"
               variant="text"
+              :disabled="saving"
               :aria-label="t('tags.cancelRename')"
               @click="cancelRename"
             >

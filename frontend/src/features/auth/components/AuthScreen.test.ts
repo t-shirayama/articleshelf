@@ -110,13 +110,45 @@ describe('AuthScreen', () => {
 
     app.unmount()
   })
+
+  it('shows processing labels and blocks repeated login submission while loading', async () => {
+    authStore.loading = true
+    const { root, app } = mountAuthScreen()
+
+    expect(root.textContent).toContain('ログイン中...')
+    expect(root.querySelector<HTMLFormElement>('form')?.getAttribute('aria-busy')).toBe('true')
+    expect(root.querySelector<HTMLElement>('[role="status"]')?.textContent).toContain('ログイン中...')
+
+    setInput(root, '#auth-username', 'reader_1')
+    setInput(root, '#auth-password', 'password123')
+    submit(root)
+    await nextTick()
+
+    expect(authStore.login).not.toHaveBeenCalled()
+    expect(root.querySelector<HTMLInputElement>('#auth-username')?.disabled).toBe(true)
+    expect(modeButton(root, 'register')?.disabled).toBe(true)
+
+    app.unmount()
+  })
+
+  it('shows the registration processing label while registering', async () => {
+    routeState.path = '/register'
+    authStore.loading = true
+    const { root, app } = mountAuthScreen({ mode: 'register' })
+
+    expect(root.textContent).toContain('登録中...')
+    expect(root.querySelector<HTMLElement>('[role="status"]')?.textContent).toContain('登録中...')
+    expect(root.querySelector<HTMLInputElement>('#auth-display-name')?.disabled).toBe(true)
+
+    app.unmount()
+  })
 })
 
-function mountAuthScreen(): { root: HTMLElement, app: App<Element> } {
+function mountAuthScreen(props: Record<string, unknown> = {}): { root: HTMLElement, app: App<Element> } {
   const root = document.createElement('div')
   document.body.append(root)
 
-  const app = createApp(AuthScreen)
+  const app = createApp(AuthScreen, props)
   app.use(i18n)
   app.component('VBtnToggle', defineComponent({
     props: {
