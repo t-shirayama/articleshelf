@@ -49,6 +49,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie 固定値、health check path を確認する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する
+- optimistic locking を変更した場合は、`ArticleServiceTest`、`ApiExceptionHandlerTest`、`AuthAndArticleIntegrationTest`、`JpaArticleRepositoryPostgresIntegrationTest` で stale version の 409、machine-readable error code、PostgreSQL 実体の競合検知を確認する
 - 記事一覧 query の `page` / `size` / `sort` を変更した場合は、`ArticleListQueryTest` で既定値と許可 sort 値、`JpaArticleRepositoryPostgresIntegrationTest` で LIMIT / OFFSET、sort、tag join、wildcard search の組み合わせを確認する
 - refresh token rotation、pessimistic lock、条件付き update を変更した場合は、auth unit / integration に加えて PostgreSQL 実体での persistence / auth 確認を優先する
 - Java、Spring Boot、Mockito、JaCoCo、Surefire、SpotBugs の version を更新した場合は、backend PR gate を再実行し、Mockito javaagent / JaCoCo `argLine` / JVM warning が再発していないか確認する
@@ -57,6 +58,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - backend request ID filter と metrics instrumentation は unit test と build で確認し、metrics tag に token、username、URL、メモ本文などを含めないことをレビュー観点にする
 - logging 設計を実装する場合は、requestId の response header 伝搬、MDC 設定、API error と exception log の突き合わせ、auth / OGP / article update の高価値イベント分類、禁止情報の redaction を unit / integration / review で確認する
 - 認証インフラ境界では、client IP 解決、rate limit 呼び出し、invalid access token metrics が Controller / token 値から分離されていることを確認する
+- `JwtTokenServiceTest` では injected `Clock` / `IdGenerator` を使って access token の `iat` / `exp` / `jti` を固定値で確認し、改ざん、期限切れ、想定外 `alg` の拒否も維持する
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
@@ -68,6 +70,7 @@ ArticleWorkspace の account operation は `useWorkspaceAccountActions` の unit
 Router 導入後の E2E / 手動確認では、未認証 protected route が router guard で `/login` へ補正されること、認証後に `/articles` / `/calendar` / `/tags` / `/settings` へ直接入れること、認証済みで `/login` / `/register` を開くと `/articles` へ戻ること、記事カード選択で `/articles/:id` になることを見る。
 記事一覧 query model は `ArticleListQueryTest` で、sort 既定値と許可値を確認する。frontend では `articlesApi.test.ts` と `articles.test.ts` で query parameter 直列化、current page response、snapshot fallback、page move state を確認する。
 server-driven article list query では、backend の `JpaArticleRepositoryPostgresIntegrationTest` で multi-tag OR、rating、created/read range、wildcard search、pagination / sort を PostgreSQL 実体で確認し、frontend E2E では検索、フィルタ、並び替え、詳細遷移、カレンダー、タグ管理の既存導線が回帰していないことを見る。
+article optimistic locking では、frontend の `useArticleActions.test.ts` と `useArticleDetailForm.test.ts` で version を含む detail save input と競合時の reload 導線を確認し、backend API integration で `ARTICLE_VERSION_CONFLICT` response を確認する。
 記事追加 preview は backend integration で OGP 成功、OGP 取得不可の partial success、重複 URL、URL validation を確認し、frontend unit で URL 変更、modal close、race condition、duplicate reset、空の title / summary を payload に含めないことを確認する。
 Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 Supply chain security は Dependabot の更新 PR、Dependency Review の PR 差分検知、CodeQL の code scanning、Trivy の filesystem / backend image scan に分担する。

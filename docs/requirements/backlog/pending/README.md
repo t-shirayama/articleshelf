@@ -11,14 +11,13 @@
 
 ### P1
 
-- [Article optimistic locking](article-optimistic-locking.md)
+- 該当なし
 
 ### P2
 
 - [Detail page shared sidebar navigation](detail-page-shared-sidebar-navigation.md)
 - [Frontend focused coverage gates](frontend-focused-coverage-gates.md)
 - [Auth use case bean injection](auth-use-case-bean-injection.md)
-- [JWT token service time id injection](jwt-token-service-time-id-injection.md)
 - [Distributed auth rate limit](distributed-auth-rate-limit.md)
 - [Centralized cookie CSRF guard](centralized-cookie-csrf-guard.md)
 - [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)

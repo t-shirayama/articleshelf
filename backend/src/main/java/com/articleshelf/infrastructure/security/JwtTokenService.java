@@ -2,6 +2,7 @@ package com.articleshelf.infrastructure.security;
 
 import com.articleshelf.application.auth.AccessTokenIssuer;
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.application.auth.IdGenerator;
 import com.articleshelf.config.AuthProperties;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.security.oauth2.jwt.JwtException;
+import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -28,20 +31,28 @@ public class JwtTokenService implements AccessTokenIssuer {
     private final AuthProperties properties;
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
+    private final Clock clock;
+    private final IdGenerator idGenerator;
 
-    public JwtTokenService(AuthProperties properties) {
+    public JwtTokenService(AuthProperties properties, Clock clock, IdGenerator idGenerator) {
         this.properties = properties;
+        this.clock = clock;
+        this.idGenerator = idGenerator;
         SecretKey secretKey = new SecretKeySpec(
                 properties.accessTokenSecret().getBytes(StandardCharsets.UTF_8),
                 "HmacSHA256"
         );
         this.jwtEncoder = new NimbusJwtEncoder(new ImmutableSecret<>(secretKey));
-        this.jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
+        JwtTimestampValidator timestampValidator = new JwtTimestampValidator();
+        timestampValidator.setClock(clock);
+        jwtDecoder.setJwtValidator(timestampValidator);
+        this.jwtDecoder = jwtDecoder;
     }
 
     @Override
     public String issue(CurrentUser user) {
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).type("JWT").build();
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .subject(user.id().toString())
@@ -49,7 +60,7 @@ public class JwtTokenService implements AccessTokenIssuer {
                 .claim("roles", user.roles())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(properties.accessTokenTtlSeconds()))
-                .id(UUID.randomUUID().toString())
+                .id(idGenerator.nextUuid().toString())
                 .build();
 
         return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();

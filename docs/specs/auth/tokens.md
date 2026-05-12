@@ -15,6 +15,7 @@
   - `jti`: token id
 
 `JwtTokenService` は Spring Security JOSE の `NimbusJwtEncoder` / `NimbusJwtDecoder` を使い、HS256 の発行・検証、期限、claim を検証する。
+access token の `iat` / `exp` は injected `Clock`、`jti` は injected `IdGenerator` に従って発行し、refresh token rotation と同じ deterministic testability 方針にそろえる。
 独自の JWT 署名・payload parse 実装は持たない。
 
 ## 2. Refresh Token
