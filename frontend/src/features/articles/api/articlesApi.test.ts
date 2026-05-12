@@ -14,13 +14,24 @@ describe('articlesApi', () => {
   })
 
   it('serializes article list filters into query parameters', async () => {
-    await articlesApi.findArticles(filters({
-      status: 'READ',
-      search: 'vue testing',
-      favorite: true
-    }))
+    await articlesApi.findArticles(
+      filters({
+        status: 'READ',
+        tags: ['Vue', 'Testing'],
+        ratings: [5, 3],
+        createdRange: { from: '2026-05-01', to: '2026-05-31' },
+        readRange: { from: '2026-05-07', to: '' },
+        search: 'vue testing',
+        favorite: true,
+        sort: 'TITLE_ASC'
+      }),
+      {
+      page: 2,
+      size: 21
+      }
+    )
 
-    expect(request).toHaveBeenCalledWith('/api/articles?status=READ&search=vue+testing&favorite=true')
+    expect(request).toHaveBeenCalledWith('/api/articles?status=READ&search=vue+testing&favorite=true&tag=Vue&tag=Testing&rating=5&rating=3&createdFrom=2026-05-01&createdTo=2026-05-31&readFrom=2026-05-07&sort=TITLE_ASC&page=2&size=21')
   })
 
   it('omits default article list filters from query parameters', async () => {

@@ -390,8 +390,8 @@ class ArticleServiceTest {
             List<Article> filtered = findAllByUserId(userId).stream()
                     .filter(article -> criteria.status() == null || article.getStatus() == criteria.status())
                     .filter(article -> criteria.favorite() == null || article.isFavorite() == criteria.favorite())
-                    .filter(article -> criteria.tag() == null || article.getTags().stream()
-                            .anyMatch(tag -> tag.getName().equalsIgnoreCase(criteria.tag())))
+                    .filter(article -> criteria.tags() == null || criteria.tags().isEmpty() || article.getTags().stream()
+                            .anyMatch(tag -> criteria.tags().stream().anyMatch(name -> tag.getName().equalsIgnoreCase(name))))
                     .filter(article -> criteria.search() == null || matchesSearch(article, criteria.search()))
                     .sorted(Comparator.comparing(Article::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                     .toList();

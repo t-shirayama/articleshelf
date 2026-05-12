@@ -33,6 +33,7 @@
 - protected route の outer shell は `ArticleWorkspaceShell` が担当し、desktop sidebar、mobile drawer、bottom navigation を一箇所で持つ
 - `ArticleWorkspace.vue` は route に応じた list / calendar / tags / detail の切り替えと feature 間の配線に寄せ、account dialog や logout state reset は `useWorkspaceAccountActions` が所有する
 - `useArticlesStore` の記事一覧 state は `articles` を canonical source とし、検索 / フィルタ / ソート後の一覧は getter と `features/articles/domain` の純粋関数で派生させる
+- `useArticlesStore` は list page 用の current page response と、カレンダー / サイドバー件数 / 一部遷移互換のための `articleSnapshot` を分けて持つ
 - optimistic update / rollback は canonical な `articles` と `selectedArticle` だけを復元対象にし、同じ記事一覧を別配列で二重保持しない
 - 検索、フィルタ、ソート、フォーム変換などの純粋処理は `features/articles/domain` に置く
 - feature 固有の静的文言や表示候補は `features/articles/data` に置き、component / composable から生成関数越しに参照する
@@ -54,6 +55,7 @@
 - UI measurement: タグ管理の select 幅など DOM 計測が必要な処理は dedicated composable に分け、タグ管理 state と DOM 依存を混ぜない
 - workspace search debounce: 記事一覧検索の遅延反映は `useArticleSearchDebounce` に分け、workspace unmount や logout state reset 時に保留中の検索反映を cancel する
 - workspace container boundaries: `WorkspaceRouteView` が protected route 入口、`ArticleWorkspaceShell` が app chrome、`ArticleWorkspace` が route-to-view orchestration、`useWorkspaceAccountActions` / `useWorkspaceNavigation` が cross-view state を分担する
+- server-driven list query: 記事一覧は `filters + currentPage` を query state として `GET /api/articles` へ送り、`page` / `size` / `sort` と filter 群で current page だけを取得する。カレンダーや sidebar counts は互換用 snapshot を別 fetch する
 - safe Markdown rendering: `renderMarkdown` は raw HTML を無効化した MarkdownIt 出力を DOMPurify で sanitization し、許可スキームや危険タグの境界は [セキュリティ仕様](../../specs/security/README.md) に従う
 - responsive UX: desktop / tablet / mobile の見た目と操作は design docs を正本にし、代表導線は Playwright E2E と screenshot capture で確認する
 

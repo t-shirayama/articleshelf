@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,14 +39,31 @@ public class ArticleController {
     public List<ArticleResponse> findArticles(
             @AuthenticationPrincipal CurrentUser user,
             @RequestParam(required = false) ArticleStatus status,
-            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) List<String> tag,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean favorite,
+            @RequestParam(required = false) List<Integer> rating,
+            @RequestParam(required = false) LocalDate createdFrom,
+            @RequestParam(required = false) LocalDate createdTo,
+            @RequestParam(required = false) LocalDate readFrom,
+            @RequestParam(required = false) LocalDate readTo,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort
     ) {
-        return articleService.findArticles(user, status, tag, search, favorite, new ArticleListQuery(page, size, sort));
+        return articleService.findArticles(
+                user,
+                status,
+                tag,
+                search,
+                favorite,
+                rating,
+                createdFrom,
+                createdTo,
+                readFrom,
+                readTo,
+                new ArticleListQuery(page, size, sort)
+        );
     }
 
     @GetMapping("/{id}")

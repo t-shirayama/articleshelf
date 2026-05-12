@@ -165,6 +165,9 @@ export const en = {
       duplicateOpen: 'Open existing article',
       duplicateErrorTitle: 'This URL is already registered',
       searchPlaceholder: 'Search title, URL, or notes',
+      previousPage: 'Previous page',
+      nextPage: 'Next page',
+      pageLabel: 'Page {page}',
       sortLabel: 'Sort',
       sort: {
         createdDesc: 'Newest',

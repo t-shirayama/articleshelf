@@ -293,6 +293,37 @@ class JpaArticleRepositoryPostgresIntegrationTest {
     }
 
     @Test
+    void postgresSearchSupportsMultiTagRatingAndDateFilters() {
+        UUID userId = createUser("postgres-advanced-filters");
+        Tag vue = tag(userId, "Vue");
+        Tag testing = tag(userId, "Testing");
+        Tag java = tag(userId, "Java");
+
+        repository.save(article(userId, "https://example.com/vue", "Vue filters", 5, LocalDate.parse("2026-05-05"), Set.of(vue), Instant.parse("2026-05-03T09:00:00Z"), Instant.parse("2026-05-05T08:00:00Z")));
+        repository.save(article(userId, "https://example.com/java", "Java filters", 3, LocalDate.parse("2026-05-02"), Set.of(java), Instant.parse("2026-05-01T09:00:00Z"), Instant.parse("2026-05-02T08:00:00Z")));
+        repository.save(article(userId, "https://example.com/testing", "Testing filters", 4, null, Set.of(testing), Instant.parse("2026-05-04T09:00:00Z"), Instant.parse("2026-05-04T10:00:00Z")));
+
+        List<Article> result = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(
+                        ArticleStatus.READ,
+                        List.of("vue", "testing"),
+                        null,
+                        null,
+                        List.of(4, 5),
+                        Instant.parse("2026-05-02T00:00:00Z"),
+                        Instant.parse("2026-05-06T00:00:00Z"),
+                        LocalDate.parse("2026-05-04"),
+                        LocalDate.parse("2026-05-06")
+                ),
+                new ArticleListQuery(null, null, "UPDATED_DESC")
+        );
+
+        assertThat(result).extracting(Article::getTitle)
+                .containsExactly("Vue filters");
+    }
+
+    @Test
     void postgresTagUsagesReturnCountsForAllTagsInOneRepositoryCall() {
         UUID userId = createUser("postgres-tag-usages");
         Tag used = tag(userId, "Used");

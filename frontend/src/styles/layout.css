@@ -781,3 +781,18 @@
   color: var(--accent-strong);
   background: rgba(216, 239, 238, 0.92) !important;
 }
+
+.article-list-pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 6px;
+}
+
+.article-list-page-indicator {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}

@@ -726,6 +726,16 @@
     min-width: 0;
   }
 
+  .article-list-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .article-list-page-indicator {
+    text-align: center;
+  }
+
   .article-card-open {
     padding: 12px;
   }

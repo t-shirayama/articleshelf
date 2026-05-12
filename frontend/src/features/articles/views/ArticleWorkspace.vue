@@ -156,7 +156,10 @@ const mobileBottomNavigationVisible = computed(
     !unsavedChangesDialogOpen.value,
 );
 
-const { cancelSearch } = useArticleSearchDebounce(searchDraft, (value) => store.setSearch(value));
+const { cancelSearch } = useArticleSearchDebounce(searchDraft, async (value) => {
+  store.setSearch(value);
+  await store.fetchArticles();
+});
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
@@ -216,7 +219,8 @@ function setStatus(status: ArticleStatus): void {
     void router.push("/articles");
     navigateToList();
     rotateMotivation();
-    void store.setStatus(status);
+    store.setStatus(status);
+    void store.fetchArticles();
   });
 }
 
@@ -226,7 +230,8 @@ function setFavoriteOnly(): void {
     void router.push("/articles");
     navigateToList();
     rotateMotivation();
-    void store.setFavoriteOnly();
+    store.setFavoriteOnly();
+    void store.fetchArticles();
   });
 }
 
@@ -236,12 +241,14 @@ function setAllArticles(): void {
     void router.push("/articles");
     navigateToList();
     rotateMotivation();
-    void store.setAllArticles();
+    store.setAllArticles();
+    void store.fetchArticles();
   });
 }
 
 function setSort(sort: ArticleSort): void {
   store.setSort(sort);
+  void store.fetchArticles();
 }
 
 function closeArticleModal(): void {
@@ -260,7 +267,7 @@ function changeLocale(value: unknown): void {
 }
 
 async function loadInitialData(): Promise<void> {
-  await Promise.all([store.fetchArticles(), store.fetchTags()]);
+  await Promise.all([store.fetchArticles(), store.fetchArticleSnapshot(), store.fetchTags()]);
 }
 
 async function applyWorkspaceRoute(): Promise<void> {
@@ -305,6 +312,7 @@ function applyAdvancedFilters(filters: {
     store.setCreatedRange(filters.createdRange);
     store.setReadRange(filters.readRange);
     filterDialogOpen.value = false;
+    void store.fetchArticles();
   });
 }
 
@@ -439,7 +447,10 @@ const {
       :active-filter-count="activeFilterCount"
       :error="store.error"
       :loading="store.loading"
-      :articles="store.sortedArticles"
+      :articles="store.articles"
+      :current-page="store.currentPage"
+      :has-next-page="store.hasNextPage"
+      :has-previous-page="store.hasPreviousPage"
       :selected-article-id="store.selectedArticle?.id"
       @update:search="searchDraft = $event"
       @update:sort="setSort"
@@ -449,6 +460,8 @@ const {
       @delete-article="requestDeleteArticle"
       @toggle-status="toggleArticleStatus"
       @toggle-favorite="toggleFavorite"
+      @previous-page="store.goToPreviousPage()"
+      @next-page="store.goToNextPage()"
       @retry="retryInitialLoad"
     />
 
@@ -456,7 +469,7 @@ const {
       v-else-if="viewMode === 'calendar'"
       v-model:visible-month-key="calendarVisibleMonthKey"
       v-model:mode="calendarMode"
-      :articles="store.articles"
+      :articles="store.articleSnapshot"
       @open-article="openArticleFromCalendar"
     />
 

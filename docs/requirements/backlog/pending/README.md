@@ -11,11 +11,11 @@
 
 ### P1
 
-- [Server driven article list query](server-driven-article-list-query.md)
 - [Article optimistic locking](article-optimistic-locking.md)
 
 ### P2
 
+- [Detail page shared sidebar navigation](detail-page-shared-sidebar-navigation.md)
 - [Frontend focused coverage gates](frontend-focused-coverage-gates.md)
 - [Auth use case bean injection](auth-use-case-bean-injection.md)
 - [JWT token service time id injection](jwt-token-service-time-id-injection.md)

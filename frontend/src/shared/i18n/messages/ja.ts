@@ -165,6 +165,9 @@ export const ja = {
       duplicateOpen: '登録済みの記事を開く',
       duplicateErrorTitle: 'このURLはすでに登録されています',
       searchPlaceholder: 'タイトル・URL・メモで検索',
+      previousPage: '前のページ',
+      nextPage: '次のページ',
+      pageLabel: '{page}ページ目',
       sortLabel: '並び順',
       sort: {
         createdDesc: '新しい順',

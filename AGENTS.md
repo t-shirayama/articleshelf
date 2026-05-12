@@ -154,7 +154,7 @@
 - 状態変更はファイル移動で表す
 - 未対応は `docs/requirements/backlog/pending/` に置く
 - 対応中は `docs/requirements/backlog/in-progress/` に置く
-- 完了時は `docs/requirements/backlog/archive/YYYY-MM.md` へ要約を追記し、タスクファイルは削除する
+- 完了時は `docs/requirements/backlog/archive/YYYY-MM-DD.md` へ要約を追記し、タスクファイルは削除する
 - `docs/requirements/backlog/README.md` と各状態フォルダの `README.md` は必ず索引として更新する
 - 各仕様書、設計書、運用文書には現在の仕様、設計、運用だけを書き、追加対応や構想段階の事項は Backlog タスクへ集約する
 - 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ Backlog タスクにする

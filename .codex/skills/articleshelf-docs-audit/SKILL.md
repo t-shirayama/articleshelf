@@ -25,7 +25,7 @@ After the initial release, treat `AGENTS.md` as the worker handbook for Codex / 
    - Architecture: structure, responsibility boundaries, runtime and persistence design.
    - Designs: visual layout, component appearance, responsive details, screenshots.
    - Testing: verification strategy, cases, commands, CI test shape.
-   - Backlog: future tasks, gaps, ideas, TODOs, and technical debt. Backlog uses one file per task under `pending/` or `in-progress/`; completed task summaries go to `archive/YYYY-MM.md`.
+   - Backlog: future tasks, gaps, ideas, TODOs, and technical debt. Backlog uses one file per task under `pending/` or `in-progress/`; completed task summaries go to `archive/YYYY-MM-DD.md`.
 5. If overlap exists, preserve information by moving details to the proper source of truth, then replace duplicates with concise links.
 6. Report updated docs, checks run, and any remaining intentional overlap.
 

@@ -1,12 +1,26 @@
 import { request } from '../../../shared/api/client'
 import type { Article, ArticleFilters, ArticleInput, ArticlePreview, Tag } from '../types'
 
+interface FindArticlesOptions {
+  page?: number
+  size?: number
+}
+
 export const articlesApi = {
-  findArticles(filters: ArticleFilters): Promise<Article[]> {
+  findArticles(filters: ArticleFilters, options: FindArticlesOptions = {}): Promise<Article[]> {
     const params = new URLSearchParams()
     if (filters.status && filters.status !== 'ALL') params.set('status', filters.status)
     if (filters.search) params.set('search', filters.search)
     if (filters.favorite) params.set('favorite', 'true')
+    filters.tags.forEach((tag) => params.append('tag', tag))
+    filters.ratings.forEach((rating) => params.append('rating', String(rating)))
+    if (filters.createdRange.from) params.set('createdFrom', filters.createdRange.from)
+    if (filters.createdRange.to) params.set('createdTo', filters.createdRange.to)
+    if (filters.readRange.from) params.set('readFrom', filters.readRange.from)
+    if (filters.readRange.to) params.set('readTo', filters.readRange.to)
+    if (filters.sort !== 'CREATED_DESC') params.set('sort', filters.sort)
+    if (typeof options.page === 'number') params.set('page', String(options.page))
+    if (typeof options.size === 'number') params.set('size', String(options.size))
     const query = params.toString()
     return request<Article[]>(`/api/articles${query ? `?${query}` : ''}`)
   },

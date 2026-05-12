@@ -5,18 +5,21 @@
 - 説明: 記事一覧を取得
 - 認証: 必須
 - レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
-- パラメータ: `status`, `tag`, `search`, `favorite`, `page`, `size`, `sort`
+- パラメータ: `status`, `tag`, `search`, `favorite`, `rating`, `createdFrom`, `createdTo`, `readFrom`, `readTo`, `page`, `size`, `sort`
 - `status` は `UNREAD` または `READ`
-- `tag` は単一タグ名で、大文字小文字を区別せず一致判定する
-- `search` はタイトル、URL、概要、メモを対象に部分一致する
+- `tag` は repeatable query parameter として複数指定でき、OR 条件で大文字小文字を区別せず一致判定する
+- `search` はタイトル、URL、概要、メモ、タグ名を対象に部分一致する
 - `favorite` は `true` または `false`
+- `rating` は repeatable query parameter として複数指定でき、指定したおすすめ度のいずれかに一致する記事を返す
+- `createdFrom` / `createdTo` は登録日の下限 / 上限。`YYYY-MM-DD` で指定し、日付単位で inclusive に扱う
+- `readFrom` / `readTo` は既読日の下限 / 上限。`YYYY-MM-DD` で指定し、未読記事は既読日 filter に一致しない
 - `page` は 0 origin のページ番号。`page` または `size` を指定した場合、backend repository が PostgreSQL の LIMIT / OFFSET として適用する
 - `size` は 1 - 200。未指定で page 指定がある場合は 50 件を既定値にする
 - `sort` の許可値は `CREATED_DESC`, `CREATED_ASC`, `UPDATED_DESC`, `READ_DATE_DESC`, `TITLE_ASC`, `RATING_DESC`
 - `sort` 未指定または未知値は `CREATED_DESC` として扱う
 - tie-breaker は主 sort のあとに `createdAt desc`, `id desc` を基本とし、`CREATED_ASC` だけは `createdAt asc`, `id desc` を使う。`READ_DATE_DESC` は `readDate` の `NULL` を末尾へ寄せる
 - `page` / `size` 未指定時は既存互換を優先して全件を返す
-- 備考: フロントエンドでは初回取得時に `status`, `search`, `favorite` をAPIへ渡せる。複数タグ、おすすめ度、登録日範囲、既読日範囲、一覧 query state の接続は `server-driven-article-list-query` の実装を前提に段階移行する
+- 備考: 記事一覧画面は `status`, `search`, `favorite`, `tag`, `rating`, `createdFrom`, `createdTo`, `readFrom`, `readTo`, `sort`, `page`, `size` を server-driven query として使う。一方、カレンダーとサイドバー件数は現行互換のため別途全件 snapshot を取得している
 
 ## `GET /api/articles/{id}`
 

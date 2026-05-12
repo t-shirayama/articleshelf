@@ -10,6 +10,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -41,9 +43,20 @@ public class JpaArticleRepository implements ArticleRepository {
             return articleJpaRepository.searchByUserId(
                     userId,
                     criteria.status(),
-                    criteria.tag(),
+                    hasTags(criteria),
+                    parameterizedTags(criteria),
                     toLikePattern(criteria.search()),
                     criteria.favorite(),
+                    hasRatings(criteria),
+                    parameterizedRatings(criteria),
+                    hasCreatedFrom(criteria),
+                    parameterizedCreatedFrom(criteria),
+                    hasCreatedTo(criteria),
+                    parameterizedCreatedTo(criteria),
+                    hasReadFrom(criteria),
+                    parameterizedReadFrom(criteria),
+                    hasReadTo(criteria),
+                    parameterizedReadTo(criteria),
                     pageable
             ).stream().map(this::toDomain).toList();
         }
@@ -51,9 +64,20 @@ public class JpaArticleRepository implements ArticleRepository {
         return articleJpaRepository.searchByUserId(
                 userId,
                 criteria.status(),
-                criteria.tag(),
+                hasTags(criteria),
+                parameterizedTags(criteria),
                 toLikePattern(criteria.search()),
                 criteria.favorite(),
+                hasRatings(criteria),
+                parameterizedRatings(criteria),
+                hasCreatedFrom(criteria),
+                parameterizedCreatedFrom(criteria),
+                hasCreatedTo(criteria),
+                parameterizedCreatedTo(criteria),
+                hasReadFrom(criteria),
+                parameterizedReadFrom(criteria),
+                hasReadTo(criteria),
+                parameterizedReadTo(criteria),
                 toSort(query)
         ).stream().map(this::toDomain).toList();
     }
@@ -160,5 +184,53 @@ public class JpaArticleRepository implements ArticleRepository {
             case RATING_DESC -> Sort.by(Sort.Order.desc("rating"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
             case CREATED_DESC -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
         };
+    }
+
+    private boolean hasTags(ArticleSearchCriteria criteria) {
+        return criteria.tags() != null && !criteria.tags().isEmpty();
+    }
+
+    private List<String> parameterizedTags(ArticleSearchCriteria criteria) {
+        return hasTags(criteria) ? criteria.tags() : List.of("__unused_tag__");
+    }
+
+    private boolean hasRatings(ArticleSearchCriteria criteria) {
+        return criteria.ratings() != null && !criteria.ratings().isEmpty();
+    }
+
+    private List<Integer> parameterizedRatings(ArticleSearchCriteria criteria) {
+        return hasRatings(criteria) ? criteria.ratings() : List.of(-1);
+    }
+
+    private boolean hasCreatedFrom(ArticleSearchCriteria criteria) {
+        return criteria.createdFrom() != null;
+    }
+
+    private Instant parameterizedCreatedFrom(ArticleSearchCriteria criteria) {
+        return hasCreatedFrom(criteria) ? criteria.createdFrom() : Instant.EPOCH;
+    }
+
+    private boolean hasCreatedTo(ArticleSearchCriteria criteria) {
+        return criteria.createdToExclusive() != null;
+    }
+
+    private Instant parameterizedCreatedTo(ArticleSearchCriteria criteria) {
+        return hasCreatedTo(criteria) ? criteria.createdToExclusive() : Instant.EPOCH;
+    }
+
+    private boolean hasReadFrom(ArticleSearchCriteria criteria) {
+        return criteria.readFrom() != null;
+    }
+
+    private LocalDate parameterizedReadFrom(ArticleSearchCriteria criteria) {
+        return hasReadFrom(criteria) ? criteria.readFrom() : LocalDate.of(1970, 1, 1);
+    }
+
+    private boolean hasReadTo(ArticleSearchCriteria criteria) {
+        return criteria.readTo() != null;
+    }
+
+    private LocalDate parameterizedReadTo(ArticleSearchCriteria criteria) {
+        return hasReadTo(criteria) ? criteria.readTo() : LocalDate.of(1970, 1, 1);
     }
 }
