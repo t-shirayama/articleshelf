@@ -33,6 +33,10 @@ describe('AuthScreen', () => {
     routeState.path = '/login'
     routeState.query = {}
     routerPush.mockClear()
+    routerPush.mockImplementation((path: string) => {
+      routeState.path = path
+      return Promise.resolve()
+    })
     authStore.loading = false
     authStore.error = ''
     authStore.login = vi.fn().mockResolvedValue(undefined)
@@ -73,6 +77,8 @@ describe('AuthScreen', () => {
     setInput(root, '#auth-username', ' Reader_1 ')
     setInput(root, '#auth-password', 'password123')
     submit(root)
+    await nextTick()
+    await Promise.resolve()
     await nextTick()
 
     expect(authStore.login).toHaveBeenCalledWith({
@@ -140,6 +146,37 @@ describe('AuthScreen', () => {
     expect(root.querySelector<HTMLElement>('[role="status"]')?.textContent).toContain('登録中...')
     expect(root.querySelector<HTMLInputElement>('#auth-display-name')?.disabled).toBe(true)
 
+    app.unmount()
+  })
+
+  it('keeps registration locked until navigation completes', async () => {
+    routeState.path = '/register'
+    let resolveNavigation: () => void = () => {}
+    routerPush.mockImplementationOnce((path: string) => {
+      routeState.path = path
+      return new Promise<void>((resolve) => {
+        resolveNavigation = resolve
+      })
+    })
+    const { root, app } = mountAuthScreen({ mode: 'register' })
+
+    setInput(root, '#auth-username', 'new_user')
+    setInput(root, '#auth-display-name', 'New User')
+    setInput(root, '#auth-password', 'password123')
+    submit(root)
+    await nextTick()
+    await nextTick()
+
+    expect(authStore.register).toHaveBeenCalledOnce()
+    expect(root.textContent).toContain('登録中...')
+    expect(buttonByText(root, '登録中...')?.disabled).toBe(true)
+
+    submit(root)
+    await nextTick()
+    expect(authStore.register).toHaveBeenCalledOnce()
+
+    resolveNavigation()
+    await nextTick()
     app.unmount()
   })
 })
@@ -223,4 +260,9 @@ function submit(root: HTMLElement): void {
   root.querySelector<HTMLFormElement>('form')?.dispatchEvent(
     new Event('submit', { bubbles: true, cancelable: true })
   )
+}
+
+function buttonByText(root: HTMLElement, text: string): HTMLButtonElement | undefined {
+  return Array.from(root.querySelectorAll<HTMLButtonElement>('button'))
+    .find((button) => button.textContent?.includes(text))
 }

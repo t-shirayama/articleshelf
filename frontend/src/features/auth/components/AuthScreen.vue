@@ -34,14 +34,16 @@ const username = ref("");
 const password = ref("");
 const displayName = ref("");
 const localError = ref("");
+const authFlowPending = ref(false);
 
 const isRegister = computed(() => mode.value === "register");
+const isProcessing = computed(() => authStore.loading || authFlowPending.value);
 const title = computed(() => (isRegister.value ? t("auth.registerTitle") : t("auth.login")));
 const submitLabel = computed(() => (isRegister.value ? t("auth.submitRegister") : t("auth.login")));
 const processingLabel = computed(() => (
   isRegister.value ? t("auth.registerProcessing") : t("auth.loginProcessing")
 ));
-const submitButtonLabel = computed(() => (authStore.loading ? processingLabel.value : submitLabel.value));
+const submitButtonLabel = computed(() => (isProcessing.value ? processingLabel.value : submitLabel.value));
 const submitted = ref(false);
 const usernameError = computed(() => {
   const value = username.value.trim().toLowerCase();
@@ -64,7 +66,8 @@ const formValid = computed(
 async function submit(): Promise<void> {
   localError.value = "";
   submitted.value = true;
-  if (!formValid.value || authStore.loading) return;
+  if (!formValid.value || isProcessing.value) return;
+  authFlowPending.value = true;
   try {
     if (isRegister.value) {
       await authStore.register({
@@ -73,13 +76,16 @@ async function submit(): Promise<void> {
         displayName: displayName.value.trim(),
       });
       await router.push(resolvePostAuthPath());
+      authFlowPending.value = false;
       return;
     }
     await authStore.login({ username: username.value.trim().toLowerCase(), password: password.value });
     await router.push(resolvePostAuthPath());
+    authFlowPending.value = false;
   } catch (error: unknown) {
     localError.value =
       errorMessage(error, t("auth.errors.authFailed"));
+    authFlowPending.value = false;
   }
 }
 
@@ -89,7 +95,7 @@ function resolvePostAuthPath(): string {
 }
 
 function switchMode(nextMode: AuthMode): void {
-  if (authStore.loading) return;
+  if (isProcessing.value) return;
   mode.value = nextMode;
   submitted.value = false;
   localError.value = "";
@@ -246,18 +252,18 @@ watch(
             :aria-label="t('auth.modeSwitchLabel')"
             @update:model-value="handleModeUpdate"
           >
-            <VBtn value="login" :disabled="authStore.loading">
+            <VBtn value="login" :disabled="isProcessing">
               <LogIn :size="17" />
               <span>{{ t("auth.login") }}</span>
             </VBtn>
-            <VBtn value="register" :disabled="authStore.loading">
+            <VBtn value="register" :disabled="isProcessing">
               <UserPlus :size="17" />
               <span>{{ t("auth.register") }}</span>
             </VBtn>
           </VBtnToggle>
         </div>
 
-        <form class="auth-form" :aria-busy="authStore.loading" @submit.prevent="submit">
+        <form class="auth-form" :aria-busy="isProcessing" @submit.prevent="submit">
           <div class="auth-field">
             <label class="auth-field-label" for="auth-username">{{ t("auth.username") }}</label>
             <VTextField
@@ -269,7 +275,7 @@ watch(
               :hint="isRegister ? t('auth.usernameHelp') : undefined"
               :persistent-hint="isRegister"
               required
-              :disabled="authStore.loading"
+              :disabled="isProcessing"
               :error-messages="submitted && usernameError ? [usernameError] : []"
             />
           </div>
@@ -282,7 +288,7 @@ watch(
               :placeholder="t('auth.displayNamePlaceholder')"
               :hint="t('auth.displayNameHelp')"
               persistent-hint
-              :disabled="authStore.loading"
+              :disabled="isProcessing"
             />
           </div>
           <div class="auth-field">
@@ -295,7 +301,7 @@ watch(
               :hint="isRegister ? t('auth.passwordHelp') : undefined"
               :persistent-hint="isRegister"
               required
-              :disabled="authStore.loading"
+              :disabled="isProcessing"
               :error-messages="submitted && passwordError ? [passwordError] : []"
             />
           </div>
@@ -304,15 +310,15 @@ watch(
             <span>{{ localError || authStore.error }}</span>
           </div>
 
-          <span v-if="authStore.loading" class="sr-only" role="status" aria-live="polite">
+          <span v-if="isProcessing" class="sr-only" role="status" aria-live="polite">
             {{ processingLabel }}
           </span>
 
           <VBtn
             color="primary"
             type="submit"
-            :loading="authStore.loading"
-            :disabled="authStore.loading"
+            :loading="isProcessing"
+            :disabled="isProcessing"
             block
             size="large"
           >
