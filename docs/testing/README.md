@@ -55,6 +55,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う
 - 依存関係とコンテナの脆弱性確認は `codeql.yml` と `supply-chain.yml` で実行し、通常の `ci.yml` とは別 workflow として管理する
 - backend request ID filter と metrics instrumentation は unit test と build で確認し、metrics tag に token、username、URL、メモ本文などを含めないことをレビュー観点にする
+- logging 設計を実装する場合は、requestId の response header 伝搬、MDC 設定、API error と exception log の突き合わせ、auth / OGP / article update の高価値イベント分類、禁止情報の redaction を unit / integration / review で確認する
 - 認証インフラ境界では、client IP 解決、rate limit 呼び出し、invalid access token metrics が Controller / token 値から分離されていることを確認する
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
@@ -72,6 +73,7 @@ Markdown security unit test では、危険タグ、危険属性、危険 scheme
 Supply chain security は Dependabot の更新 PR、Dependency Review の PR 差分検知、CodeQL の code scanning、Trivy の filesystem / backend image scan に分担する。
 Dependency Review は GitHub repository の Dependency graph が有効で、repository variable `DEPENDENCY_REVIEW_ENABLED=true` が設定されている場合に moderate 以上の既知脆弱性を PR gate として扱う。Dependency graph が使えない repository では job 内で skip notice を出し、Trivy / CodeQL / Dependabot を継続する。
 PDF インポートを実装する場合は、URL あり / 複数 URL / URL なし / 段組や改行の多い PDF / スキャン PDF / OGP 取得失敗 URL を代表ケースとして確認する。
+運用ログの確認では、request / response body 全文、password、token、Cookie、CSRF token、記事本文、メモ本文、検索語全文が log / metrics / 外部収集 payload に含まれないことをレビューで見る。
 
 ## 5. 完了条件
 
