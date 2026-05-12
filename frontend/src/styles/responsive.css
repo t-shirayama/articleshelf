@@ -43,17 +43,8 @@
     --article-thumb-width: 224px;
   }
 
-  .app-shell.is-detail-shell {
-    height: auto;
-    overflow: visible;
-  }
-
   .content {
     height: calc(100vh - 28px);
-  }
-
-  .content.is-detail-shell {
-    height: auto;
   }
 
   .sidebar {
@@ -95,12 +86,6 @@
     max-width: none;
   }
 
-  .detail-page,
-  .detail-page.is-editing {
-    width: min(1180px, calc(100% - 20px));
-    padding: 22px;
-  }
-
   .detail-layout {
     grid-template-columns: minmax(0, 1fr) 272px;
   }
@@ -121,17 +106,8 @@
     --shell-panel-padding: 18px;
   }
 
-  .app-shell.is-detail-shell {
-    height: auto;
-    overflow: visible;
-  }
-
   .content {
     height: calc(100vh - 28px);
-  }
-
-  .content.is-detail-shell {
-    height: auto;
   }
 
   .sidebar {
@@ -152,13 +128,6 @@
 
   .article-card-body {
     grid-template-rows: 30px 25px 38px 26px;
-  }
-
-  .detail-page,
-  .detail-page.is-editing {
-    margin: 14px auto;
-    min-height: calc(100vh - 28px);
-    padding: 22px;
   }
 
   .detail-edit-notes-section {

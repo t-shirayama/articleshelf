@@ -9,10 +9,7 @@
 }
 
 .app-shell.is-detail-shell {
-  height: auto;
-  min-height: 100vh;
-  overflow: visible;
-  align-items: start;
+  align-items: stretch;
 }
 
 .sidebar,
@@ -716,13 +713,7 @@
 }
 
 .content.is-detail-shell {
-  height: auto;
-  overflow: visible;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  backdrop-filter: none;
+  gap: 20px;
 }
 
 .mobile-app-header,

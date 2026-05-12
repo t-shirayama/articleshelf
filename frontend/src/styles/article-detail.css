@@ -1,16 +1,20 @@
 .detail-page {
   box-sizing: border-box;
-  width: min(1360px, calc(100% - 24px));
-  height: auto;
-  min-height: calc(100vh - 36px);
-  overflow: visible;
-  margin: 18px auto;
-  border-radius: 8px;
-  padding: 26px;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .detail-page.is-editing {
-  width: min(1360px, calc(100% - 24px));
+  width: 100%;
 }
 
 .empty-detail,
@@ -35,7 +39,9 @@
 
 .detail-form {
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: 12px;
+  min-height: 0;
 }
 
 .detail-topbar-actions {
@@ -188,6 +194,8 @@
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 18px;
   align-items: start;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .detail-main,
@@ -195,6 +203,21 @@
   display: grid;
   gap: 16px;
   min-width: 0;
+  min-height: 0;
+}
+
+.detail-main {
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.detail-meta {
+  align-content: start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
 }
 
 .detail-main > .v-input,
@@ -397,11 +420,6 @@
 
 .detail-notes-copy {
   min-height: 140px;
-}
-
-.detail-meta {
-  background: transparent;
-  box-shadow: none;
 }
 
 .detail-meta-content {

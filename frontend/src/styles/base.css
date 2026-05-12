@@ -6,15 +6,6 @@ body,
   scrollbar-gutter: stable;
 }
 
-html:has(.detail-page),
-body:has(.detail-page),
-#app:has(.detail-page) {
-  height: auto;
-  min-height: 100%;
-  overflow: auto;
-  scrollbar-gutter: stable;
-}
-
 body {
   margin: 0;
   min-width: 320px;
@@ -152,4 +143,3 @@ a {
 .action-button-danger-outline:hover {
   background: #fff8f6 !important;
 }
-
