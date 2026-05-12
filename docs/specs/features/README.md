@@ -13,6 +13,8 @@ ArticleShelf の機能仕様の入口です。
 
 ## 現在の補足
 
-- アカウント設定ダイアログには、Chrome 拡張機能のローカル配布 zip ダウンロードリンクと導入手順を表示する
+- アカウント設定ダイアログには、Chrome 拡張機能の GitHub Releases から取得する zip ダウンロードリンクと導入手順を表示する
 - Chrome 拡張機能の初期版は token を保持せず、現在ページの `url` / `title` を `GET /articles?source=extension&articleUrl=...&articleTitle=...` として認証済み Web アプリへ渡す
 - 未認証時は `/login?returnTo=...` を経由し、ログイン後に拡張機能経由の追加導線へ戻る
+- `develop`/`main` の本番相当ブランチで `v*` タグ push、または `workflow_dispatch` の手動実行時に Chrome 拡張配布 zip を GitHub Release へ登録する
+- 配布 URL は `https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip` を既定とし、ローカル配布は `VITE_EXTENSION_DOWNLOAD_URL` で上書きできる

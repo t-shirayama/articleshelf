@@ -18,7 +18,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const extensionVersion = "0.1.0";
-const extensionDownloadPath = "/downloads/articleshelf-chrome-extension.zip";
+const extensionDownloadUrl =
+  import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
+  "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
 const currentPassword = ref("");
 const newPassword = ref("");
 const deletePassword = ref("");
@@ -121,7 +123,7 @@ function handleDialogUpdate(open: boolean): void {
               class="account-change-password-button"
               color="primary"
               variant="flat"
-              :href="extensionDownloadPath"
+              :href="extensionDownloadUrl"
               download
             >
               <template #prepend>

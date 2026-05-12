@@ -1,7 +1,8 @@
+import { createWriteStream } from 'node:fs'
 import { cp, mkdir, rm } from 'node:fs/promises'
-import { spawnSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import archiver from 'archiver'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const rootDir = join(scriptDir, '..')
@@ -18,17 +19,42 @@ await mkdir(unpackedDir, { recursive: true })
 await mkdir(frontendDownloadsDir, { recursive: true })
 await cp(srcDir, unpackedDir, { recursive: true })
 
-if (process.platform === 'win32') {
-  const command = `Compress-Archive -Path '${unpackedDir}\\*' -DestinationPath '${zipPath}' -Force`
-  const result = spawnSync('powershell.exe', ['-NoProfile', '-Command', command], {
-    stdio: 'inherit'
+async function createZipArchive(inputDir, outputFile, zipRootName) {
+  await new Promise((resolve, reject) => {
+    const output = createWriteStream(outputFile)
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    })
+    const done = (error) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve()
+      }
+    }
+
+    output.on('close', done)
+    output.on('error', reject)
+    archive.on('error', reject)
+    archive.on('warning', (error) => {
+      if (error.code === 'ENOENT') {
+        console.warn(error.message)
+      } else {
+        reject(error)
+      }
+    })
+
+    archive.pipe(output)
+    archive.directory(inputDir, zipRootName)
+    archive.finalize()
   })
-
-  if (result.status !== 0) {
-    throw new Error('Failed to package the Chrome extension zip archive.')
-  }
-
-  await cp(zipPath, mirroredZipPath)
-} else {
-  console.warn('Zip packaging is only scripted on Windows. The unpacked extension was generated in dist/.')
 }
+
+console.log(`Packaging Chrome extension zip: ${zipPath}`)
+await createZipArchive(unpackedDir, zipPath, 'articleshelf-chrome-extension')
+await cp(zipPath, mirroredZipPath)
+console.log(`Copied zip for local development: ${mirroredZipPath}`)
+
+console.log(`Chrome extension build completed:
+  dist: ${unpackedDir}
+  zip:  ${zipPath}`)

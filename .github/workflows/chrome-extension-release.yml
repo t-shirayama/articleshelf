@@ -1,0 +1,46 @@
+name: Chrome Extension Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Release tag name (ex. v1.2.3)
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish chrome-extension release asset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: chrome-extension/package-lock.json
+
+      - name: Install extension dependencies
+        working-directory: chrome-extension
+        run: npm ci
+
+      - name: Build Chrome extension package
+        working-directory: chrome-extension
+        run: npm run build
+
+      - name: Publish Chrome extension release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref_name }}
+          name: articleshelf-chrome-extension ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag_name || github.ref_name }}
+          draft: false
+          prerelease: false
+          files: chrome-extension/dist/articleshelf-chrome-extension.zip
+          fail_on_unmatched_files: true

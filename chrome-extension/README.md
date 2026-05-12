@@ -1,7 +1,7 @@
 # ArticleShelf Chrome Extension
 
-ArticleShelf へ現在のページを渡すローカル配布向け Chrome 拡張機能です。
-Chrome Web Store には公開せず、zip をダウンロードして Developer mode で読み込む前提で管理します。
+ArticleShelf へ現在のページを渡す Chrome 拡張機能です。
+Chrome Web Store には公開せず、GitHub Releases の配布 zip をダウンロードして Developer mode で読み込む前提で管理します。
 
 ## 役割
 
@@ -24,8 +24,8 @@ cd chrome-extension
 npm run build
 ```
 
-Windows では PowerShell の `Compress-Archive` を使って zip を生成し、同時に `frontend/public/downloads/articleshelf-chrome-extension.zip` へ最新 zip を同期します。
-macOS / Linux では unpacked 版だけ生成し、zip は `dist/articleshelf-chrome-extension/` を手元で圧縮してください。
+ビルドは OS 非依存で `dist/articleshelf-chrome-extension.zip` を生成します。
+併せて開発便宜のため `frontend/public/downloads/articleshelf-chrome-extension.zip` へも同期しますが、正式導線は GitHub Releases です。
 
 ## ローカルインストール
 
