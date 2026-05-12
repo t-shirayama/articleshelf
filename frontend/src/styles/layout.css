@@ -523,12 +523,15 @@
   justify-self: end;
   width: min(500px, 100%);
   gap: 20px;
-  padding: clamp(28px, 3vw, 42px);
-  background: rgba(255, 253, 250, 0.88);
-  border: 1px solid rgba(222, 217, 206, 0.86);
-  border-radius: 8px;
-  box-shadow: 0 24px 70px rgba(27, 41, 39, 0.13);
-  backdrop-filter: blur(20px);
+  padding: clamp(30px, 3vw, 44px);
+  background:
+    linear-gradient(180deg, rgba(255, 254, 252, 0.97) 0%, rgba(255, 250, 245, 0.94) 100%);
+  border: 1px solid rgba(214, 203, 186, 0.96);
+  border-radius: 18px;
+  box-shadow:
+    0 28px 72px rgba(108, 89, 58, 0.13),
+    0 12px 28px rgba(27, 41, 39, 0.08);
+  backdrop-filter: blur(18px);
 }
 
 .auth-brand {

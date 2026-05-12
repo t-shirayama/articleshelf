@@ -32,7 +32,6 @@
 
 ### P3
 
-- [Improve auth form card contrast](improve-auth-form-card-contrast.md)
 - [Remove auth mode help copy](remove-auth-mode-help-copy.md)
 - [Refine auth hero mockup layout](refine-auth-hero-mockup-layout.md)
 
