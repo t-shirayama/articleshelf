@@ -40,6 +40,30 @@ run_check() {
   sh -c "$command"
 }
 
+assert_e2e_ports_free() {
+  if ! command -v curl >/dev/null 2>&1; then
+    return 0
+  fi
+
+  busy_urls=''
+  for url in http://localhost:4173 http://localhost:18080/actuator/health
+  do
+    if curl -fsS --max-time 2 "$url" >/dev/null 2>&1; then
+      busy_urls="$(printf '%s\n%s' "$busy_urls" "$url")"
+    fi
+  done
+
+  busy_urls="$(printf '%s\n' "$busy_urls" | sed '/^$/d')"
+  if [ -n "$busy_urls" ]; then
+    echo "ERROR: ArticleShelf pre-push E2E requires dedicated localhost ports, but these endpoints are already responding:"
+    printf '%s\n' "$busy_urls" | sed 's/^/  - /'
+    echo "Stop the existing dev/E2E server before pushing, for example:"
+    echo "  docker compose -f docker-compose.e2e.yml down"
+    echo "Only use PLAYWRIGHT_USE_EXISTING_SERVER=1 when intentionally running against a prepared E2E server."
+    exit 1
+  fi
+}
+
 while read -r local_ref local_sha remote_ref remote_sha
 do
   local_ref="${local_ref%"$cr"}"
@@ -108,6 +132,7 @@ if [ "$run_frontend_auth_checks" = false ] && [ "$run_mobile_e2e" = false ] && [
 fi
 
 if [ "$run_frontend_auth_checks" = true ]; then
+  assert_e2e_ports_free
   run_check \
     "frontend auth/router targeted unit tests" \
     "cd frontend && npm run test:unit -- src/features/articles/composables/useWorkspaceAccountActions.test.ts src/features/auth/components/AuthScreen.test.ts"
@@ -117,6 +142,7 @@ if [ "$run_frontend_auth_checks" = true ]; then
 fi
 
 if [ "$run_mobile_e2e" = true ]; then
+  assert_e2e_ports_free
   run_check \
     "frontend mobile shell smoke E2E" \
     "cd frontend && npx playwright test e2e/mobile-responsive.spec.ts -g \"mobile drawer and bottom navigation reach primary screens\""

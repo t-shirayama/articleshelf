@@ -46,6 +46,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
 - Playwright E2E は既定で `docker-compose.e2e.yml` の専用 stack を `http://localhost:4173` / `http://localhost:18080` で起動し、`PLAYWRIGHT_USE_EXISTING_SERVER=1` を明示しない限り既存 `localhost` サーバーを再利用しない
+- pre-push や E2E smoke の前に既存 dev server / 古い E2E stack が `localhost:4173` / `localhost:18080` を使っている場合は止める。port が埋まったままだと Playwright webServer が起動できず、push は hook 失敗として止まる
 - frontend security header regression: `npm run test:unit -- src/shared/security/cspHeaders.test.ts`
 - Chrome extension packaging: `cd chrome-extension && npm run build`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
@@ -70,6 +71,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 ローカル hook は CI の代替ではなく早期検知のために使う。`.githooks/pre-commit` は型チェックと静的な運用ガードに限定し、`.githooks/pre-push` は変更パスに応じて frontend targeted unit / E2E smoke や backend `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest`、`docker compose run --rm backend mvn test spotbugs:check` を実行する。
 E2E 基盤、auth / router、workspace account、backend domain / application 境界の変更では、push 前に hook が走る前提で確認するが、最終 gate は引き続き GitHub Actions CI を正本にする。
+pre-push の E2E smoke が `localhost:4173` または `localhost:18080` の既存応答を検出した場合は、`docker compose -f docker-compose.e2e.yml down` などで既存 stack を止めてから再実行する。`PLAYWRIGHT_USE_EXISTING_SERVER=1` は専用の準備済み E2E server を使う明示的な手動確認に限る。
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
