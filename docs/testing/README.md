@@ -49,6 +49,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie 固定値、health check path を確認する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する
+- 記事一覧 query の `page` / `size` / `sort` を変更した場合は、`ArticleListQueryTest` で既定値と許可 sort 値、`JpaArticleRepositoryPostgresIntegrationTest` で LIMIT / OFFSET、sort、tag join、wildcard search の組み合わせを確認する
 - refresh token rotation、pessimistic lock、条件付き update を変更した場合は、auth unit / integration に加えて PostgreSQL 実体での persistence / auth 確認を優先する
 - Java、Spring Boot、Mockito、JaCoCo、Surefire、SpotBugs の version を更新した場合は、backend PR gate を再実行し、Mockito javaagent / JaCoCo `argLine` / JVM warning が再発していないか確認する
 - CI / CD の段階構成と品質ゲートは [CI / CD Architecture](../architecture/ci-cd/README.md) に従う

@@ -2,31 +2,40 @@ package com.articleshelf.application.article;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ArticleListQueryTest {
     @Test
-    void leavesItemsUnchangedWhenPaginationIsNotRequested() {
+    void usesCreatedDescAsTheDefaultSort() {
         ArticleListQuery query = new ArticleListQuery(null, null, null);
 
-        assertThat(query.slice(List.of("a", "b", "c"))).containsExactly("a", "b", "c");
+        assertThat(query.paged()).isFalse();
+        assertThat(query.normalizedSort()).isEqualTo(ArticleListQuery.SortKey.CREATED_DESC);
     }
 
     @Test
-    void normalizesPageAndSizeBeforeSlicingItems() {
+    void normalizesPageAndSizeWithinSupportedBounds() {
         ArticleListQuery query = new ArticleListQuery(-1, 500, "createdDesc");
 
         assertThat(query.normalizedPage()).isZero();
         assertThat(query.normalizedSize()).isEqualTo(200);
-        assertThat(query.slice(List.of("a", "b", "c"))).containsExactly("a", "b", "c");
+        assertThat(query.normalizedSort()).isEqualTo(ArticleListQuery.SortKey.CREATED_DESC);
     }
 
     @Test
-    void slicesRequestedPage() {
-        ArticleListQuery query = new ArticleListQuery(1, 2, null);
+    void acceptsDocumentedSortKeysAndFallsBackForUnknownValues() {
+        assertThat(new ArticleListQuery(null, null, "CREATED_ASC").normalizedSort())
+                .isEqualTo(ArticleListQuery.SortKey.CREATED_ASC);
+        assertThat(new ArticleListQuery(null, null, "UPDATED_DESC").normalizedSort())
+                .isEqualTo(ArticleListQuery.SortKey.UPDATED_DESC);
+        assertThat(new ArticleListQuery(null, null, "READ_DATE_DESC").normalizedSort())
+                .isEqualTo(ArticleListQuery.SortKey.READ_DATE_DESC);
+        assertThat(new ArticleListQuery(null, null, "TITLE_ASC").normalizedSort())
+                .isEqualTo(ArticleListQuery.SortKey.TITLE_ASC);
+        assertThat(new ArticleListQuery(null, null, "RATING_DESC").normalizedSort())
+                .isEqualTo(ArticleListQuery.SortKey.RATING_DESC);
 
-        assertThat(query.slice(List.of("a", "b", "c", "d", "e"))).containsExactly("c", "d");
+        assertThat(new ArticleListQuery(null, null, "not-a-sort").normalizedSort())
+                .isEqualTo(ArticleListQuery.SortKey.CREATED_DESC);
     }
 }

@@ -33,7 +33,7 @@ public class SearchArticlesQuery {
             ArticleListQuery query
     ) {
         ArticleSearchCriteria criteria = new ArticleSearchCriteria(status, normalizeFilter(tag), normalizeFilter(search), favorite);
-        return query.slice(articleRepository.searchByUserId(user.id(), criteria)).stream()
+        return articleRepository.searchByUserId(user.id(), criteria, query).stream()
                 .map(ArticleResponse::from)
                 .toList();
     }

@@ -19,6 +19,7 @@ import org.springframework.transaction.support.TransactionOperations;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -385,8 +386,8 @@ class ArticleServiceTest {
         }
 
         @Override
-        public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
-            return findAllByUserId(userId).stream()
+        public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria, ArticleListQuery query) {
+            List<Article> filtered = findAllByUserId(userId).stream()
                     .filter(article -> criteria.status() == null || article.getStatus() == criteria.status())
                     .filter(article -> criteria.favorite() == null || article.isFavorite() == criteria.favorite())
                     .filter(article -> criteria.tag() == null || article.getTags().stream()
@@ -394,6 +395,12 @@ class ArticleServiceTest {
                     .filter(article -> criteria.search() == null || matchesSearch(article, criteria.search()))
                     .sorted(Comparator.comparing(Article::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                     .toList();
+            if (!query.paged()) {
+                return filtered;
+            }
+            int fromIndex = Math.min(filtered.size(), query.normalizedPage() * query.normalizedSize());
+            int toIndex = Math.min(filtered.size(), fromIndex + query.normalizedSize());
+            return new ArrayList<>(filtered.subList(fromIndex, toIndex));
         }
 
         @Override

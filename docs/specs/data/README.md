@@ -55,6 +55,10 @@
 | createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
 | updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
 
+記事一覧取得では、`user_id` を必須条件に `status`、単一 `tag`、`favorite`、`search` を組み合わせて検索する。
+`page` / `size` / `sort` は `ArticleListQuery` から repository 実装へ渡し、PostgreSQL の `LIMIT` / `OFFSET` / `ORDER BY` で適用する。
+`sort` の既定値は `CREATED_DESC` で、`TITLE_ASC` や `READ_DATE_DESC` でも tie-breaker として `created_at`、`id` を追加して順序を安定させる。
+
 ## Tag
 
 | API field | DB column | 型 | 制約 / 説明 |

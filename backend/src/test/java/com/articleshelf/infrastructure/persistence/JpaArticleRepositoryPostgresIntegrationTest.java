@@ -1,5 +1,6 @@
 package com.articleshelf.infrastructure.persistence;
 
+import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.ArticleStatus;
@@ -165,7 +166,8 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
         List<Article> result = repository.searchByUserId(
                 userId,
-                new ArticleSearchCriteria(ArticleStatus.READ, "vue", "pinia", true)
+                new ArticleSearchCriteria(ArticleStatus.READ, "vue", "pinia", true),
+                new ArticleListQuery(null, null, null)
         );
 
         assertThat(result).singleElement()
@@ -243,17 +245,51 @@ class JpaArticleRepositoryPostgresIntegrationTest {
 
         List<Article> percentResult = repository.searchByUserId(
                 userId,
-                new ArticleSearchCriteria(null, null, "100%", null)
+                new ArticleSearchCriteria(null, null, "100%", null),
+                new ArticleListQuery(null, null, null)
         );
         List<Article> underscoreResult = repository.searchByUserId(
                 userId,
-                new ArticleSearchCriteria(null, null, "foo_bar", null)
+                new ArticleSearchCriteria(null, null, "foo_bar", null),
+                new ArticleListQuery(null, null, null)
         );
 
         assertThat(percentResult).extracting(Article::getUrl)
                 .containsExactly("https://example.com/percent");
         assertThat(underscoreResult).extracting(Article::getUrl)
                 .containsExactly("https://example.com/underscore");
+    }
+
+    @Test
+    void postgresSearchAppliesDbBackedPaginationAndSort() {
+        UUID userId = createUser("postgres-page-sort");
+        Tag tag = tag(userId, "Architecture");
+        repository.save(article(userId, "https://example.com/a", "Gamma", 2, LocalDate.parse("2026-05-02"), Set.of(tag), Instant.parse("2026-05-01T00:00:00Z"), Instant.parse("2026-05-03T00:00:00Z")));
+        repository.save(article(userId, "https://example.com/b", "Alpha", 5, LocalDate.parse("2026-05-05"), Set.of(tag), Instant.parse("2026-05-02T00:00:00Z"), Instant.parse("2026-05-05T00:00:00Z")));
+        repository.save(article(userId, "https://example.com/c", "Beta", 3, null, Set.of(tag), Instant.parse("2026-05-03T00:00:00Z"), Instant.parse("2026-05-04T00:00:00Z")));
+
+        List<Article> titlePage = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(null, "architecture", null, null),
+                new ArticleListQuery(0, 2, "TITLE_ASC")
+        );
+        List<Article> ratingPage = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(null, null, null, null),
+                new ArticleListQuery(0, 2, "RATING_DESC")
+        );
+        List<Article> readDateOrder = repository.searchByUserId(
+                userId,
+                new ArticleSearchCriteria(null, null, null, null),
+                new ArticleListQuery(null, null, "READ_DATE_DESC")
+        );
+
+        assertThat(titlePage).extracting(Article::getTitle)
+                .containsExactly("Alpha", "Beta");
+        assertThat(ratingPage).extracting(Article::getRating)
+                .containsExactly(5, 3);
+        assertThat(readDateOrder).extracting(Article::getTitle)
+                .containsExactly("Alpha", "Gamma", "Beta");
     }
 
     @Test
@@ -287,11 +323,16 @@ class JpaArticleRepositoryPostgresIntegrationTest {
     }
 
     private Article article(UUID userId, String url, int rating, LocalDate readDate, Set<Tag> tags) {
+        Instant now = Instant.now();
+        return article(userId, url, "Stored article", rating, readDate, tags, now, now);
+    }
+
+    private Article article(UUID userId, String url, String title, int rating, LocalDate readDate, Set<Tag> tags, Instant createdAt, Instant updatedAt) {
         return new Article(
                 null,
                 userId,
                 url,
-                "Stored article",
+                title,
                 "Stored summary",
                 "",
                 readDate == null ? ArticleStatus.UNREAD : ArticleStatus.READ,
@@ -300,8 +341,8 @@ class JpaArticleRepositoryPostgresIntegrationTest {
                 rating,
                 "Stored note",
                 tags,
-                Instant.now(),
-                Instant.now()
+                createdAt,
+                updatedAt
         );
     }
 

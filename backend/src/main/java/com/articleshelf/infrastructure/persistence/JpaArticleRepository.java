@@ -1,10 +1,14 @@
 package com.articleshelf.infrastructure.persistence;
 
+import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.Tag;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,13 +35,26 @@ public class JpaArticleRepository implements ArticleRepository {
     }
 
     @Override
-    public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
+    public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria, ArticleListQuery query) {
+        if (query.paged()) {
+            Pageable pageable = PageRequest.of(query.normalizedPage(), query.normalizedSize(), toSort(query));
+            return articleJpaRepository.searchByUserId(
+                    userId,
+                    criteria.status(),
+                    criteria.tag(),
+                    toLikePattern(criteria.search()),
+                    criteria.favorite(),
+                    pageable
+            ).stream().map(this::toDomain).toList();
+        }
+
         return articleJpaRepository.searchByUserId(
                 userId,
                 criteria.status(),
                 criteria.tag(),
                 toLikePattern(criteria.search()),
-                criteria.favorite()
+                criteria.favorite(),
+                toSort(query)
         ).stream().map(this::toDomain).toList();
     }
 
@@ -128,5 +145,20 @@ public class JpaArticleRepository implements ArticleRepository {
                 .replace("!", "!!")
                 .replace("%", "!%")
                 .replace("_", "!_");
+    }
+
+    private Sort toSort(ArticleListQuery query) {
+        return switch (query.normalizedSort()) {
+            case CREATED_ASC -> Sort.by(Sort.Order.asc("createdAt"), Sort.Order.desc("id"));
+            case UPDATED_DESC -> Sort.by(Sort.Order.desc("updatedAt"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+            case READ_DATE_DESC -> Sort.by(
+                    Sort.Order.desc("readDate").nullsLast(),
+                    Sort.Order.desc("createdAt"),
+                    Sort.Order.desc("id")
+            );
+            case TITLE_ASC -> Sort.by(Sort.Order.asc("title"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+            case RATING_DESC -> Sort.by(Sort.Order.desc("rating"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+            case CREATED_DESC -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+        };
     }
 }
