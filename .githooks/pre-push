@@ -71,24 +71,68 @@ run_e2e_check() {
   fi
 }
 
-assert_e2e_ports_free() {
-  if ! command -v curl >/dev/null 2>&1; then
-    return 0
+is_port_listening() {
+  port="$1"
+
+  if command -v powershell.exe >/dev/null 2>&1; then
+    if powershell.exe -NoProfile -NonInteractive -Command "if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) { exit 0 } exit 1" >/dev/null 2>&1; then
+      return 0
+    fi
   fi
 
-  busy_urls=''
-  for url in http://localhost:4173 http://localhost:18080/actuator/health
+  if command -v pwsh >/dev/null 2>&1; then
+    if pwsh -NoProfile -NonInteractive -Command "if (Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) { exit 0 } exit 1" >/dev/null 2>&1; then
+      return 0
+    fi
+  fi
+
+  if command -v ss >/dev/null 2>&1; then
+    if ss -ltn 2>/dev/null | grep -Eq "[:.]$port[[:space:]]"; then
+      return 0
+    fi
+  fi
+
+  if command -v netstat >/dev/null 2>&1; then
+    if netstat -an 2>/dev/null | grep -Eiq "[:.]$port[[:space:]].*LISTEN"; then
+      return 0
+    fi
+  fi
+
+  if command -v curl >/dev/null 2>&1; then
+    case "$port" in
+      4173)
+        if curl -fsS --max-time 2 http://localhost:4173 >/dev/null 2>&1; then
+          return 0
+        fi
+        ;;
+      18080)
+        if curl -fsS --max-time 2 http://localhost:18080/actuator/health >/dev/null 2>&1; then
+          return 0
+        fi
+        ;;
+    esac
+  fi
+
+  return 1
+}
+
+assert_e2e_ports_free() {
+  busy_ports=''
+  for port in 4173 18080
   do
-    if curl -fsS --max-time 2 "$url" >/dev/null 2>&1; then
-      busy_urls="$(printf '%s\n%s' "$busy_urls" "$url")"
+    if is_port_listening "$port"; then
+      busy_ports="$(printf '%s\n%s' "$busy_ports" "localhost:$port")"
     fi
   done
 
-  busy_urls="$(printf '%s\n' "$busy_urls" | sed '/^$/d')"
-  if [ -n "$busy_urls" ]; then
-    echo "ERROR: ArticleShelf pre-push E2E requires dedicated localhost ports, but these endpoints are already responding:"
-    printf '%s\n' "$busy_urls" | sed 's/^/  - /'
+  busy_ports="$(printf '%s\n' "$busy_ports" | sed '/^$/d')"
+  if [ -n "$busy_ports" ]; then
+    echo "ERROR: ArticleShelf pre-push E2E requires dedicated localhost TCP ports, but these ports are already in use:"
+    printf '%s\n' "$busy_ports" | sed 's/^/  - /'
     echo "The dedicated E2E stack was already stopped by the hook, so another dev server or manually-started process is likely using the port."
+    echo "On Windows, identify the process with:"
+    echo "  netstat -ano | findstr \":4173\""
+    echo "  netstat -ano | findstr \":18080\""
     echo "Stop that process before pushing, or intentionally run Playwright with PLAYWRIGHT_USE_EXISTING_SERVER=1 against a prepared E2E server."
     echo "For stale ArticleShelf E2E containers, use:"
     echo "  docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans"
