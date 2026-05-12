@@ -68,13 +68,20 @@ async function submit(): Promise<void> {
         password: password.value,
         displayName: displayName.value.trim(),
       });
+      await router.push(resolvePostAuthPath());
       return;
     }
     await authStore.login({ username: username.value.trim().toLowerCase(), password: password.value });
+    await router.push(resolvePostAuthPath());
   } catch (error: unknown) {
     localError.value =
       errorMessage(error, t("auth.errors.authFailed"));
   }
+}
+
+function resolvePostAuthPath(): string {
+  const returnTo = typeof route.query.returnTo === "string" ? route.query.returnTo : "";
+  return returnTo.startsWith("/") ? returnTo : "/articles";
 }
 
 function switchMode(nextMode: AuthMode): void {

@@ -15,7 +15,7 @@
 
 ### P2
 
-- [Chrome extension local distribution](chrome-extension-local-distribution.md)
+- 該当なし
 
 ### P3
 

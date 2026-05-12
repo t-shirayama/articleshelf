@@ -46,6 +46,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
 - frontend security header regression: `npm run test:unit -- src/shared/security/cspHeaders.test.ts`
+- Chrome extension packaging: `cd chrome-extension && npm run build`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド PR gate: `docker compose run --rm backend mvn test spotbugs:check` を CI で必須化し、JUnit / PostgreSQL IT / Clean Architecture dependency test / SpotBugs をまとめて確認する
 - deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie 固定値、health check path を確認する
@@ -74,6 +75,8 @@ API client unit test では refresh retry、CSRF header、Accept-Language、erro
 UI / E2E 確認では、主要 dialog の focus 復帰、記事カードの詳細 open button と右上 action button の独立操作、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 ArticleWorkspace の検索 debounce は `useArticleSearchDebounce` の unit test で、最後の入力値だけが反映されることと unmount / logout 相当の cancel で遅延反映されないことを確認する。
 ArticleWorkspace の account operation は `useWorkspaceAccountActions` の unit test で、logout / password change / logout all 時の user scoped state reset、dialog close、error surfacing を確認する。
+Chrome 拡張機能導線では、`AuthScreen.test.ts` で `returnTo` 付きログイン後の復帰を確認し、`useArticleCreateForm.test.ts` で拡張機能から渡した URL / title seed が追加モーダルへ反映されることを確認する。
+Chrome 拡張機能の手動確認では、`cd chrome-extension && npm run build` で zip と unpacked 版を生成し、Chrome の `Load unpacked` で `dist/articleshelf-chrome-extension/` を読み込む。popup から ArticleShelf URL を保存し、通常の `https` ページを開いた状態で `Open draft in ArticleShelf` が `/articles?source=extension...` を開き、追加モーダルへ値を流せることを見る。
 記事詳細の shell 変更では、desktop で sidebar を維持したまま詳細を開けること、calendar から開いた詳細で戻ると元の月と表示モードへ戻ること、mobile で detail 中は bottom navigation が出ず drawer から移動できることを確認する。
 Router 導入後の E2E / 手動確認では、未認証 protected route が router guard で `/login` へ補正されること、認証後に `/articles` / `/calendar` / `/tags` / `/settings` へ直接入れること、認証済みで `/login` / `/register` を開くと `/articles` へ戻ること、記事カード選択で `/articles/:id` になることを見る。
 記事一覧 query model は `ArticleListQueryTest` で、sort 既定値と許可値を確認する。frontend では `articlesApi.test.ts` と `articles.test.ts` で query parameter 直列化、current page response、snapshot fallback、page move state を確認する。

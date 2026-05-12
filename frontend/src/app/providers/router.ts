@@ -58,10 +58,18 @@ router.beforeEach(async (to) => {
   const guestOnly = to.meta.guestOnly === true
 
   if (requiresAuth && !authStore.isAuthenticated) {
-    return '/login'
+    return {
+      path: '/login',
+      query: {
+        returnTo: to.fullPath
+      }
+    }
   }
   if (guestOnly && authStore.isAuthenticated) {
-    return '/articles'
+    const returnTo = typeof to.query.returnTo === 'string' && to.query.returnTo.startsWith('/')
+      ? to.query.returnTo
+      : '/articles'
+    return returnTo
   }
 
   return true

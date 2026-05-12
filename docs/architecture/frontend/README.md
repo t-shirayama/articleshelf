@@ -22,6 +22,7 @@
 - `App.vue`: Vuetify アプリの最上位 shell、auth 初期化待ち表示、`router-view` の配置
 - `Vuetify`: ボタン、入力、カード、ダイアログ、チップなどのUIコンポーネント
 - `frontend/public/_headers`: Cloudflare Pages 用の frontend security header 正本。static asset 配信時の CSP / nosniff / HSTS などをここで管理する
+- `chrome-extension/`: 現在タブの `url` / `title` を ArticleShelf の追加導線へ渡すローカル配布向け Chrome 拡張機能
 
 ## 責務分割
 
@@ -49,6 +50,7 @@
 - app providers: `main.ts` は Vue app 作成と provider 登録に集中し、Pinia、i18n、Vuetify の設定は `app/providers` に分ける
 - CSP-aware styling: app 固有の配色や可変幅は class / static CSS で表現し、element の inline `style` 属性へ依存しない。Vuetify theme runtime が必要とする `<style>` 注入だけを CSP の `style-src-elem` で許可する
 - router-backed workspace: `/login`、`/register`、`/articles`、`/articles/:id`、`/calendar`、`/tags`、`/settings` を Vue Router で定義し、guest route は `AuthRouteView`、protected route は `WorkspaceRouteView` を lazy load する。認証状態に応じた redirect は router guard に寄せる
+- extension handoff: Chrome 拡張機能は `/articles?source=extension&articleUrl=...&articleTitle=...` を開き、router guard は未認証時に `/login?returnTo=...` へ退避する。workspace 側は query を一度だけ consume して記事追加モーダルへ seed を流し、URL は modal / preview 側で再検証する
 - article form split: 詳細ページの閲覧セクション、メモ編集 / preview、追加モーダルの create form state は dedicated component / composable に分ける
 - shared boundary: 認証付き fetch、共通 UI、i18n、日付 formatting、IndexedDB cache のような横断処理だけを `shared` に置く
 - auth-aware API client: `shared/api/client` が access token 付与、CSRF header、401 後の refresh retry、API error mapping、malformed response の汎用エラー化を担う

@@ -92,4 +92,22 @@ describe('useArticleCreateForm', () => {
 
     expect(form.tagOptions.value).toEqual(['Vue', 'Testing'])
   })
+
+  it('applies initial seed values when opened from an external draft', async () => {
+    const open = ref(false)
+    const seed = ref({ url: 'https://example.com/from-extension', title: 'Draft title' })
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+      callback(0)
+      return 1
+    })
+
+    const form = useArticleCreateForm(open, ref([]), (key) => key, seed)
+
+    open.value = true
+    await nextTick()
+    await nextTick()
+
+    expect(form.form.url).toBe('https://example.com/from-extension')
+    expect(form.form.title).toBe('Draft title')
+  })
 })

@@ -1,6 +1,6 @@
 import { computed, nextTick, reactive, ref, watch, type Ref } from 'vue'
 import { createEmptyArticleCreateForm, createFormToArticleInput } from '../domain/articleForms'
-import type { ArticleInput, Tag } from '../types'
+import type { ArticleFormSeed, ArticleInput, Tag } from '../types'
 
 type Translate = (key: string) => string
 
@@ -8,6 +8,7 @@ export function useArticleCreateForm(
   open: Ref<boolean>,
   tags: Ref<Tag[]>,
   t: Translate,
+  initialSeed?: Ref<ArticleFormSeed | null>,
 ) {
   const form = reactive(createEmptyArticleCreateForm())
   const submitted = ref(false)
@@ -25,12 +26,19 @@ export function useArticleCreateForm(
     }
     openerElement.value = document.activeElement instanceof HTMLElement ? document.activeElement : null
     reset()
+    applyInitialSeed()
     focusUrlInput()
   })
 
   function reset(): void {
     Object.assign(form, createEmptyArticleCreateForm())
     submitted.value = false
+  }
+
+  function applyInitialSeed(): void {
+    if (!initialSeed?.value) return
+    form.url = initialSeed.value.url
+    form.title = initialSeed.value.title
   }
 
   function focusUrlInput(): void {

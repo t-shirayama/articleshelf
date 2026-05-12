@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { KeyRound, LogOut, Trash2, X } from "lucide-vue-next";
+import { Download, KeyRound, LogOut, Puzzle, Trash2, X } from "lucide-vue-next";
 
 const props = defineProps<{
   open: boolean;
@@ -17,6 +17,8 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const extensionVersion = "0.1.0";
+const extensionDownloadPath = "/downloads/articleshelf-chrome-extension.zip";
 const currentPassword = ref("");
 const newPassword = ref("");
 const deletePassword = ref("");
@@ -69,6 +71,39 @@ function submitDeleteAccount(): void {
         <div v-if="error" class="form-error-banner" role="alert" aria-live="assertive">
           <span>{{ error }}</span>
         </div>
+
+        <section class="account-settings-section">
+          <div class="account-settings-section-heading">
+            <Puzzle :size="18" />
+            <strong>{{ t("auth.account.extensionTitle") }}</strong>
+            <span class="account-settings-chip">
+              {{ t("auth.account.extensionVersion", { version: extensionVersion }) }}
+            </span>
+          </div>
+          <p>{{ t("auth.account.extensionDescription") }}</p>
+          <div class="account-settings-extension-actions">
+            <VBtn
+              color="primary"
+              variant="flat"
+              :href="extensionDownloadPath"
+              download
+            >
+              <template #prepend>
+                <Download :size="18" />
+              </template>
+              {{ t("auth.account.extensionDownload") }}
+            </VBtn>
+          </div>
+          <ol class="account-settings-steps">
+            <li>{{ t("auth.account.extensionStepOne") }}</li>
+            <li>{{ t("auth.account.extensionStepTwo") }}</li>
+            <li>{{ t("auth.account.extensionStepThree") }}</li>
+            <li>{{ t("auth.account.extensionStepFour") }}</li>
+          </ol>
+          <p>{{ t("auth.account.extensionReinstall") }}</p>
+        </section>
+
+        <VDivider />
 
         <section class="account-settings-section">
           <div class="account-settings-section-heading">

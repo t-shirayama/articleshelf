@@ -7,19 +7,21 @@ import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
 import { useArticleCreateForm } from '../composables/useArticleCreateForm'
 import { useArticlePreview } from '../composables/useArticlePreview'
-import type { ArticleInput, Tag } from '../types'
+import type { ArticleFormSeed, ArticleInput, Tag } from '../types'
 
 const props = withDefaults(defineProps<{
   open?: boolean
   tags?: Tag[]
   error?: string
   duplicateArticleId?: string
+  initialSeed?: ArticleFormSeed | null
   saving?: boolean
 }>(), {
   open: false,
   tags: () => [],
   error: '',
   duplicateArticleId: '',
+  initialSeed: null,
   saving: false
 })
 
@@ -34,6 +36,7 @@ const { form, submitted, urlInput, tagOptions, urlError, readDateError, createSu
   toRef(props, 'open'),
   toRef(props, 'tags'),
   t,
+  toRef(props, 'initialSeed'),
 )
 const {
   preview,
@@ -51,7 +54,10 @@ watch(() => props.open, (open) => {
   if (!open) {
     resetPreview()
     detailsPanel.value = null
+    return
   }
+  detailsPanel.value = props.initialSeed?.title.trim() ? 'details' : null
+  if (form.url.trim()) void requestPreview()
 })
 
 function cancel(): void {

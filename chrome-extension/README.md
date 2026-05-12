@@ -1,13 +1,36 @@
 # ArticleShelf Chrome Extension
 
-Chrome 拡張機能の実装を置く予定のディレクトリです。
+ArticleShelf へ現在のページを渡すローカル配布向け Chrome 拡張機能です。
+Chrome Web Store には公開せず、zip をダウンロードして Developer mode で読み込む前提で管理します。
 
-## 方針
+## 役割
 
-- 初期配布は Chrome Web Store ではなく、ローカルインストール用 zip として扱います。
-- 配布 zip は `chrome-extension/dist/` に生成します。
-- Web アプリ側にはダウンロードリンクと、Chrome のデベロッパーモードで読み込む手順を表示します。
+- 現在のタブの `url` と `title` を取得する
+- ArticleShelf の `/articles?source=extension&articleUrl=...&articleTitle=...` を新しいタブで開く
+- token や cookie は拡張機能へ保存しない
+- ArticleShelf の接続先 URL は popup 内で変更し、`chrome.storage.sync` に保存する
 
-## 出力先
+## ディレクトリ
 
-`dist/` は配布物の出力先です。実装時に package / build script を追加し、zip 生成手順をここへ追記します。
+- `src/`: manifest、popup HTML / CSS / JS
+- `scripts/build.mjs`: unpacked 配布物と zip を生成する build script
+- `dist/articleshelf-chrome-extension/`: Chrome の「Load unpacked」で読み込むフォルダ
+- `dist/articleshelf-chrome-extension.zip`: 配布用 zip
+
+## ビルド
+
+```bash
+cd chrome-extension
+npm run build
+```
+
+Windows では PowerShell の `Compress-Archive` を使って zip を生成し、同時に `frontend/public/downloads/articleshelf-chrome-extension.zip` へ最新 zip を同期します。
+macOS / Linux では unpacked 版だけ生成し、zip は `dist/articleshelf-chrome-extension/` を手元で圧縮してください。
+
+## ローカルインストール
+
+1. `npm run build` で `dist/articleshelf-chrome-extension/` を生成する
+2. Chrome で `chrome://extensions` を開く
+3. 右上の Developer mode を有効化する
+4. `Load unpacked` から `dist/articleshelf-chrome-extension/` を選ぶ
+5. popup を開いて ArticleShelf URL を確認し、`Open draft in ArticleShelf` を使う

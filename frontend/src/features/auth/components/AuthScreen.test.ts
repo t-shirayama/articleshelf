@@ -4,7 +4,7 @@ import { createApp, defineComponent, h, nextTick, reactive, type App, type PropT
 import AuthScreen from './AuthScreen.vue'
 import { i18n } from '../../../shared/i18n'
 
-const routeState = reactive({ path: '/login' })
+const routeState = reactive<{ path: string, query: Record<string, string> }>({ path: '/login', query: {} })
 const routerPush = vi.fn((path: string) => {
   routeState.path = path
   return Promise.resolve()
@@ -31,6 +31,7 @@ describe('AuthScreen', () => {
     const globalI18n = i18n.global as unknown as { locale: { value: string } }
     globalI18n.locale.value = 'ja'
     routeState.path = '/login'
+    routeState.query = {}
     routerPush.mockClear()
     authStore.loading = false
     authStore.error = ''
@@ -92,6 +93,20 @@ describe('AuthScreen', () => {
       displayName: 'New Reader',
       password: 'new-password123'
     })
+
+    app.unmount()
+  })
+
+  it('returns to the requested route after login', async () => {
+    routeState.query = { returnTo: '/articles?source=extension&articleUrl=https%3A%2F%2Fexample.com' }
+    const { root, app } = mountAuthScreen()
+
+    setInput(root, '#auth-username', 'reader_1')
+    setInput(root, '#auth-password', 'password123')
+    submit(root)
+    await nextTick()
+
+    expect(routerPush).toHaveBeenCalledWith('/articles?source=extension&articleUrl=https%3A%2F%2Fexample.com')
 
     app.unmount()
   })

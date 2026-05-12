@@ -65,6 +65,11 @@ export interface ArticlePreview {
   errorReason: string | null
 }
 
+export interface ArticleFormSeed {
+  url: string
+  title: string
+}
+
 export interface MotivationCardData {
   id: number
   title: string

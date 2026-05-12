@@ -29,7 +29,7 @@ import { useTagActions } from "../composables/useTagActions";
 import { useWorkspaceAccountActions } from "../composables/useWorkspaceAccountActions";
 import { useWorkspaceNavigation } from "../composables/useWorkspaceNavigation";
 import { useArticlesStore } from "../stores/articles";
-import type { ArticleSort, ArticleStatus } from "../types";
+import type { ArticleFormSeed, ArticleSort, ArticleStatus } from "../types";
 import type { Article } from "../types";
 
 type DetailReturnView = "list" | "calendar";
@@ -50,6 +50,7 @@ const detailReturnView = ref<DetailReturnView>("list");
 const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
 const calendarMode = ref<CalendarMode>("created");
 const mobileDrawerOpen = ref(false);
+const lastExtensionDraftKey = ref("");
 let removeWorkspaceRouteGuard: (() => void) | null = null;
 
 const availableTagNames = computed<string[]>(() =>
@@ -78,6 +79,7 @@ const {
   modalOpen,
   articleFormError,
   duplicateArticleId,
+  articleFormSeed,
   openArticleModal,
   closeArticleModal: closeArticleModalState,
   closeForDuplicateOpen,
@@ -295,6 +297,20 @@ async function applyWorkspaceRoute(): Promise<void> {
     accountDialogOpen.value = true;
     return;
   }
+  if (route.path === "/articles") {
+    const extensionDraft = readExtensionDraftFromRoute();
+    if (extensionDraft) {
+      const draftKey = buildExtensionDraftKey(extensionDraft);
+      if (lastExtensionDraftKey.value !== draftKey) {
+        lastExtensionDraftKey.value = draftKey;
+        navigateWorkspaceToList();
+        openArticleModal(extensionDraft);
+        void router.replace("/articles");
+      }
+      return;
+    }
+    lastExtensionDraftKey.value = "";
+  }
   if (typeof route.params.id === "string") {
     if (viewMode.value !== "calendar" && detailReturnView.value !== "calendar") {
       detailReturnView.value = "list";
@@ -382,6 +398,30 @@ function editCreatedArticle(): void {
 function continueCreatingArticle(): void {
   createSnackbarOpen.value = false;
   openArticleModal();
+}
+
+function readExtensionDraftFromRoute(): ArticleFormSeed | null {
+  if (route.query.source !== "extension") return null;
+  const articleUrl = typeof route.query.articleUrl === "string" ? route.query.articleUrl.trim() : "";
+  if (!isHttpUrl(articleUrl)) return null;
+  const articleTitle = typeof route.query.articleTitle === "string" ? route.query.articleTitle.trim() : "";
+  return {
+    url: articleUrl,
+    title: articleTitle,
+  };
+}
+
+function buildExtensionDraftKey(seed: ArticleFormSeed): string {
+  return `${seed.url}::${seed.title}`;
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function toMonthKey(date: Date): string {
@@ -522,6 +562,7 @@ const {
     :tags="store.tags"
     :error="articleFormError"
     :duplicate-article-id="duplicateArticleId"
+    :initial-seed="articleFormSeed"
     :saving="isCreatingArticle"
     @close="closeArticleModal"
     @open-duplicate="openDuplicateArticleFromCurrentView"
