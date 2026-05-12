@@ -23,6 +23,10 @@ function requireDocker(args) {
   }
 }
 
+function stopStack() {
+  runDocker(['down', '-v', '--remove-orphans'], { stdio: 'inherit' })
+}
+
 function serviceContainerId(serviceName) {
   const result = runDocker(['ps', '-q', serviceName])
   return result.stdout.trim()
@@ -71,10 +75,12 @@ const logs = spawn('docker', [...composeArgs, 'logs', '-f'], {
 for (const signal of ['SIGINT', 'SIGTERM']) {
   process.on(signal, () => {
     logs.kill(signal)
+    stopStack()
     process.exit(0)
   })
 }
 
 logs.on('exit', (code) => {
+  stopStack()
   process.exit(code ?? 0)
 })

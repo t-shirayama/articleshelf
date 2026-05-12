@@ -27,7 +27,7 @@ After the initial release, treat changes as maintenance, improvement, Backlog ex
    - Frontend Vue/CSS changes: run `npm run build` in `frontend` when practical.
    - Backend Java/API changes: use Docker-based Maven, such as `docker compose run --rm backend mvn test`.
    - Hook or script changes: run the script directly with a representative staged or local diff when practical.
-   - Before running pre-push E2E smoke or Playwright checks that start the dedicated stack, ensure `http://localhost:4173` and `http://localhost:18080` are not already occupied by a dev server or stale E2E stack. Use `PLAYWRIGHT_USE_EXISTING_SERVER=1` only for an intentionally prepared E2E server.
+   - Before and after running pre-push E2E smoke or Playwright checks that start the dedicated stack, stop stale containers with `docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans`, then ensure `http://localhost:4173` and `http://localhost:18080` are not occupied by another dev server. Use `PLAYWRIGHT_USE_EXISTING_SERVER=1` only for an intentionally prepared E2E server.
 6. Report changed behavior, updated docs, verification result, and any remaining follow-up.
 
 ## Guardrails

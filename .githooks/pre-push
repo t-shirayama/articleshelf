@@ -40,6 +40,37 @@ run_check() {
   sh -c "$command"
 }
 
+stop_e2e_stack() {
+  if ! command -v docker >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "ArticleShelf pre-push: stopping any stale dedicated E2E stack before Playwright starts."
+  docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans >/dev/null 2>&1 || true
+}
+
+run_e2e_check() {
+  description="$1"
+  command="$2"
+
+  stop_e2e_stack
+  assert_e2e_ports_free
+
+  echo "Running [$description]"
+  echo "  $command"
+  set +e
+  sh -c "$command"
+  status="$?"
+  set -e
+
+  echo "ArticleShelf pre-push: cleaning up dedicated E2E stack after Playwright."
+  stop_e2e_stack
+
+  if [ "$status" -ne 0 ]; then
+    exit "$status"
+  fi
+}
+
 assert_e2e_ports_free() {
   if ! command -v curl >/dev/null 2>&1; then
     return 0
@@ -57,9 +88,10 @@ assert_e2e_ports_free() {
   if [ -n "$busy_urls" ]; then
     echo "ERROR: ArticleShelf pre-push E2E requires dedicated localhost ports, but these endpoints are already responding:"
     printf '%s\n' "$busy_urls" | sed 's/^/  - /'
-    echo "Stop the existing dev/E2E server before pushing, for example:"
-    echo "  docker compose -f docker-compose.e2e.yml down"
-    echo "Only use PLAYWRIGHT_USE_EXISTING_SERVER=1 when intentionally running against a prepared E2E server."
+    echo "The dedicated E2E stack was already stopped by the hook, so another dev server or manually-started process is likely using the port."
+    echo "Stop that process before pushing, or intentionally run Playwright with PLAYWRIGHT_USE_EXISTING_SERVER=1 against a prepared E2E server."
+    echo "For stale ArticleShelf E2E containers, use:"
+    echo "  docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans"
     exit 1
   fi
 }
@@ -132,18 +164,16 @@ if [ "$run_frontend_auth_checks" = false ] && [ "$run_mobile_e2e" = false ] && [
 fi
 
 if [ "$run_frontend_auth_checks" = true ]; then
-  assert_e2e_ports_free
   run_check \
     "frontend auth/router targeted unit tests" \
     "cd frontend && npm run test:unit -- src/features/articles/composables/useWorkspaceAccountActions.test.ts src/features/auth/components/AuthScreen.test.ts"
-  run_check \
+  run_e2e_check \
     "frontend authenticated article smoke E2E" \
     "cd frontend && npx playwright test e2e/authenticated-articles.spec.ts -g \"user can register, create an article, logout and login again\""
 fi
 
 if [ "$run_mobile_e2e" = true ]; then
-  assert_e2e_ports_free
-  run_check \
+  run_e2e_check \
     "frontend mobile shell smoke E2E" \
     "cd frontend && npx playwright test e2e/mobile-responsive.spec.ts -g \"mobile drawer and bottom navigation reach primary screens\""
 fi
