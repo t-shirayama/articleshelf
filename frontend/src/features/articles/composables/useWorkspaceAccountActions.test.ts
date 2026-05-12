@@ -8,6 +8,7 @@ describe('useWorkspaceAccountActions', () => {
     const store = { resetState: vi.fn() }
     const cancelSearch = vi.fn()
     const resetNavigation = vi.fn()
+    const navigateToLogin = vi.fn()
     const accountDialogOpen = ref(false)
     const mobileDrawerOpen = ref(true)
 
@@ -16,6 +17,7 @@ describe('useWorkspaceAccountActions', () => {
       store: store as never,
       cancelSearch,
       resetNavigation,
+      navigateToLogin,
       accountDialogOpen,
       mobileDrawerOpen,
     })
@@ -27,6 +29,7 @@ describe('useWorkspaceAccountActions', () => {
     expect(cancelSearch).toHaveBeenCalled()
     expect(store.resetState).toHaveBeenCalled()
     expect(resetNavigation).toHaveBeenCalled()
+    expect(navigateToLogin).toHaveBeenCalled()
   })
 
   it('closes the dialog and resets user scoped state after password change', async () => {
@@ -34,6 +37,7 @@ describe('useWorkspaceAccountActions', () => {
     const store = { resetState: vi.fn() }
     const cancelSearch = vi.fn()
     const resetNavigation = vi.fn()
+    const navigateToLogin = vi.fn()
     const accountDialogOpen = ref(true)
     const mobileDrawerOpen = ref(false)
 
@@ -42,6 +46,7 @@ describe('useWorkspaceAccountActions', () => {
       store: store as never,
       cancelSearch,
       resetNavigation,
+      navigateToLogin,
       accountDialogOpen,
       mobileDrawerOpen,
     })
@@ -60,6 +65,7 @@ describe('useWorkspaceAccountActions', () => {
     expect(cancelSearch).toHaveBeenCalled()
     expect(store.resetState).toHaveBeenCalled()
     expect(resetNavigation).toHaveBeenCalled()
+    expect(navigateToLogin).toHaveBeenCalled()
   })
 
   it('surfaces auth errors when an account operation fails', async () => {
@@ -74,6 +80,7 @@ describe('useWorkspaceAccountActions', () => {
       store: store as never,
       cancelSearch: vi.fn(),
       resetNavigation: vi.fn(),
+      navigateToLogin: vi.fn(),
       accountDialogOpen,
       mobileDrawerOpen: ref(false),
     })
@@ -90,6 +97,7 @@ describe('useWorkspaceAccountActions', () => {
     const store = { resetState: vi.fn() }
     const cancelSearch = vi.fn()
     const resetNavigation = vi.fn()
+    const navigateToLogin = vi.fn()
     const accountDialogOpen = ref(true)
 
     const actions = useWorkspaceAccountActions({
@@ -97,6 +105,7 @@ describe('useWorkspaceAccountActions', () => {
       store: store as never,
       cancelSearch,
       resetNavigation,
+      navigateToLogin,
       accountDialogOpen,
       mobileDrawerOpen: ref(false),
     })
@@ -111,6 +120,7 @@ describe('useWorkspaceAccountActions', () => {
     expect(cancelSearch).toHaveBeenCalled()
     expect(store.resetState).toHaveBeenCalled()
     expect(resetNavigation).toHaveBeenCalled()
+    expect(navigateToLogin).toHaveBeenCalled()
   })
 
   it('keeps the account dialog open when account deletion fails', async () => {
@@ -120,6 +130,7 @@ describe('useWorkspaceAccountActions', () => {
     const store = { resetState: vi.fn() }
     const cancelSearch = vi.fn()
     const resetNavigation = vi.fn()
+    const navigateToLogin = vi.fn()
     const accountDialogOpen = ref(true)
 
     const actions = useWorkspaceAccountActions({
@@ -127,6 +138,7 @@ describe('useWorkspaceAccountActions', () => {
       store: store as never,
       cancelSearch,
       resetNavigation,
+      navigateToLogin,
       accountDialogOpen,
       mobileDrawerOpen: ref(false),
     })
@@ -138,6 +150,7 @@ describe('useWorkspaceAccountActions', () => {
     expect(cancelSearch).not.toHaveBeenCalled()
     expect(store.resetState).not.toHaveBeenCalled()
     expect(resetNavigation).not.toHaveBeenCalled()
+    expect(navigateToLogin).not.toHaveBeenCalled()
   })
 
   it('opens account settings and closes the mobile drawer', () => {
@@ -148,6 +161,7 @@ describe('useWorkspaceAccountActions', () => {
       store: { resetState: vi.fn() } as never,
       cancelSearch: vi.fn(),
       resetNavigation: vi.fn(),
+      navigateToLogin: vi.fn(),
       accountDialogOpen,
       mobileDrawerOpen,
     })

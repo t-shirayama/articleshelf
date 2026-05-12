@@ -107,7 +107,7 @@ docker compose up --build
 | レスポンシブ診断画像再取得   | `cd frontend && npm run capture:responsive` |
 
 Maven はローカルに直接インストールして使う前提ではなく、確認やビルドは Docker 上の `backend` コンテナ経由で実行します。
-初回だけ `git config core.hooksPath .githooks` を実行すると、コミット前にフロントエンド型チェックと軽い運用ルール確認が走ります。
+初回だけ `git config core.hooksPath .githooks` を実行すると、`pre-commit` でフロントエンド型チェックと軽い運用ルール確認、`pre-push` で変更内容に応じた targeted verification が走ります。
 
 ## 詳細ドキュメント
 

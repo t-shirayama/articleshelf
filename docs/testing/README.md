@@ -45,6 +45,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド focused coverage: `npm run test:unit:coverage:focused`
 - フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
+- Playwright E2E は既定で `docker-compose.e2e.yml` の専用 stack を起動し、`PLAYWRIGHT_USE_EXISTING_SERVER=1` を明示しない限り既存 `localhost` サーバーを再利用しない
 - frontend security header regression: `npm run test:unit -- src/shared/security/cspHeaders.test.ts`
 - Chrome extension packaging: `cd chrome-extension && npm run build`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
@@ -67,6 +68,9 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - `AuthServiceTest` では `AuthService` が helper を `new` せず injected `RefreshTokenRotationService` / `InitialUserProvisioner` を使う前提で、register / logoutAll / refresh の既存挙動を確認する
 - `AuthCsrfIntegrationTest` では `@CookieCsrfProtected` が refresh / logout にだけ適用されること、CSRF token 欠落 / 不一致が `403 AUTH_CSRF_INVALID` になること、Bearer access token を使う記事 API が CSRF header なしで回帰しないことを確認する
 
+ローカル hook は CI の代替ではなく早期検知のために使う。`.githooks/pre-commit` は型チェックと静的な運用ガードに限定し、`.githooks/pre-push` は変更パスに応じて frontend targeted unit / E2E smoke や backend `docker compose run --rm backend mvn test -Dtest=CleanArchitectureDependencyTest`、`docker compose run --rm backend mvn test spotbugs:check` を実行する。
+E2E 基盤、auth / router、workspace account、backend domain / application 境界の変更では、push 前に hook が走る前提で確認するが、最終 gate は引き続き GitHub Actions CI を正本にする。
+
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
 Frontend security header regression は `_headers` を正本にし、`cspHeaders.test.ts` で `style-src` / `style-src-elem` / `style-src-attr` の分離を確認する。deploy 前後の smoke check では build 済み `dist/_headers` と production response header の一致を見る。
@@ -75,7 +79,7 @@ Focused coverage gate は `articleFilters`、calendar helper、Markdown renderin
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
 UI / E2E 確認では、主要 dialog の focus 復帰、記事カードの詳細 open button と右上 action button の独立操作、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 ArticleWorkspace の検索 debounce は `useArticleSearchDebounce` の unit test で、最後の入力値だけが反映されることと unmount / logout 相当の cancel で遅延反映されないことを確認する。
-ArticleWorkspace の account operation は `useWorkspaceAccountActions` の unit test で、logout / password change / logout all 時の user scoped state reset、dialog close、error surfacing を確認する。
+ArticleWorkspace の account operation は `useWorkspaceAccountActions` の unit test で、logout / password change / logout all / delete account 時の user scoped state reset、login route への復帰、dialog close、error surfacing を確認する。
 Chrome 拡張機能導線では、`AuthScreen.test.ts` で `returnTo` 付きログイン後の復帰を確認し、`useArticleCreateForm.test.ts` で拡張機能から渡した URL / title seed が追加モーダルへ反映されることを確認する。
 Chrome 拡張機能の手動確認では、`cd chrome-extension && npm run build` で zip と unpacked 版を生成し、Chrome の `Load unpacked` で `dist/articleshelf-chrome-extension/` を読み込む。popup から ArticleShelf URL を保存し、通常の `https` ページを開いた状態で `Open draft in ArticleShelf` が `/articles?source=extension...` を開き、追加モーダルへ値を流せることを見る。
 記事詳細の shell 変更では、desktop で sidebar を維持したまま詳細を開けること、calendar から開いた詳細で戻ると元の月と表示モードへ戻ること、mobile で detail 中は bottom navigation が出ず drawer から移動できることを確認する。

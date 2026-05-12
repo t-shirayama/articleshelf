@@ -11,6 +11,7 @@ interface UseWorkspaceAccountActionsOptions {
   store: ReturnType<typeof useArticlesStore>;
   cancelSearch: () => void;
   resetNavigation: () => void;
+  navigateToLogin: () => Promise<unknown> | void;
   accountDialogOpen: Ref<boolean>;
   mobileDrawerOpen: Ref<boolean>;
 }
@@ -20,6 +21,7 @@ export function useWorkspaceAccountActions({
   store,
   cancelSearch,
   resetNavigation,
+  navigateToLogin,
   accountDialogOpen,
   mobileDrawerOpen,
 }: UseWorkspaceAccountActionsOptions) {
@@ -35,6 +37,7 @@ export function useWorkspaceAccountActions({
     mobileDrawerOpen.value = false;
     await authStore.logout();
     resetUserScopedState();
+    await navigateToLogin();
   }
 
   async function changePassword(input: AccountDialogInput): Promise<void> {
@@ -43,6 +46,7 @@ export function useWorkspaceAccountActions({
       await authStore.changePassword(input);
       resetUserScopedState();
       accountDialogOpen.value = false;
+      await navigateToLogin();
     } catch {
       accountDialogError.value = authStore.error;
     }
@@ -54,6 +58,7 @@ export function useWorkspaceAccountActions({
       await authStore.logoutAll();
       resetUserScopedState();
       accountDialogOpen.value = false;
+      await navigateToLogin();
     } catch {
       accountDialogError.value = authStore.error;
     }
@@ -65,6 +70,7 @@ export function useWorkspaceAccountActions({
       await authStore.deleteAccount(input);
       resetUserScopedState();
       accountDialogOpen.value = false;
+      await navigateToLogin();
     } catch {
       accountDialogError.value = authStore.error;
     }

@@ -458,6 +458,7 @@ const {
   store,
   cancelSearch,
   resetNavigation,
+  navigateToLogin: () => router.push("/login"),
   accountDialogOpen,
   mobileDrawerOpen,
 });

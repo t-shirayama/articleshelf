@@ -112,6 +112,7 @@
 - UI 部品の種類、アクセシブル名、文言、操作フロー、API レスポンス、エラー文言を変えたときは、関連するセレクタ、期待値、ヘルパーが古い前提のまま残っていないか確認する
 - 挙動変更を伴う修正では、確認手順または確認結果を残す
 - コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI 変更時は関連ドキュメント更新の注意喚起を行う
+- `.githooks/pre-push` は CI の代替ではなく早期検知用とし、変更パスに応じた targeted unit test / E2E smoke / backend check を担わせる
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
 - Maven が必要な確認は `docker compose exec backend mvn ...` または `docker compose run --rm backend mvn ...` のように Docker 経由で行う
@@ -126,6 +127,7 @@
 - 画面表示、見た目、レイアウト、文言、操作フロー、スクリーンショット対象コンポーネントに影響するコード変更では、同じ作業内で `docs/designs/screenshots/` を現行実装に合わせて更新する
 - UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件、`docs/designs/screenshots/README.md`、現行 UI 仕様がずれていないか確認する
 - UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する
+- `frontend/playwright.config.ts`、`frontend/scripts/e2e-webserver.*`、`docker-compose.e2e.yml` など E2E 基盤を変える場合は、専用 stack 既定と docs を同じ作業内で同期し、`PLAYWRIGHT_USE_EXISTING_SERVER` opt-in と `reuseExistingServer: false` を崩さない
 - UI スクリーンショット更新では、`127.0.0.1` と `localhost` を混在させない
 - UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認する
 - アプリ本体のコードを疑う前に、起動経路とブラウザ依存を切り分ける

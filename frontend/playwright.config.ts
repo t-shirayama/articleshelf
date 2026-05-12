@@ -34,7 +34,10 @@ export default defineConfig({
         command: 'node ./frontend/scripts/e2e-webserver.mjs',
         cwd: '..',
         url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
+        // Always start the dedicated E2E stack unless explicitly opted into
+        // PLAYWRIGHT_USE_EXISTING_SERVER=1. Reusing an arbitrary localhost dev
+        // server makes auth fixtures and runtime flags nondeterministic.
+        reuseExistingServer: false,
         timeout: 180_000
       }
 })
