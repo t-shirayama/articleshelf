@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRoute, useRouter } from "vue-router";
 import {
   BarChart3,
   BookMarked,
@@ -15,9 +16,20 @@ import { useAuthStore } from "../stores/auth";
 
 type AuthMode = "login" | "register";
 
+const props = withDefaults(
+  defineProps<{
+    mode?: AuthMode;
+  }>(),
+  {
+    mode: "login",
+  },
+);
+
 const authStore = useAuthStore();
 const { t } = useI18n();
-const mode = ref<AuthMode>("login");
+const route = useRoute();
+const router = useRouter();
+const mode = ref<AuthMode>(props.mode);
 const username = ref("");
 const password = ref("");
 const displayName = ref("");
@@ -73,8 +85,22 @@ function switchMode(nextMode: AuthMode): void {
 }
 
 function handleModeUpdate(value: unknown): void {
-  switchMode(value === "register" ? "register" : "login");
+  const nextMode = value === "register" ? "register" : "login";
+  switchMode(nextMode);
+
+  const nextPath = nextMode === "register" ? "/register" : "/login";
+  if (route.path !== nextPath) {
+    void router.push(nextPath);
+  }
 }
+
+watch(
+  () => props.mode,
+  (value) => {
+    switchMode(value);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

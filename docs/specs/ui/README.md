@@ -9,7 +9,7 @@
 - 情報はカード・テーブル形式で整理
 - 一覧画面に詳細パネルを同時表示せず、記事選択時は詳細画面へ遷移
 - 主要画面は Vue Router の browser history route として `/login`、`/register`、`/articles`、`/articles/:id`、`/calendar`、`/tags`、`/settings` を持つ
-- 認証済みで `/login` / `/register` を開いた場合は `/articles` へ戻し、未認証で protected route を開いた場合は `/login` へ戻す
+- 認証済みで `/login` / `/register` を開いた場合は router guard で `/articles` へ戻し、未認証で protected route を開いた場合は `/login` へ戻す
 - UI 表示言語は日本語 / English に対応する
 - 初期表示言語は `localStorage` の `articleshelf.locale`、ブラウザ言語、英語フォールバックの順で決定する
 - 未対応ブラウザ言語、未対応 locale、未定義翻訳キーは英語へフォールバックする

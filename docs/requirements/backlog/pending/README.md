@@ -11,7 +11,6 @@
 
 ### P1
 
-- [Router level route boundaries](router-level-route-boundaries.md)
 - [ArticleWorkspace container boundaries](article-workspace-container-boundaries.md)
 - [Server driven article list query](server-driven-article-list-query.md)
 - [DB backed article list pagination sort](db-backed-article-list-pagination-sort.md)

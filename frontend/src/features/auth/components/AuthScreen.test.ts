@@ -4,12 +4,23 @@ import { createApp, defineComponent, h, nextTick, reactive, type App, type PropT
 import AuthScreen from './AuthScreen.vue'
 import { i18n } from '../../../shared/i18n'
 
+const routeState = reactive({ path: '/login' })
+const routerPush = vi.fn((path: string) => {
+  routeState.path = path
+  return Promise.resolve()
+})
+
 const authStore = reactive({
   loading: false,
   error: '',
   login: vi.fn(),
   register: vi.fn()
 })
+
+vi.mock('vue-router', () => ({
+  useRoute: () => routeState,
+  useRouter: () => ({ push: routerPush })
+}))
 
 vi.mock('../stores/auth', () => ({
   useAuthStore: () => authStore
@@ -19,6 +30,8 @@ describe('AuthScreen', () => {
   beforeEach(() => {
     const globalI18n = i18n.global as unknown as { locale: { value: string } }
     globalI18n.locale.value = 'ja'
+    routeState.path = '/login'
+    routerPush.mockClear()
     authStore.loading = false
     authStore.error = ''
     authStore.login = vi.fn().mockResolvedValue(undefined)
@@ -39,12 +52,14 @@ describe('AuthScreen', () => {
     modeButton(root, 'register')?.click()
     await nextTick()
 
+    expect(routerPush).toHaveBeenCalledWith('/register')
     expect(root.textContent).toContain('ユーザー登録')
     expect(root.querySelector('#auth-display-name')).not.toBeNull()
 
     modeButton(root, 'login')?.click()
     await nextTick()
 
+    expect(routerPush).toHaveBeenCalledWith('/login')
     expect(root.textContent).toContain('ログイン')
     expect(root.querySelector('#auth-display-name')).toBeNull()
 
