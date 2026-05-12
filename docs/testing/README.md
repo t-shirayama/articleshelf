@@ -59,6 +59,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - logging 設計を実装する場合は、requestId の response header 伝搬、MDC 設定、API error と exception log の突き合わせ、auth / OGP / article update の高価値イベント分類、禁止情報の redaction を unit / integration / review で確認する
 - 認証インフラ境界では、client IP 解決、rate limit 呼び出し、invalid access token metrics が Controller / token 値から分離されていることを確認する
 - `JwtTokenServiceTest` では injected `Clock` / `IdGenerator` を使って access token の `iat` / `exp` / `jti` を固定値で確認し、改ざん、期限切れ、想定外 `alg` の拒否も維持する
+- `AuthServiceTest` では `AuthService` が helper を `new` せず injected `RefreshTokenRotationService` / `InitialUserProvisioner` を使う前提で、register / logoutAll / refresh の既存挙動を確認する
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。

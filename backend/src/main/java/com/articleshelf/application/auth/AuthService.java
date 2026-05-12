@@ -6,7 +6,6 @@ import com.articleshelf.domain.user.UsernamePolicy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -30,12 +29,11 @@ public class AuthService {
             AuthUserRepository userRepository,
             RefreshTokenRepository refreshTokenRepository,
             PasswordHasher passwordHasher,
-            AccessTokenIssuer accessTokenIssuer,
             RefreshTokenSecretService refreshTokenSecretService,
-            AuthSettings settings,
             Clock clock,
             IdGenerator idGenerator,
-            SecureRandom secureRandom
+            RefreshTokenRotationService refreshTokenRotationService,
+            InitialUserProvisioner initialUserProvisioner
     ) {
         this.userRepository = userRepository;
         this.refreshTokenRepository = refreshTokenRepository;
@@ -43,15 +41,8 @@ public class AuthService {
         this.refreshTokenSecretService = refreshTokenSecretService;
         this.clock = clock;
         this.idGenerator = idGenerator;
-        this.refreshTokenRotationService = new RefreshTokenRotationService(
-                refreshTokenRepository,
-                accessTokenIssuer,
-                refreshTokenSecretService,
-                settings,
-                clock,
-                secureRandom
-        );
-        this.initialUserProvisioner = new InitialUserProvisioner(userRepository, passwordHasher, settings);
+        this.refreshTokenRotationService = refreshTokenRotationService;
+        this.initialUserProvisioner = initialUserProvisioner;
     }
 
     @Transactional

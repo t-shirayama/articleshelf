@@ -66,12 +66,18 @@ class AuthServiceTest {
                 users,
                 refreshTokens,
                 passwordHasher,
-                accessTokenIssuer,
                 refreshTokenSecretService,
-                settings,
                 Clock.fixed(FIXED_NOW, ZoneOffset.UTC),
                 () -> FAMILY_ID,
-                new SecureRandom(new byte[]{1, 2, 3})
+                new RefreshTokenRotationService(
+                        refreshTokens,
+                        accessTokenIssuer,
+                        refreshTokenSecretService,
+                        settings,
+                        Clock.fixed(FIXED_NOW, ZoneOffset.UTC),
+                        new SecureRandom(new byte[]{1, 2, 3})
+                ),
+                new InitialUserProvisioner(users, passwordHasher, settings)
         );
 
         AuthResult result = service.register("Reader", "password123", "", "JUnit", "127.0.0.1");
@@ -119,12 +125,11 @@ class AuthServiceTest {
                 users,
                 refreshTokens,
                 mock(PasswordHasher.class),
-                mock(AccessTokenIssuer.class),
                 mock(RefreshTokenSecretService.class),
-                mock(AuthSettings.class),
                 Clock.fixed(FIXED_NOW, ZoneOffset.UTC),
                 () -> FAMILY_ID,
-                new SecureRandom(new byte[]{1, 2, 3})
+                mock(RefreshTokenRotationService.class),
+                mock(InitialUserProvisioner.class)
         );
 
         service.logoutAll(new CurrentUser(USER_ID, "reader", "Reader", java.util.List.of("USER")));
@@ -187,12 +192,18 @@ class AuthServiceTest {
                 users,
                 refreshTokens,
                 mock(PasswordHasher.class),
-                accessTokenIssuer,
                 refreshTokenSecretService,
-                settings,
                 Clock.fixed(FIXED_NOW, ZoneOffset.UTC),
                 () -> FAMILY_ID,
-                new SecureRandom(new byte[]{1, 2, 3})
+                new RefreshTokenRotationService(
+                        refreshTokens,
+                        accessTokenIssuer,
+                        refreshTokenSecretService,
+                        settings,
+                        Clock.fixed(FIXED_NOW, ZoneOffset.UTC),
+                        new SecureRandom(new byte[]{1, 2, 3})
+                ),
+                mock(InitialUserProvisioner.class)
         );
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.refresh("raw-refresh-token", "JUnit", "127.0.0.1"))
