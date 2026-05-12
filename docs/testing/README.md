@@ -59,6 +59,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - backend request ID filter と metrics instrumentation は unit test と build で確認し、metrics tag に token、username、URL、メモ本文などを含めないことをレビュー観点にする
 - logging 設計を実装する場合は、requestId の response header 伝搬、MDC 設定、API error と exception log の突き合わせ、auth / OGP / article update の高価値イベント分類、禁止情報の redaction を unit / integration / review で確認する
 - 認証インフラ境界では、client IP 解決、rate limit 呼び出し、invalid access token metrics が Controller / token 値から分離されていることを確認する
+- `AuthRateLimiterTest` では同じ共有 repository を参照する複数 limiter instance で limit state が共有されることを確認し、`AuthRateLimitIntegrationTest` では `auth_rate_limit_buckets` を使った register / login の 429 応答を確認する
 - `JwtTokenServiceTest` では injected `Clock` / `IdGenerator` を使って access token の `iat` / `exp` / `jti` を固定値で確認し、改ざん、期限切れ、想定外 `alg` の拒否も維持する
 - `AuthServiceTest` では `AuthService` が helper を `new` せず injected `RefreshTokenRotationService` / `InitialUserProvisioner` を使う前提で、register / logoutAll / refresh の既存挙動を確認する
 - `AuthCsrfIntegrationTest` では `@CookieCsrfProtected` が refresh / logout にだけ適用されること、CSRF token 欠落 / 不一致が `403 AUTH_CSRF_INVALID` になること、Bearer access token を使う記事 API が CSRF header なしで回帰しないことを確認する

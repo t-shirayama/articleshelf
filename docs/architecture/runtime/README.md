@@ -36,7 +36,9 @@
 
 ## 認証レート制限の運用前提
 
-- 現行 runtime は単一 backend インスタンスを前提に、backend in-memory の簡易制限を使う
-- 再起動やスリープ復帰でカウンタはリセットされる
-- 複数インスタンス構成へ移行する場合は、共有ストア、proxy、WAF 側 rate limit を導入する
+- 現行 runtime は backend DB の `auth_rate_limit_buckets` テーブルを共有ストアとして使い、register / login の試行回数を backend instance 間で共有する
+- login は `IP + username`、register は `IP` を key とし、username は trim / 小文字化後に扱う
+- backend instance を再起動しても window が残っている間は rate limit state を引き継ぐ
+- DB 障害時は auth API 自体の成功可否も不安定になるため、rate limit は fail-open にせず backend request failure として扱う
+- さらに大規模な公開構成では、DB 共有の application rate limit に加えて reverse proxy や WAF の upstream rate limit を前段に置く
 - 対象 API、制限 key、既定値、エラー応答は [アカウント API](../../specs/auth/account-api.md) を正本とする

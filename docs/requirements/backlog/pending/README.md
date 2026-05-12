@@ -15,7 +15,6 @@
 
 ### P2
 
-- [Distributed auth rate limit](distributed-auth-rate-limit.md)
 - [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)
 - [OGP egress network isolation](ogp-egress-network-isolation.md)
 - [Chrome extension local distribution](chrome-extension-local-distribution.md)

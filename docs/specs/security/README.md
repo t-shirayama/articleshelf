@@ -54,6 +54,7 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - application code では `X-Forwarded-For` を直接読まず、forwarded header の解釈は Spring / servlet container 側に寄せる
 - application code の client IP 解決は `ClientIpResolver` に集約し、現行は Spring / servlet container が確定した `remoteAddr` を使う
 - backend へ外部から直接到達させず、Render などの trusted proxy 経路からのみ到達する構成を前提にする
+- register / login の rate limit state は `auth_rate_limit_buckets` に保存し、複数 backend instance や process restart をまたいでも window 内の試行回数を共有する
 - access token の invalid / expired / inactive user などの拒否は token 値を記録せず、`articleshelf.auth.access_token_rejected` の reason のみで観測する
 
 ## 6. OGP 取得と SSRF 対策

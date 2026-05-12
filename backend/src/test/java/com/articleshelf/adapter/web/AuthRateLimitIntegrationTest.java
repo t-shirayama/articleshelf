@@ -83,6 +83,28 @@ class AuthRateLimitIntegrationTest {
                 .andExpect(jsonPath("$.messages[0]").value("Too many authentication attempts. Please wait and try again."));
     }
 
+    @Test
+    void rateLimitStateSurvivesAuthServiceRestartBoundariesBecauseItIsStoredInDatabase() throws Exception {
+        String username = uniqueUsername("restart");
+        mockMvc.perform(post("/api/auth/register")
+                        .with(remoteAddress("203.0.113.30"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerJson(username)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .with(remoteAddress("203.0.113.31"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(username, "wrong-password123")))
+                .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(post("/api/auth/login")
+                        .with(remoteAddress("203.0.113.31"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson(username, "wrong-password123")))
+                .andExpect(status().isTooManyRequests());
+    }
+
     private String registerJson(String username) throws Exception {
         return objectMapper.writeValueAsString(new RegisterPayload(username, "password123", "Test User"));
     }

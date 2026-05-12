@@ -3,7 +3,7 @@
 ## `POST /api/auth/register`
 
 - 認証: 不要
-- rate limit: `IP` 単位。既定は `3回 / 600秒`
+- rate limit: `IP` 単位。既定は `3回 / 600秒`。state は `auth_rate_limit_buckets` に保存し、backend instance 間で共有する
 - request: `username`, `password`, `displayName`
 - response: `user`, `accessToken`
 - side effect: refresh cookie と CSRF cookie を設定
@@ -16,7 +16,7 @@
 ## `POST /api/auth/login`
 
 - 認証: 不要
-- rate limit: `IP + username` 単位。username は trim / 小文字化後に扱う。既定は `5回 / 60秒`
+- rate limit: `IP + username` 単位。username は trim / 小文字化後に扱う。既定は `5回 / 60秒`。state は `auth_rate_limit_buckets` に保存し、backend instance 間で共有する
 - request: `username`, `password`
 - response: `user`, `accessToken`
 - side effect: refresh cookie と CSRF cookie を設定
