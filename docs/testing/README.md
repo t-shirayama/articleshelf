@@ -45,7 +45,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド focused coverage: `npm run test:unit:coverage:focused`
 - フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
-- Playwright E2E は既定で `docker-compose.e2e.yml` の専用 stack を起動し、`PLAYWRIGHT_USE_EXISTING_SERVER=1` を明示しない限り既存 `localhost` サーバーを再利用しない
+- Playwright E2E は既定で `docker-compose.e2e.yml` の専用 stack を `http://localhost:4173` / `http://localhost:18080` で起動し、`PLAYWRIGHT_USE_EXISTING_SERVER=1` を明示しない限り既存 `localhost` サーバーを再利用しない
 - frontend security header regression: `npm run test:unit -- src/shared/security/cspHeaders.test.ts`
 - Chrome extension packaging: `cd chrome-extension && npm run build`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する

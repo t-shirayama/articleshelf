@@ -675,7 +675,7 @@ function monthOffsetDateKey(offset: number, day: number): string {
 }
 
 function apiUrl(path: string): string {
-  return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:8080'}${path}`
+  return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:18080'}${path}`
 }
 
 async function registerByApi(request: APIRequestContext, username: string): Promise<{ accessToken: string }> {

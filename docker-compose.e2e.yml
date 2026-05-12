@@ -20,7 +20,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/articleshelf
       SPRING_DATASOURCE_USERNAME: articleshelf
       SPRING_DATASOURCE_PASSWORD: articleshelf
-      FRONTEND_ORIGIN: http://localhost:5173
+      FRONTEND_ORIGIN: http://localhost:4173
       JWT_ACCESS_SECRET: dev-articleshelf-access-secret-change-me-please-32bytes
       AUTH_REFRESH_TOKEN_HASH_SECRET: dev-articleshelf-refresh-hash-secret-change-me
       AUTH_COOKIE_SECURE: "false"
@@ -31,7 +31,7 @@ services:
       ARTICLESHELF_INITIAL_USER_PASSWORD: password123
       ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED: "false"
     ports:
-      - "8080:8080"
+      - "18080:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -46,11 +46,11 @@ services:
     build:
       context: ./frontend
     environment:
-      VITE_API_BASE_URL: http://localhost:8080
+      VITE_API_BASE_URL: http://localhost:18080
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     ports:
-      - "5173:5173"
+      - "4173:5173"
     depends_on:
       backend:
         condition: service_healthy

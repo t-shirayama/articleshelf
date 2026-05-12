@@ -17,11 +17,11 @@ const officialOutputRoot = path.join(
   "capture-designs",
 );
 const baseUrl =
-  process.env.ARTICLESHELF_SCREENSHOT_BASE_URL || "http://localhost:5173";
+  process.env.ARTICLESHELF_SCREENSHOT_BASE_URL || "http://localhost:4173";
 const apiBaseUrl =
   process.env.ARTICLESHELF_SCREENSHOT_API_BASE_URL ||
   process.env.E2E_API_BASE_URL ||
-  "http://localhost:8080";
+  "http://localhost:18080";
 const viewportPresets = {
   desktop: { width: 1920, height: 1080 },
   "desktop-xl": { width: 1920, height: 1080 },

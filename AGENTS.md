@@ -126,7 +126,7 @@
 - 完了前に近接・整列・反復・対比の4原則で確認し、入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
 - 画面表示、見た目、レイアウト、文言、操作フロー、スクリーンショット対象コンポーネントに影響するコード変更では、同じ作業内で `docs/designs/screenshots/` を現行実装に合わせて更新する
 - UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件、`docs/designs/screenshots/README.md`、現行 UI 仕様がずれていないか確認する
-- UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する
+- UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:4173` / `localhost:18080` で起動し、キャプチャはローカルの Playwright から実行する
 - `frontend/playwright.config.ts`、`frontend/scripts/e2e-webserver.*`、`docker-compose.e2e.yml` など E2E 基盤を変える場合は、専用 stack 既定と docs を同じ作業内で同期し、`PLAYWRIGHT_USE_EXISTING_SERVER` opt-in と `reuseExistingServer: false` を崩さない
 - UI スクリーンショット更新では、`127.0.0.1` と `localhost` を混在させない
 - UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認する
