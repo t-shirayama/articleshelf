@@ -62,6 +62,7 @@ Frontend unit coverage は lines 43%、statements 42%、functions 35%、branches
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。
 UI / E2E 確認では、主要 dialog の focus 復帰、記事カードの詳細 open button と右上 action button の独立操作、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 ArticleWorkspace の検索 debounce は `useArticleSearchDebounce` の unit test で、最後の入力値だけが反映されることと unmount / logout 相当の cancel で遅延反映されないことを確認する。
+ArticleWorkspace の account operation は `useWorkspaceAccountActions` の unit test で、logout / password change / logout all 時の user scoped state reset、dialog close、error surfacing を確認する。
 Router 導入後の E2E / 手動確認では、未認証 protected route が router guard で `/login` へ補正されること、認証後に `/articles` / `/calendar` / `/tags` / `/settings` へ直接入れること、認証済みで `/login` / `/register` を開くと `/articles` へ戻ること、記事カード選択で `/articles/:id` になることを見る。
 記事一覧 query model は `ArticleListQueryTest` で、pagination 未指定時に既存の全件レスポンスを維持すること、`page` / `size` の正規化と slice を確認する。
 記事追加 preview は backend integration で OGP 成功、OGP 取得不可の partial success、重複 URL、URL validation を確認し、frontend unit で URL 変更、modal close、race condition、duplicate reset、空の title / summary を payload に含めないことを確認する。
