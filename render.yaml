@@ -23,6 +23,8 @@ services:
         sync: false
       - key: ARTICLESHELF_OGP_PROXY_URL
         sync: false
+      - key: ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS
+        sync: false
       - key: AUTH_CSRF_ENABLED
         value: "true"
       - key: AUTH_COOKIE_SECURE

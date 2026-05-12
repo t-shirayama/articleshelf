@@ -83,3 +83,33 @@
 - 説明: 記事を削除
 - 認証: 必須
 - 他ユーザーの記事 ID は `404 Not Found`
+
+## Extension article API
+
+Chrome 拡張機能向け API は通常 Web JWT ではなく、拡張機能専用 opaque token の `Authorization: Bearer <extensionToken>` だけを受け付ける。
+scope と詳細な認証仕様は [Chrome 拡張機能仕様](../features/browser-extension.md) を正本とする。
+
+### `GET /api/extension/articles/lookup?url=...`
+
+- 説明: 現在 URL がログインユーザーの記事として登録済みか確認する
+- 認証: 拡張機能 token の `article:lookup` scope が必須
+- `url` は必須かつURL形式、最大2048文字
+- 未登録または他ユーザーの記事は `404 Not Found`
+
+### `POST /api/extension/articles`
+
+- 説明: 現在 URL を記事として追加する
+- 認証: 拡張機能 token の `article:create` scope が必須
+- リクエスト: `url`, `title`, `status`, `readDate`
+- `status` は `UNREAD` または `READ`
+- `READ` の場合は `readDate` に `YYYY-MM-DD` を送る
+- `UNREAD` の場合は `readDate: null`
+- OGP 補完、URL 検証、重複 URL 判定、ユーザースコープは通常の `POST /api/articles` と同じ
+
+### `PATCH /api/extension/articles/{id}/status`
+
+- 説明: 登録済み記事の既読 / 未読状態だけを更新する
+- 認証: 拡張機能 token の `article:update_status` scope が必須
+- リクエスト: `status`, `readDate`
+- title、summary、favorite、rating、notes、tags は既存値を維持する
+- 他ユーザーの記事 ID は `404 Not Found`

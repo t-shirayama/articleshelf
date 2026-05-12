@@ -1,6 +1,6 @@
 # ArticleShelf Chrome Extension
 
-ArticleShelf へ現在のページを渡す Chrome 拡張機能です。
+ArticleShelf へ現在のページを直接保存する Chrome 拡張機能です。
 Chrome Web Store には公開せず、GitHub Releases の配布 zip をダウンロードして Developer mode で読み込む前提で管理します。
 
 要件は [Chrome 拡張機能要件](../docs/requirements/functional/browser-extension.md)、現在仕様は [Chrome 拡張機能仕様](../docs/specs/features/browser-extension.md) を正本とします。
@@ -8,9 +8,10 @@ Chrome Web Store には公開せず、GitHub Releases の配布 zip をダウン
 ## 役割
 
 - 現在のタブの `url` と `title` を取得する
-- ArticleShelf の `/articles?source=extension&articleUrl=...&articleTitle=...` を新しいタブで開く
-- token や cookie は拡張機能へ保存しない
-- ArticleShelf の接続先 URL は配布物ごとに固定し、popup から変更できない
+- 初回ログインで Authorization Code + PKCE により拡張機能専用 token を取得する
+- popup から未読登録、既読登録、登録済み記事の既読/未読更新を行う
+- token は保存用 scope の短命 opaque token とし、password、cookie、CSRF token、refresh token は扱わない
+- ArticleShelf の app URL / API URL は配布物ごとに固定し、popup から変更できない
 
 ## ディレクトリ
 
@@ -44,6 +45,9 @@ docker run --rm -v ${PWD}:/workspace -w /workspace/chrome-extension node:24-alpi
 2. Chrome で `chrome://extensions` を開く
 3. 右上の Developer mode を有効化する
 4. `Load unpacked` から `dist/articleshelf-chrome-extension-local/` を選ぶ
-5. 通常の `http` / `https` ページで popup を開き、`Open draft in ArticleShelf` を使う
+5. 通常の `http` / `https` ページで popup を開き、初回は `Log in to ArticleShelf` で認証する
+6. `Save as unread` または `Save as read` で現在ページを登録する
 
 ローカルの ArticleShelf 画面から zip をダウンロードする場合は、frontend を `http://localhost:5173` で起動したあと、`/downloads/articleshelf-chrome-extension-local.zip` を取得します。
+
+ローカル確認用 artifact は ArticleShelf app URL を `http://localhost:5173`、API URL を `http://localhost:8080` に固定します。本番用 artifact は `https://articleshelf.pages.dev` と `https://articleshelf-api.onrender.com` に固定します。

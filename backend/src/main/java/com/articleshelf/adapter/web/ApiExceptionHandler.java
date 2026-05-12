@@ -5,6 +5,7 @@ import com.articleshelf.application.auth.AccountNotFoundException;
 import com.articleshelf.application.auth.AuthException;
 import com.articleshelf.application.auth.AuthRateLimitExceededException;
 import com.articleshelf.application.auth.DuplicateUsernameException;
+import com.articleshelf.application.extension.ExtensionAuthException;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleStatus;
 import com.articleshelf.domain.article.ArticleUrlUnavailableException;
@@ -109,6 +110,12 @@ public class ApiExceptionHandler {
         }
         metrics.recordAuthFailure("invalid_credentials");
         return ErrorResponse.of("AUTH_INVALID_CREDENTIALS", message("error.auth.invalidCredentials"));
+    }
+
+    @ExceptionHandler(ExtensionAuthException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleExtensionAuth(ExtensionAuthException exception) {
+        return ErrorResponse.of("EXTENSION_AUTH_INVALID", message("error.auth.refreshInvalid"));
     }
 
     @ExceptionHandler(CsrfValidationException.class)

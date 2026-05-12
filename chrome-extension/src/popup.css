@@ -84,6 +84,12 @@ h1 {
   cursor: pointer;
 }
 
+.button-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
 .button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -92,4 +98,10 @@ h1 {
 .button-primary {
   color: #ffffff;
   background: #186c74;
+}
+
+.button-secondary {
+  color: #186c74;
+  background: #e8f4f3;
+  border: 1px solid rgba(24, 108, 116, 0.22);
 }

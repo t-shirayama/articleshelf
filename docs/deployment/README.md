@@ -151,6 +151,7 @@ README やアプリ画面で表示する注意書き例:
 | `ARTICLESHELF_INITIAL_USER_ENABLED`          | `false`                                          | 通常は初期 ADMIN 自動作成を無効化                        |
 | `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED`       | `true`                                           | 登録 / ログイン API の shared DB rate limit              |
 | `ARTICLESHELF_OGP_PROXY_URL`                 | `http://ogp-proxy.internal:8080`                 | OGP fetch を通す outbound proxy。production では必須     |
+| `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS`      | `chrome-extension://bpkppkfmcfdpfbododebdbaaoodglnde` | Chrome 拡張機能の固定 extension origin。複数ある場合は comma-separated |
 | `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` | `3`                                              | Supabase Free の接続数を圧迫しないため小さめにする       |
 
 `render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定し、`FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard 側の secret env として入力する。
@@ -175,6 +176,7 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 - 認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う
 - OGP fetch は dedicated outbound proxy を経由し、proxy / firewall 側で `169.254.169.254`、`100.100.100.200`、RFC1918 private range、loopback、link-local 宛て egress を遮断する
 - `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
+- Chrome 拡張機能 CORS は固定 extension ID の origin だけを `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS` に指定し、`chrome-extension://*` は使わない
 - secret と DB password は GitHub / Render / Cloudflare の secret 管理に置き、Git へコミットしない
 
 ## 6. Database: Supabase Free PostgreSQL
@@ -258,6 +260,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] `AUTH_COOKIE_SAME_SITE=None` を設定した
 - [ ] `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` に十分長いランダム値を設定した
 - [ ] `ARTICLESHELF_OGP_PROXY_URL` を設定した
+- [ ] `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS` に本番用 Chrome 拡張機能 origin を設定した
 - [ ] `ARTICLESHELF_INITIAL_USER_ENABLED=false` を確認した
 - [ ] `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` を小さめに設定した
 

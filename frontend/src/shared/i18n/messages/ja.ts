@@ -127,15 +127,22 @@ export const ja = {
       title: 'ヘルプ',
       chromeExtensionTitle: 'Chrome 拡張機能',
       extensionVersion: 'v{version}',
-      chromeExtensionDescription: '現在開いている記事ページを ArticleShelf の追加モーダルへ渡せます。拡張機能は token や cookie を保存せず、接続先は配布物ごとに固定されています。',
+      chromeExtensionDescription: '現在開いている記事ページを popup から未読または既読として直接保存できます。初回だけ ArticleShelf にログインし、拡張機能には保存専用の短命 token だけを保持します。',
       chromeExtensionDownload: 'Chrome拡張機能をダウンロード',
       chromeExtensionTarget: 'ローカル開発では localhost 用、本番では公開URL用の zip を使います。popup から接続先 URL は変更できません。',
       chromeExtensionStepsTitle: '読み込み手順',
       chromeExtensionStepOne: 'zip をダウンロードして任意のフォルダへ展開します。',
       chromeExtensionStepTwo: 'Chrome で chrome://extensions を開き、右上のデベロッパーモードを有効にします。',
-      chromeExtensionStepThree: '「パッケージ化されていない拡張機能を読み込む」から、展開したフォルダ内の articleshelf-chrome-extension を選びます。',
-      chromeExtensionStepFour: '通常の http / https ページで拡張機能を開き、「ArticleShelfで下書きを開く」を選びます。',
+      chromeExtensionStepThree: '「パッケージ化されていない拡張機能を読み込む」から、展開した拡張機能フォルダを選びます。',
+      chromeExtensionStepFour: '通常の http / https ページで拡張機能を開き、初回はログイン後に「未読で登録」または「既読で登録」を選びます。',
       chromeExtensionReinstall: '更新するときは新しい zip を再ダウンロードし、展開後に同じフォルダを読み込み直します。'
+    },
+    extensionAuth: {
+      title: 'Chrome 拡張機能を認証中',
+      processing: 'ArticleShelf への保存権限を確認しています。',
+      invalidRequest: '拡張機能の認証リクエストが正しくありません。',
+      failed: '拡張機能の認証に失敗しました。もう一度ログインしてください。',
+      backToArticles: '記事一覧へ戻る'
     },
     nav: {
       allArticles: 'すべての記事',

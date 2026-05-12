@@ -127,15 +127,22 @@ export const en = {
       title: 'Help',
       chromeExtensionTitle: 'Chrome extension',
       extensionVersion: 'v{version}',
-      chromeExtensionDescription: 'Send the current article page into the ArticleShelf add-article modal. The extension does not store tokens or cookies, and each package has a fixed ArticleShelf target.',
+      chromeExtensionDescription: 'Save the current article page directly from the popup as unread or read. You log in to ArticleShelf once, and the extension stores only a short-lived save-only token.',
       chromeExtensionDownload: 'Download Chrome extension',
       chromeExtensionTarget: 'Use the localhost package for local development and the public URL package for production. The popup cannot change the target URL.',
       chromeExtensionStepsTitle: 'Load in Chrome',
       chromeExtensionStepOne: 'Download the zip file and extract it to any folder.',
       chromeExtensionStepTwo: 'Open chrome://extensions in Chrome and enable Developer mode in the top right.',
-      chromeExtensionStepThree: 'Choose Load unpacked and select the extracted articleshelf-chrome-extension folder.',
-      chromeExtensionStepFour: 'Open the extension on a regular http or https page, then choose Open draft in ArticleShelf.',
+      chromeExtensionStepThree: 'Choose Load unpacked and select the extracted extension folder.',
+      chromeExtensionStepFour: 'Open the extension on a regular http or https page, log in the first time, then choose Save as unread or Save as read.',
       chromeExtensionReinstall: 'To update, download the new zip, extract it, and load the same folder again.'
+    },
+    extensionAuth: {
+      title: 'Authorizing Chrome extension',
+      processing: 'Checking ArticleShelf save permission.',
+      invalidRequest: 'The extension authorization request is invalid.',
+      failed: 'Could not authorize the extension. Please log in again.',
+      backToArticles: 'Back to articles'
     },
     nav: {
       allArticles: 'All articles',

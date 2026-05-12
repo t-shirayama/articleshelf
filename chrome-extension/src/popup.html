@@ -10,8 +10,8 @@
     <main class="popup-shell">
       <section class="popup-section">
         <p class="eyebrow">ArticleShelf</p>
-        <h1>Quick Add</h1>
-        <p class="copy">Open the current page in ArticleShelf's add-article flow without storing tokens in the extension.</p>
+        <h1>Quick Save</h1>
+        <p class="copy">Save the current page directly to ArticleShelf with a short-lived extension token.</p>
         <p class="app-target">Target: <span id="app-base-url-display">ArticleShelf</span></p>
       </section>
 
@@ -21,7 +21,11 @@
           <span id="page-url">Preparing draft…</span>
         </div>
         <p id="status-message" class="hint"></p>
-        <button id="open-draft" class="button button-primary" type="button">Open draft in ArticleShelf</button>
+        <button id="login" class="button button-secondary" type="button">Log in to ArticleShelf</button>
+        <div class="button-row">
+          <button id="save-unread" class="button button-primary" type="button">Save unread</button>
+          <button id="save-read" class="button button-secondary" type="button">Save read</button>
+        </div>
       </section>
     </main>
 

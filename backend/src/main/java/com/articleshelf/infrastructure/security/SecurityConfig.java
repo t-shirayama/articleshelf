@@ -15,13 +15,20 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            ExtensionTokenAuthenticationFilter extensionTokenAuthenticationFilter
+    ) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/actuator/health").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh", "/api/auth/logout", "/api/extension/oauth/token", "/actuator/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/extension/articles/lookup").hasAuthority("SCOPE_article:lookup")
+                        .requestMatchers(HttpMethod.POST, "/api/extension/articles").hasAuthority("SCOPE_article:create")
+                        .requestMatchers(HttpMethod.PATCH, "/api/extension/articles/*/status").hasAuthority("SCOPE_article:update_status")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().permitAll()
@@ -31,6 +38,7 @@ public class SecurityConfig {
                         .accessDeniedHandler((request, response, exception) -> response.setStatus(HttpStatus.FORBIDDEN.value()))
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(extensionTokenAuthenticationFilter, JwtAuthenticationFilter.class)
                 .build();
     }
 

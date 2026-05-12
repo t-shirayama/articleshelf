@@ -81,6 +81,10 @@ public class ArticleService {
         return findArticleQuery.findArticle(user, id);
     }
 
+    public ArticleResponse findArticleByUrl(CurrentUser user, String url) {
+        return findArticleQuery.findArticleByUrl(user, url);
+    }
+
     public ArticleResponse addArticle(CurrentUser user, AddArticleCommand command) {
         return addArticleUseCase.addArticle(user, command);
     }

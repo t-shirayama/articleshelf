@@ -1,5 +1,5 @@
 import { createWriteStream } from 'node:fs'
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { copyFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import archiver from 'archiver'
@@ -9,10 +9,20 @@ const rootDir = join(scriptDir, '..')
 const srcDir = join(rootDir, 'src')
 const distDir = join(rootDir, 'dist')
 const frontendDownloadsDir = join(rootDir, '..', 'frontend', 'public', 'downloads')
+const productionExtensionKey =
+  'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsYnnEXb3ic6SFRGCv9L+hk3EPJAJ6QfBVFlbsCmdeJADdi/FLMXQOLcgTyXGsa2Ic9E2fsl5bHymYzoqeKhjeXfJSJtXynjKZORz//bHdb0MbcEQg7Fmd9fqOjvkqaE/it7EB5wquUQcqNVJ3GAmtFtuGlnyOw/+0089Op01KHpsoNxh9FCI885epPubGVwx8BX4IkKEHdHA1TUkDAnUc7C1oyZL84pao8tVwrNUFBeMXhTwlniL+mrhA7chhMkxiUY7S+RcCQxcm3YdWg4unanJGbwgirA3M24268y8Z9dqjnXLMr8ZOYWfuY5H2A7QXYIZ0o40u3NTn1QkCKXj4QIDAQAB'
+const localExtensionKey =
+  'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2taV9A8GdAbe84qfvU1zgMNpjAXzbYe6igjSkCElEfe61+PnPkx5wSGggwYIeCitNHKqp6zXr+9BD2PPUOn88XLMVPNbLcEQ+JksgSMz359fiFlJSmLdOhtZ1SikBdRV9Iing8f6HF4Sq2h6ZaeexPtJ/1DpIEWuTIdiMQnhytpv4GW+v8Ms4ksFS4Cn5Q8B0ltC/nJt+rZ5SqBTHNmvnvyjupHkjibtp3ItFU0I2kGJTGMKxpCAGBNUCQpMBHBA/Lz1uzdAuVJUYnkl7HcghYWWiS/FSXGm3AD/lRxdrimZ5tW+fp0/xoWCwfZVXVJlt7pDTIvEb3GlbY9NQiKMowIDAQAB'
 const variants = [
   {
     name: 'production',
     appBaseUrl: 'https://articleshelf.pages.dev',
+    apiBaseUrl: 'https://articleshelf-api.onrender.com',
+    clientId: 'articleshelf-chrome-extension',
+    extensionId: 'bpkppkfmcfdpfbododebdbaaoodglnde',
+    redirectUri: 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/',
+    extensionKey: productionExtensionKey,
+    hostPermissions: ['https://articleshelf-api.onrender.com/*'],
     extensionName: 'ArticleShelf Quick Add',
     actionTitle: 'Save to ArticleShelf',
     packageName: 'articleshelf-chrome-extension',
@@ -21,6 +31,12 @@ const variants = [
   {
     name: 'local',
     appBaseUrl: 'http://localhost:5173',
+    apiBaseUrl: 'http://localhost:8080',
+    clientId: 'articleshelf-chrome-extension-local',
+    extensionId: 'ncdpeooneagfjhgnhenhakjnfflmpdbj',
+    redirectUri: 'https://ncdpeooneagfjhgnhenhakjnfflmpdbj.chromiumapp.org/',
+    extensionKey: localExtensionKey,
+    hostPermissions: ['http://localhost:8080/*'],
     extensionName: 'ArticleShelf Quick Add Local',
     actionTitle: 'Save to local ArticleShelf',
     packageName: 'articleshelf-chrome-extension-local',
@@ -72,21 +88,22 @@ async function prepareVariant(variant) {
 
   await cp(srcDir, unpackedDir, { recursive: true })
 
-  const manifestSource = await readFile(manifestPath, 'utf8')
-  await writeFile(
-    manifestPath,
-    manifestSource
-      .replace('"name": "ArticleShelf Quick Add"', `"name": "${variant.extensionName}"`)
-      .replace('"default_title": "Save to ArticleShelf"', `"default_title": "${variant.actionTitle}"`)
-  )
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
+  manifest.name = variant.extensionName
+  manifest.key = variant.extensionKey
+  manifest.host_permissions = variant.hostPermissions
+  manifest.action.default_title = variant.actionTitle
+  await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
 
   const popupSource = await readFile(popupPath, 'utf8')
   await writeFile(
     popupPath,
-    popupSource.replace(
-      "const APP_BASE_URL = 'https://articleshelf.pages.dev'",
-      `const APP_BASE_URL = '${variant.appBaseUrl}'`
-    )
+    popupSource
+      .replace("const APP_BASE_URL = 'https://articleshelf.pages.dev'", `const APP_BASE_URL = '${variant.appBaseUrl}'`)
+      .replace("const API_BASE_URL = 'https://articleshelf-api.onrender.com'", `const API_BASE_URL = '${variant.apiBaseUrl}'`)
+      .replace("const CLIENT_ID = 'articleshelf-chrome-extension'", `const CLIENT_ID = '${variant.clientId}'`)
+      .replace("const EXTENSION_ID = 'bpkppkfmcfdpfbododebdbaaoodglnde'", `const EXTENSION_ID = '${variant.extensionId}'`)
+      .replace("const REDIRECT_URI = 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/'", `const REDIRECT_URI = '${variant.redirectUri}'`)
   )
 
   console.log(`Packaging ${variant.name} Chrome extension zip: ${zipPath}`)
@@ -94,7 +111,8 @@ async function prepareVariant(variant) {
 
   if (variant.mirrorToFrontend) {
     const mirroredZipPath = join(frontendDownloadsDir, `${variant.packageName}.zip`)
-    await cp(zipPath, mirroredZipPath)
+    await rm(mirroredZipPath, { force: true })
+    await copyFile(zipPath, mirroredZipPath)
     console.log(`Copied ${variant.name} zip for local development: ${mirroredZipPath}`)
   }
 

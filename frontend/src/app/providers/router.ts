@@ -42,6 +42,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('../../features/articles/views/WorkspaceRouteView.vue'),
     meta: { requiresAuth: true }
   },
+  {
+    path: '/extension/authorize',
+    component: () => import('../../features/extension/views/ExtensionAuthorizeView.vue'),
+    meta: { requiresAuth: true }
+  },
   { path: '/:pathMatch(.*)*', redirect: '/articles' }
 ]
 

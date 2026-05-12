@@ -97,7 +97,7 @@
 - モーダルを開いた直後は URL 入力欄に初期フォーカスする
 - URL は必須項目として扱い、未入力時は保存せずエラーメッセージを表示する
 - URL の貼り付け時と入力欄 blur 時に、`http` / `https` の構文として妥当な URL だけ `POST /api/articles/preview` でプレビューを取得する。構文不正や未対応 scheme の URL では preview API を呼ばず、URL 入力のエラーを表示する。自動 debounce 入力監視は行わない
-- Chrome 拡張機能経由で `/articles?source=extension&articleUrl=...&articleTitle=...` を開いた場合は、記事追加モーダルを自動で開き、URL と title を初期値として反映する
+- Chrome 拡張機能の正規導線は popup からの direct save とする。互換 route として `/articles?source=extension&articleUrl=...&articleTitle=...` を開いた場合は、記事追加モーダルを自動で開き、URL と title を初期値として反映する
 - URL が変更された場合、既存の preview / duplicate state は古いものとして扱い、保存可否や表示判断に使わない
 - preview API でプレビューを取得できない場合は「プレビューを取得できませんでした。URLによっては保存時にエラーになる場合があります。」と表示し、保存時に正式な URL 確認を行う
 - タイトルは任意項目として扱い、未入力時は URL から自動設定する
@@ -130,7 +130,7 @@
 - 入力欄のプレースホルダーは入力例に限定し、ユーザー登録時のユーザー名やパスワードの入力ルールは欄下のヒントとして表示する
 - 認証処理中は送信ボタンをローディング表示にし、文言を「ログイン中...」「登録中...」へ切り替え、入力とログイン / 登録切り替えを一時的に disabled にして二重送信を防止する
 - ログイン後のサイドバーには Help、アカウント設定、ログアウト導線を表示する
-- Help ダイアログでは、Chrome 拡張機能の役割、配布 zip ダウンロード導線、現在のバージョン表示、`chrome://extensions` でのローカルインストール手順、再インストール案内を確認できるようにする
+- Help ダイアログでは、Chrome 拡張機能の direct save の役割、配布 zip ダウンロード導線、現在のバージョン表示、`chrome://extensions` でのローカルインストール手順、再インストール案内を確認できるようにする
 - Chrome 拡張機能の配信 URL は production では GitHub Releases の本番用 zip、local development では `/downloads/articleshelf-chrome-extension-local.zip` を既定とし、必要な場合は `VITE_EXTENSION_DOWNLOAD_URL` で上書き可能
 - アカウント設定では、パスワード変更、全端末ログアウト、退会だけを扱う
 - 通常のログアウト、パスワード変更、全端末ログアウト、退会に成功した場合は auth state と記事一覧系 state をクリアし、ログイン画面へ戻る
