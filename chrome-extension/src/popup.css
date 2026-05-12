@@ -49,37 +49,21 @@ h1 {
 
 .copy,
 .hint,
-.preview-card span {
+.preview-card span,
+.app-target {
   color: #5a6763;
   font-size: 0.85rem;
   line-height: 1.5;
 }
 
-.field {
-  display: grid;
-  gap: 6px;
-}
-
-.field span,
 .preview-card strong {
   font-size: 0.85rem;
   font-weight: 700;
 }
 
-input {
-  width: 100%;
-  min-height: 40px;
-  box-sizing: border-box;
-  padding: 0 12px;
-  color: inherit;
-  background: #ffffff;
-  border: 1px solid rgba(24, 108, 116, 0.22);
-  border-radius: 10px;
-}
-
-input:focus {
-  outline: 2px solid rgba(24, 108, 116, 0.24);
-  border-color: #186c74;
+.app-target span {
+  font-weight: 700;
+  color: #186c74;
 }
 
 .preview-card {
@@ -108,9 +92,4 @@ input:focus {
 .button-primary {
   color: #ffffff;
   background: #186c74;
-}
-
-.button-secondary {
-  color: #186c74;
-  background: rgba(216, 239, 238, 0.75);
 }

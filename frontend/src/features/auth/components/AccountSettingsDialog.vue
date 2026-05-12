@@ -2,6 +2,10 @@
 import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Download, KeyRound, LogOut, Puzzle, Trash2, X } from "lucide-vue-next";
+import {
+  extensionDownloadUrl,
+  shouldLoadExtensionVersionFromGitHub,
+} from "../../../shared/config/extensionDownload";
 
 const props = defineProps<{
   open: boolean;
@@ -21,9 +25,6 @@ const { t } = useI18n();
 const extensionVersion = ref(
   normalizeVersionLabel(import.meta.env.VITE_EXTENSION_VERSION),
 );
-const extensionDownloadUrl =
-  import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
-  "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
 const currentPassword = ref("");
 const newPassword = ref("");
 const deletePassword = ref("");
@@ -37,7 +38,6 @@ function normalizeVersionLabel(input: string | undefined): string {
 }
 
 async function loadExtensionVersionFromGitHub(): Promise<void> {
-  if (!extensionDownloadUrl.includes("github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip")) return;
   try {
     const response = await fetch(releaseApiUrl, {
       headers: {
@@ -57,7 +57,7 @@ async function loadExtensionVersionFromGitHub(): Promise<void> {
 }
 
 onMounted(() => {
-  if (!import.meta.env.VITE_EXTENSION_VERSION) {
+  if (shouldLoadExtensionVersionFromGitHub) {
     void loadExtensionVersionFromGitHub();
   }
 });

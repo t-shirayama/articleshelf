@@ -14,6 +14,7 @@ import {
 import { useI18n } from "vue-i18n";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
 import type { SupportedLocale } from "../../../shared/i18n/locales";
+import { extensionDownloadUrl } from "../../../shared/config/extensionDownload";
 import MotivationCard from "./MotivationCard.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
 
@@ -45,9 +46,6 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n({ useScope: "global" });
-const extensionDownloadUrl =
-  import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
-  "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
 
 function changeLocale(value: unknown): void {
   const nextLocale: SupportedLocale = value === "ja" ? "ja" : "en";

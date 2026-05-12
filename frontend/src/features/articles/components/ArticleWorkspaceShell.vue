@@ -15,6 +15,7 @@ import {
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import type { SupportedLocale } from "../../../shared/i18n/locales";
+import { extensionDownloadUrl } from "../../../shared/config/extensionDownload";
 import AppSidebar from "./AppSidebar.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
 
@@ -53,9 +54,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n({ useScope: "global" });
-const extensionDownloadUrl =
-  import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
-  "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
 
 function setDrawerOpen(value: boolean): void {
   emit("update:drawerOpen", value);

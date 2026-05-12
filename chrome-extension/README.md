@@ -10,14 +10,16 @@ Chrome Web Store には公開せず、GitHub Releases の配布 zip をダウン
 - 現在のタブの `url` と `title` を取得する
 - ArticleShelf の `/articles?source=extension&articleUrl=...&articleTitle=...` を新しいタブで開く
 - token や cookie は拡張機能へ保存しない
-- ArticleShelf の接続先 URL は popup 内で変更し、`chrome.storage.sync` に保存する
+- ArticleShelf の接続先 URL は配布物ごとに固定し、popup から変更できない
 
 ## ディレクトリ
 
 - `src/`: manifest、popup HTML / CSS / JS
 - `scripts/build.mjs`: unpacked 配布物と zip を生成する build script
-- `dist/articleshelf-chrome-extension/`: Chrome の「Load unpacked」で読み込むフォルダ
-- `dist/articleshelf-chrome-extension.zip`: 配布用 zip
+- `dist/articleshelf-chrome-extension/`: 本番用 unpacked 配布物
+- `dist/articleshelf-chrome-extension.zip`: 本番用 zip
+- `dist/articleshelf-chrome-extension-local/`: ローカル確認用 unpacked 配布物
+- `dist/articleshelf-chrome-extension-local.zip`: ローカル確認用 zip
 
 ## ビルド
 
@@ -26,13 +28,22 @@ cd chrome-extension
 npm run build
 ```
 
-ビルドは OS 非依存で `dist/articleshelf-chrome-extension.zip` を生成します。
-併せて開発便宜のため `frontend/public/downloads/articleshelf-chrome-extension.zip` へも同期しますが、正式導線は GitHub Releases です。
+ビルドは OS 非依存で本番用とローカル確認用の zip を生成します。
+併せて開発便宜のため `frontend/public/downloads/articleshelf-chrome-extension-local.zip` へローカル確認用 zip を同期します。
+正式な本番配布導線は GitHub Releases の `articleshelf-chrome-extension.zip` です。
+
+Docker だけで生成する場合は、repository root から次を実行します。
+
+```powershell
+docker run --rm -v ${PWD}:/workspace -w /workspace/chrome-extension node:24-alpine sh -c "npm ci && npm run build"
+```
 
 ## ローカルインストール
 
-1. `npm run build` で `dist/articleshelf-chrome-extension/` を生成する
+1. 上記の build で `dist/articleshelf-chrome-extension-local/` と `frontend/public/downloads/articleshelf-chrome-extension-local.zip` を生成する
 2. Chrome で `chrome://extensions` を開く
 3. 右上の Developer mode を有効化する
-4. `Load unpacked` から `dist/articleshelf-chrome-extension/` を選ぶ
-5. popup を開いて ArticleShelf URL を確認し、`Open draft in ArticleShelf` を使う
+4. `Load unpacked` から `dist/articleshelf-chrome-extension-local/` を選ぶ
+5. 通常の `http` / `https` ページで popup を開き、`Open draft in ArticleShelf` を使う
+
+ローカルの ArticleShelf 画面から zip をダウンロードする場合は、frontend を `http://localhost:5173` で起動したあと、`/downloads/articleshelf-chrome-extension-local.zip` を取得します。
