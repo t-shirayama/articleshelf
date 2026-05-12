@@ -19,6 +19,7 @@ CI の段階構成と品質ゲートの詳細は [CI / CD](../architecture/ci-cd
 現時点の運用では Cloudflare Pages / Render の Git 連携による自動デプロイを使う。
 Render Free Web Service の休眠抑制は、Cloudflare Worker から 10 分ごとに health check を送る運用とする。
 GitHub Actions は CI を担当し、定期 ping は Cloudflare Worker 側へ分離する。
+Render Web Service の固定 env は repository root の `render.yaml` を正本とし、`SPRING_PROFILES_ACTIVE=prod`、CSRF / cookie secure などの公開必須値を Git 管理下で固定する。
 
 | レイヤー         | 採用サービス                          | 役割                                                             |
 | ---------------- | ------------------------------------- | ---------------------------------------------------------------- |
@@ -149,6 +150,9 @@ README やアプリ画面で表示する注意書き例:
 | `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED`       | `true`                                           | 登録 / ログイン API の in-memory rate limit              |
 | `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` | `3`                                              | Supabase Free の接続数を圧迫しないため小さめにする       |
 
+`render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定し、`FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard 側の secret env として入力する。
+GitHub Actions の `Deployment config check` は `render.yaml` の固定値を検証し、production profile を外した blueprint が `main` へ入らないようにする。
+
 本番必須の認証設定:
 
 ```text
@@ -218,6 +222,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - PR / push では GitHub Actions の CI を実行する。CI の詳細は [CI / CD](../architecture/ci-cd/README.md) に従う
 - Cloudflare Pages は Git 連携で `frontend` を build / deploy する
 - Render は Git 連携で `backend` を Docker build / deploy する
+- Render の backend deploy は `render.yaml` の blueprint を起点にし、dashboard 上でも `SPRING_PROFILES_ACTIVE=prod` を外さない
 - Cloudflare Worker は 10 分ごとの scheduled event で Render の `/actuator/health` へ ping し、Free Web Service の spin down を抑制する
 - 公開反映は Cloudflare Pages / Render 側の auto deploy に任せ、必要時だけ dashboard で rollback / redeploy する
 
@@ -237,6 +242,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 ### 8.2 Backend
 
 - [ ] Render Web Service を Docker で作成した
+- [ ] Render 作成時に repository root の `render.yaml` を import した
 - [ ] Root directory / build context が `backend` になっている
 - [ ] backend final Docker image が non-root user で起動している
 - [ ] Health check path が `/actuator/health` になっている
@@ -287,6 +293,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 
 1. 作業ブランチで実装、関連ドキュメント更新、必要な確認を済ませる
 2. PR を作成し、CI の `check -> unit -> integration -> e2e` が通ることを確認する
+   deployment 設定を触った場合は `Deployment config check` が `render.yaml` の production 固定値を通していることも確認する
 3. PR を `main` にマージする
 4. GitHub 連携により Cloudflare Pages と Render の自動デプロイが始まる
 5. Cloudflare Pages 側で frontend deploy 成功、Render 側で backend deploy 成功を確認する

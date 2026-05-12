@@ -22,6 +22,12 @@
 - 開発時は `docker compose up --build` でフロントエンド、バックエンド、DB をまとめて起動できる構成とする
 - 本番向けにもコンテナイメージを再利用しやすいよう、Dockerfile はアプリ単体で完結する形を採用する
 
+## 公開 runtime の固定値
+
+- Render 公開構成では repository root の `render.yaml` を backend deploy 定義の正本にする
+- `render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定し、公開時の dev default 混入を防ぐ
+- `FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard の secret env として投入する
+
 ## 初期データ方針
 
 - 通常起動では初期ユーザー、記事、タグを自動投入しない
