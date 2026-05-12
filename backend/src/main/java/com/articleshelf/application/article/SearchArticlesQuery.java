@@ -1,6 +1,7 @@
 package com.articleshelf.application.article;
 
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.ArticleStatus;

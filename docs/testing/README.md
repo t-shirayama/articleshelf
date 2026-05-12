@@ -49,6 +49,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - Chrome extension packaging: `cd chrome-extension && npm run build`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド PR gate: `docker compose run --rm backend mvn test spotbugs:check` を CI で必須化し、JUnit / PostgreSQL IT / Clean Architecture dependency test / SpotBugs をまとめて確認する
+- backend の repository / port 変更では、domain package が application DTO / command / query type を import していないことを `CleanArchitectureDependencyTest` の通過で確認する
 - deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie 固定値、health check path を確認する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する

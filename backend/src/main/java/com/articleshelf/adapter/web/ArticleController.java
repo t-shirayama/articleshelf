@@ -2,9 +2,9 @@ package com.articleshelf.adapter.web;
 
 import com.articleshelf.application.article.ArticleResponse;
 import com.articleshelf.application.article.ArticleService;
-import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.application.article.ArticlePreviewResponse;
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;

@@ -3,6 +3,7 @@ package com.articleshelf.application.article;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.application.observability.BackendMetrics;
 import com.articleshelf.domain.article.Article;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;

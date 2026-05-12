@@ -1,4 +1,4 @@
-package com.articleshelf.application.article;
+package com.articleshelf.domain.article;
 
 import org.junit.jupiter.api.Test;
 
@@ -6,15 +6,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ArticleListQueryTest {
     @Test
-    void usesCreatedDescAsTheDefaultSort() {
+    void defaultsPageSizeAndSortWhenMissing() {
         ArticleListQuery query = new ArticleListQuery(null, null, null);
 
-        assertThat(query.paged()).isFalse();
+        assertThat(query.normalizedPage()).isZero();
+        assertThat(query.normalizedSize()).isEqualTo(50);
         assertThat(query.normalizedSort()).isEqualTo(ArticleListQuery.SortKey.CREATED_DESC);
     }
 
     @Test
-    void normalizesPageAndSizeWithinSupportedBounds() {
+    void clampsInvalidPageAndSize() {
         ArticleListQuery query = new ArticleListQuery(-1, 500, "createdDesc");
 
         assertThat(query.normalizedPage()).isZero();
@@ -23,7 +24,7 @@ class ArticleListQueryTest {
     }
 
     @Test
-    void acceptsDocumentedSortKeysAndFallsBackForUnknownValues() {
+    void supportsAllowedSortKeysCaseInsensitively() {
         assertThat(new ArticleListQuery(null, null, "CREATED_ASC").normalizedSort())
                 .isEqualTo(ArticleListQuery.SortKey.CREATED_ASC);
         assertThat(new ArticleListQuery(null, null, "UPDATED_DESC").normalizedSort())

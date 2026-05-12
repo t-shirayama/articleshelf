@@ -1,6 +1,7 @@
 package com.articleshelf.application.article;
 
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleStatus;
 import org.springframework.stereotype.Service;
 

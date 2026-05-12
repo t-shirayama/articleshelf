@@ -1,4 +1,4 @@
-package com.articleshelf.application.article;
+package com.articleshelf.domain.article;
 
 import java.util.Locale;
 

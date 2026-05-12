@@ -31,6 +31,7 @@ ArticleShelf の CI / CD は GitHub Actions を中心に、品質確認と公開
 
 - backend は Docker 経由で Maven を実行し、ローカル Maven の有無に依存しない
 - `backend-check` は `docker compose run --rm backend mvn test spotbugs:check` を実行し、コンパイル不能、JUnit / PostgreSQL IT 失敗、Clean Architecture dependency test 違反、SpotBugs 警告を早い段階で止める
+- backend の port / repository signature を変える変更では、domain から application DTO / query / command を import していないことを `CleanArchitectureDependencyTest` と review の両方で確認する
 - `backend-unit` は JaCoCo coverage 付きで domain / application 中心の UT を実行し、domain / application line coverage 80% 未満を失敗にする
 - `backend-integration` は Spring Boot と PostgreSQL 実体で認証境界、Repository 検索、DB 制約、JPA validate を確認する
 - Java / Spring Boot / Mockito / JaCoCo / Surefire / SpotBugs 更新時は、`backend-check` の結果で Mockito javaagent、JaCoCo `argLine`、JVM warning が再発していないことを確認する

@@ -1,7 +1,7 @@
 package com.articleshelf.infrastructure.persistence;
 
-import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.domain.article.Article;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.ArticleStatus;
 import com.articleshelf.domain.article.ArticleVersionConflictException;
