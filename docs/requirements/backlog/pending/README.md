@@ -32,8 +32,7 @@
 
 ### P3
 
-- [Remove auth mode help copy](remove-auth-mode-help-copy.md)
-- [Refine auth hero mockup layout](refine-auth-hero-mockup-layout.md)
+- 該当なし
 
 ### P4
 

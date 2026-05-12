@@ -341,10 +341,10 @@
 
 .auth-visual-stack {
   position: absolute;
-  right: clamp(0px, 2vw, 34px);
-  bottom: clamp(22px, 5vw, 74px);
-  width: min(420px, 52%);
-  min-height: 520px;
+  right: clamp(4px, 2vw, 34px);
+  bottom: clamp(28px, 5vw, 72px);
+  width: min(440px, 54%);
+  min-height: 540px;
   pointer-events: none;
 }
 
@@ -367,10 +367,11 @@
 }
 
 .auth-progress-card {
-  top: 10px;
-  left: 168px;
-  width: 310px;
-  transform: rotate(2deg);
+  top: 8px;
+  right: 6px;
+  width: 304px;
+  z-index: 2;
+  transform: rotate(1.4deg);
 }
 
 .auth-progress-row {
@@ -420,9 +421,10 @@
 }
 
 .auth-recent-card {
-  top: 180px;
-  left: 132px;
-  width: 372px;
+  top: 172px;
+  left: 8px;
+  width: 356px;
+  z-index: 3;
 }
 
 .auth-recent-card ul {
@@ -491,9 +493,10 @@
 }
 
 .auth-tags-card {
-  right: 0;
-  bottom: 18px;
-  width: 330px;
+  left: 34px;
+  bottom: 34px;
+  width: 304px;
+  z-index: 1;
 }
 
 .auth-tag-cloud {
@@ -513,9 +516,9 @@
 
 .auth-book-illustration {
   position: absolute;
-  right: 28px;
-  bottom: -16px;
-  color: rgba(136, 114, 74, 0.32);
+  right: 18px;
+  bottom: 6px;
+  color: rgba(136, 114, 74, 0.22);
 }
 
 .auth-panel {
@@ -572,10 +575,7 @@
 }
 
 .auth-mode-switch-copy {
-  display: flex;
-  gap: 8px 12px;
-  align-items: baseline;
-  justify-content: space-between;
+  display: grid;
   padding-inline: 2px;
 }
 
@@ -583,12 +583,6 @@
   color: var(--text);
   font-size: 0.82rem;
   font-weight: 800;
-}
-
-.auth-mode-switch-copy small {
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 700;
 }
 
 .auth-mode-toggle {

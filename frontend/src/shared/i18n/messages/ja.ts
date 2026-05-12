@@ -53,7 +53,6 @@ export const ja = {
       registerDescription: 'アカウントを作成して、自分の記事だけを管理できます。',
       submitRegister: '登録して始める',
       modeSwitchLabel: 'ログイン / 登録の切り替え',
-      modeSwitchHint: '利用したい操作を選んでください',
       username: 'ユーザー名',
       displayName: '表示名（任意）',
       password: 'パスワード',

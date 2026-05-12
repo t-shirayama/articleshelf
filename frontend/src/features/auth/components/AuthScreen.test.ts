@@ -33,6 +33,7 @@ describe('AuthScreen', () => {
     const { root, app } = mountAuthScreen()
 
     expect(root.textContent).toContain('ログイン / 登録の切り替え')
+    expect(root.textContent).not.toContain('利用したい操作を選んでください')
     expect(root.querySelector('#auth-display-name')).toBeNull()
 
     modeButton(root, 'register')?.click()

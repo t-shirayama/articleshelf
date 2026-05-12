@@ -14,20 +14,25 @@
 
   .auth-visual-stack {
     right: 0;
-    width: min(360px, 58%);
+    width: min(350px, 56%);
+    min-height: 500px;
   }
 
   .auth-progress-card {
-    left: 12px;
-    width: 286px;
+    right: 0;
+    width: 258px;
   }
 
   .auth-recent-card {
-    width: 326px;
+    top: 154px;
+    left: 0;
+    width: 300px;
   }
 
   .auth-tags-card {
-    width: 286px;
+    left: 20px;
+    bottom: 24px;
+    width: 252px;
   }
 
   .app-shell {
@@ -629,11 +634,6 @@
   .auth-panel {
     gap: 16px;
     padding: 22px 18px;
-  }
-
-  .auth-mode-switch-copy {
-    display: grid;
-    gap: 3px;
   }
 
   .app-shell {
