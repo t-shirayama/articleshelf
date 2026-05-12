@@ -133,19 +133,28 @@ const {
 });
 const isAllArticlesActive = computed(
   () =>
-    isListMode.value &&
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
     store.filters.status === "ALL" &&
     activeFilterCount.value === 0 &&
     !store.filters.favorite,
 );
 const isUnreadActive = computed(
-  () => isListMode.value && store.filters.status === "UNREAD",
+  () =>
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
+    store.filters.status === "UNREAD",
 );
 const isReadActive = computed(
-  () => isListMode.value && store.filters.status === "READ",
+  () =>
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
+    store.filters.status === "READ",
 );
 const isFavoriteActive = computed(
-  () => isListMode.value && store.filters.favorite,
+  () =>
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
+    store.filters.favorite,
+);
+const isCalendarNavigationActive = computed(
+  () => isCalendarActive.value || (viewMode.value === "detail" && detailReturnView.value === "calendar"),
 );
 const mobileBottomNavigationVisible = computed(
   () =>
@@ -416,19 +425,19 @@ const {
 
 <template>
   <ArticleWorkspaceShell
-    v-if="viewMode !== 'detail'"
     :counts="store.counts"
     :current-motivation="currentMotivation"
     :is-all-articles-active="isAllArticlesActive"
     :is-unread-active="isUnreadActive"
     :is-read-active="isReadActive"
     :is-favorite-active="isFavoriteActive"
-    :is-calendar-active="isCalendarActive"
+    :is-calendar-active="isCalendarNavigationActive"
     :is-tags-active="isTagsActive"
     :user-name="authStore.user?.displayName || authStore.user?.username || ''"
     :drawer-open="mobileDrawerOpen"
     :bottom-navigation-visible="mobileBottomNavigationVisible"
     :current-locale="getCurrentLocale()"
+    :detail-shell="viewMode === 'detail'"
     @update:drawer-open="mobileDrawerOpen = $event"
     @all-articles="setAllArticles"
     @status="setStatus"
@@ -440,70 +449,73 @@ const {
     @change-locale="changeLocale"
     @add-article="openArticleModalFromMobile"
   >
-    <ArticleListView
-      v-if="viewMode === 'list'"
-      :title="pageTitle"
-      :search="searchDraft"
-      :sort="store.filters.sort"
-      :filter-summary="activeFilterSummary"
-      :active-filter-count="activeFilterCount"
-      :error="store.error"
-      :loading="store.loading"
-      :articles="store.articles"
-      :current-page="store.currentPage"
-      :has-next-page="store.hasNextPage"
-      :has-previous-page="store.hasPreviousPage"
-      :selected-article-id="store.selectedArticle?.id"
-      @update:search="searchDraft = $event"
-      @update:sort="setSort"
-      @open-filters="filterDialogOpen = true"
-      @add="openArticleModalFromMobile"
-      @open-article="openArticleFromList"
-      @delete-article="requestDeleteArticle"
-      @toggle-status="toggleArticleStatus"
-      @toggle-favorite="toggleFavorite"
-      @previous-page="store.goToPreviousPage()"
-      @next-page="store.goToNextPage()"
-      @retry="retryInitialLoad"
-    />
+    <template v-if="viewMode === 'list'">
+      <ArticleListView
+        :title="pageTitle"
+        :search="searchDraft"
+        :sort="store.filters.sort"
+        :filter-summary="activeFilterSummary"
+        :active-filter-count="activeFilterCount"
+        :error="store.error"
+        :loading="store.loading"
+        :articles="store.articles"
+        :current-page="store.currentPage"
+        :has-next-page="store.hasNextPage"
+        :has-previous-page="store.hasPreviousPage"
+        :selected-article-id="store.selectedArticle?.id"
+        @update:search="searchDraft = $event"
+        @update:sort="setSort"
+        @open-filters="filterDialogOpen = true"
+        @add="openArticleModalFromMobile"
+        @open-article="openArticleFromList"
+        @delete-article="requestDeleteArticle"
+        @toggle-status="toggleArticleStatus"
+        @toggle-favorite="toggleFavorite"
+        @previous-page="store.goToPreviousPage()"
+        @next-page="store.goToNextPage()"
+        @retry="retryInitialLoad"
+      />
+    </template>
 
-    <CalendarView
-      v-else-if="viewMode === 'calendar'"
-      v-model:visible-month-key="calendarVisibleMonthKey"
-      v-model:mode="calendarMode"
-      :articles="store.articleSnapshot"
-      @open-article="openArticleFromCalendar"
-    />
+    <template v-else-if="viewMode === 'calendar'">
+      <CalendarView
+        v-model:visible-month-key="calendarVisibleMonthKey"
+        v-model:mode="calendarMode"
+        :articles="store.articleSnapshot"
+        @open-article="openArticleFromCalendar"
+      />
+    </template>
 
-    <TagManagementView
+    <template v-else-if="viewMode === 'tags'">
+      <TagManagementView
+        :tags="store.tags"
+        :error="store.error"
+        :loading="store.loading"
+        :saving="isSavingTag"
+        @add-tag="addTag"
+        @rename-tag="renameTag"
+        @merge-tag="mergeTag"
+        @delete-tag="deleteTag"
+        @open-tag-articles="openTagArticles"
+        @retry="retryInitialLoad"
+      />
+    </template>
+
+    <ArticleDetail
       v-else
+      :article="store.selectedArticle"
       :tags="store.tags"
-      :error="store.error"
-      :loading="store.loading"
-      :saving="isSavingTag"
-      @add-tag="addTag"
-      @rename-tag="renameTag"
-      @merge-tag="mergeTag"
-      @delete-tag="deleteTag"
-      @open-tag-articles="openTagArticles"
-      @retry="retryInitialLoad"
+      :saving="isSavingDetail"
+      :deleting="isDeletingArticle"
+      :error="detailFormError"
+      :error-action-label="detailConflictArticleId ? t('detail.reloadLatest') : ''"
+      @update:dirty="detailHasUnsavedChanges = $event"
+      @back="showDetailReturnView"
+      @save="saveArticle"
+      @delete="deleteArticle"
+      @error-action="reloadConflictedArticle"
     />
   </ArticleWorkspaceShell>
-
-  <ArticleDetail
-    v-else
-    :article="store.selectedArticle"
-    :tags="store.tags"
-    :saving="isSavingDetail"
-    :deleting="isDeletingArticle"
-    :error="detailFormError"
-    :error-action-label="detailConflictArticleId ? t('detail.reloadLatest') : ''"
-    @update:dirty="detailHasUnsavedChanges = $event"
-    @back="showDetailReturnView"
-    @save="saveArticle"
-    @delete="deleteArticle"
-    @error-action="reloadConflictedArticle"
-  />
 
   <ArticleFormModal
     :open="modalOpen"

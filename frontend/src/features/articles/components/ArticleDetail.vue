@@ -81,7 +81,7 @@ function confirmDelete(): void {
 </script>
 
 <template>
-  <main class="detail-page" :class="{ 'is-editing': isEditing }">
+  <section class="detail-page" :class="{ 'is-editing': isEditing }">
     <div v-if="!article" class="empty-detail">
       <span>{{ t('detail.emptySelection') }}</span>
     </div>
@@ -250,5 +250,5 @@ function confirmDelete(): void {
         @confirm="confirmDelete"
       />
     </VForm>
-  </main>
+  </section>
 </template>

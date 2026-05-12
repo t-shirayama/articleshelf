@@ -15,7 +15,6 @@
 
 ### P2
 
-- [Detail page shared sidebar navigation](detail-page-shared-sidebar-navigation.md)
 - [Distributed auth rate limit](distributed-auth-rate-limit.md)
 - [Centralized cookie CSRF guard](centralized-cookie-csrf-guard.md)
 - [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)

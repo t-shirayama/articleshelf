@@ -43,6 +43,7 @@
 - `mobile-responsive.spec.ts`
   - モバイル幅で drawer と bottom navigation から主要画面へ遷移できる
   - モバイル詳細編集、未保存確認、フィルタ、カレンダー日付 sheet が動作する
+  - モバイル詳細表示中は bottom navigation を隠し、drawer から主要画面へ移動できる
 
 現行 E2E は desktop Chromium と mobile project で実行する。
 OGP 取得の安定性に依存しすぎないよう、記事追加 URL は `https://example.com/?articleshelfE2e=...` の一意 URL を使う。

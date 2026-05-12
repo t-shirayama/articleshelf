@@ -30,7 +30,7 @@
 - store / composable は `shared/errors` の `errorMessage` で表示文言を取り出し、一覧、タグ管理、追加モーダル、詳細画面など表示先に応じた error state へ入れる
 - API client は 5xx や malformed success response の内部詳細を画面へ出さず、i18n の汎用メッセージに変換する
 - 画面遷移、未保存警告、記事操作、タグ操作、詳細フォーム、タグ管理の検索 / 並び替え / ダイアログ状態など、複数要素にまたがる UI ロジックは feature composable に切り出す
-- protected route の outer shell は `ArticleWorkspaceShell` が担当し、desktop sidebar、mobile drawer、bottom navigation を一箇所で持つ
+- protected route の outer shell は `ArticleWorkspaceShell` が担当し、desktop sidebar、mobile drawer、bottom navigation を一箇所で持つ。記事詳細も shell の内側で描画し、一覧起点かカレンダー起点かの navigation 文脈を保つ
 - `ArticleWorkspace.vue` は route に応じた list / calendar / tags / detail の切り替えと feature 間の配線に寄せ、account dialog や logout state reset は `useWorkspaceAccountActions` が所有する
 - `useArticlesStore` の記事一覧 state は `articles` を canonical source とし、検索 / フィルタ / ソート後の一覧は getter と `features/articles/domain` の純粋関数で派生させる
 - `useArticlesStore` は list page 用の current page response と、カレンダー / サイドバー件数 / 一部遷移互換のための `articleSnapshot` を分けて持つ
@@ -55,7 +55,7 @@
 - client-side domain helpers: 検索、フィルタ、ソート、フォーム変換、Markdown rendering などは `features/articles/domain` の副作用を持たない関数へ寄せる
 - UI measurement: タグ管理の select 幅など DOM 計測が必要な処理は dedicated composable に分け、タグ管理 state と DOM 依存を混ぜない
 - workspace search debounce: 記事一覧検索の遅延反映は `useArticleSearchDebounce` に分け、workspace unmount や logout state reset 時に保留中の検索反映を cancel する
-- workspace container boundaries: `WorkspaceRouteView` が protected route 入口、`ArticleWorkspaceShell` が app chrome、`ArticleWorkspace` が route-to-view orchestration、`useWorkspaceAccountActions` / `useWorkspaceNavigation` が cross-view state を分担する
+- workspace container boundaries: `WorkspaceRouteView` が protected route 入口、`ArticleWorkspaceShell` が app chrome、`ArticleWorkspace` が route-to-view orchestration を担当する。detail route でも shell は維持し、`detailReturnView` を使って sidebar / drawer の active state と back 導線を揃える。`useWorkspaceAccountActions` / `useWorkspaceNavigation` は cross-view state を分担する
 - server-driven list query: 記事一覧は `filters + currentPage` を query state として `GET /api/articles` へ送り、`page` / `size` / `sort` と filter 群で current page だけを取得する。カレンダーや sidebar counts は互換用 snapshot を別 fetch する
 - safe Markdown rendering: `renderMarkdown` は raw HTML を無効化した MarkdownIt 出力を DOMPurify で sanitization し、許可スキームや危険タグの境界は [セキュリティ仕様](../../specs/security/README.md) に従う
 - responsive UX: desktop / tablet / mobile の見た目と操作は design docs を正本にし、代表導線は Playwright E2E と screenshot capture で確認する

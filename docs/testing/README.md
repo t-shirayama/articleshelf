@@ -70,6 +70,7 @@ API client unit test では refresh retry、CSRF header、Accept-Language、erro
 UI / E2E 確認では、主要 dialog の focus 復帰、記事カードの詳細 open button と右上 action button の独立操作、カレンダー日付セルの keyboard open / close、`prefers-reduced-motion` 時の不要な transition 抑制、認証後記事一覧の axe accessibility scan をアクセシビリティ観点として見る。
 ArticleWorkspace の検索 debounce は `useArticleSearchDebounce` の unit test で、最後の入力値だけが反映されることと unmount / logout 相当の cancel で遅延反映されないことを確認する。
 ArticleWorkspace の account operation は `useWorkspaceAccountActions` の unit test で、logout / password change / logout all 時の user scoped state reset、dialog close、error surfacing を確認する。
+記事詳細の shell 変更では、desktop で sidebar を維持したまま詳細を開けること、calendar から開いた詳細で戻ると元の月と表示モードへ戻ること、mobile で detail 中は bottom navigation が出ず drawer から移動できることを確認する。
 Router 導入後の E2E / 手動確認では、未認証 protected route が router guard で `/login` へ補正されること、認証後に `/articles` / `/calendar` / `/tags` / `/settings` へ直接入れること、認証済みで `/login` / `/register` を開くと `/articles` へ戻ること、記事カード選択で `/articles/:id` になることを見る。
 記事一覧 query model は `ArticleListQueryTest` で、sort 既定値と許可値を確認する。frontend では `articlesApi.test.ts` と `articles.test.ts` で query parameter 直列化、current page response、snapshot fallback、page move state を確認する。
 server-driven article list query では、backend の `JpaArticleRepositoryPostgresIntegrationTest` で multi-tag OR、rating、created/read range、wildcard search、pagination / sort を PostgreSQL 実体で確認し、frontend E2E では検索、フィルタ、並び替え、詳細遷移、カレンダー、タグ管理の既存導線が回帰していないことを見る。

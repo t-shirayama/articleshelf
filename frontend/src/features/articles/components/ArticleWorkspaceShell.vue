@@ -35,6 +35,7 @@ defineProps<{
   drawerOpen: boolean;
   bottomNavigationVisible: boolean;
   currentLocale: SupportedLocale;
+  detailShell: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -58,7 +59,7 @@ function setDrawerOpen(value: boolean): void {
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'is-detail-shell': detailShell }">
     <header class="mobile-app-header">
       <VBtn
         class="mobile-menu-button"
@@ -246,7 +247,7 @@ function setDrawerOpen(value: boolean): void {
       </div>
     </VNavigationDrawer>
 
-    <main class="content">
+    <main class="content" :class="{ 'is-detail-shell': detailShell }">
       <slot />
     </main>
 

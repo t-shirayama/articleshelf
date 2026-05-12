@@ -8,6 +8,13 @@
   padding: 18px;
 }
 
+.app-shell.is-detail-shell {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+  align-items: start;
+}
+
 .sidebar,
 .content,
 .detail-page {
@@ -646,6 +653,16 @@
   overflow: hidden;
   border-radius: 8px;
   padding: var(--shell-panel-padding);
+}
+
+.content.is-detail-shell {
+  height: auto;
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .mobile-app-header,
