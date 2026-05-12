@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, toRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { ChevronDown } from 'lucide-vue-next'
 import DateField from '../../../shared/components/DateField.vue'
 import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
@@ -68,6 +69,10 @@ function submit(): void {
   const input = createSubmitInput(props.saving)
   if (!input) return
   emit('submit', input)
+}
+
+function toggleDetailsPanel(): void {
+  detailsPanel.value = detailsPanel.value === 'details' ? null : 'details'
 }
 </script>
 
@@ -148,10 +153,29 @@ function submit(): void {
           </template>
         </div>
 
-        <VExpansionPanels v-model="detailsPanel" class="article-form-details" variant="accordion">
-          <VExpansionPanel value="details">
-            <VExpansionPanelTitle>{{ t('articleForm.detailsToggle') }}</VExpansionPanelTitle>
-            <VExpansionPanelText>
+        <section class="article-form-details">
+          <button
+            class="article-form-details-trigger"
+            type="button"
+            :aria-expanded="detailsPanel === 'details'"
+            @click="toggleDetailsPanel"
+          >
+            <div class="article-form-details-title">
+              <span class="article-form-details-copy">
+                <strong>{{ t('articleForm.detailsToggle') }}</strong>
+                <small>{{ t('articleForm.detailsHelp') }}</small>
+              </span>
+              <ChevronDown
+                class="article-form-details-icon"
+                :class="{ 'is-open': detailsPanel === 'details' }"
+                :size="18"
+                aria-hidden="true"
+              />
+            </div>
+          </button>
+
+          <Transition name="detail-accordion">
+            <div v-if="detailsPanel === 'details'" class="article-form-details-content">
               <div class="modal-field title-input-group">
                 <VTextField
                   v-model="form.title"
@@ -209,9 +233,9 @@ function submit(): void {
                   :placeholder="t('articleForm.notesPlaceholder')"
                 />
               </div>
-            </VExpansionPanelText>
-          </VExpansionPanel>
-        </VExpansionPanels>
+            </div>
+          </Transition>
+        </section>
       </VCardText>
     </VCard>
   </VDialog>

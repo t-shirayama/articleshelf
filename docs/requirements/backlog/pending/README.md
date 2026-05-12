@@ -27,6 +27,8 @@
 - [Centralized cookie CSRF guard](centralized-cookie-csrf-guard.md)
 - [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)
 - [OGP egress network isolation](ogp-egress-network-isolation.md)
+- [Application logging design](application-logging-design.md)
+- [Chrome extension local distribution](chrome-extension-local-distribution.md)
 
 ### P3
 

@@ -200,7 +200,6 @@ function handleModeUpdate(value: unknown): void {
         <div class="auth-mode-switch">
           <div class="auth-mode-switch-copy">
             <span>{{ t("auth.modeSwitchLabel") }}</span>
-            <small>{{ t("auth.modeSwitchHint") }}</small>
           </div>
           <VBtnToggle
             :model-value="mode"

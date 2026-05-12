@@ -48,15 +48,15 @@ test('mobile detail editing, unsaved confirmation, filter, and calendar day shee
   await page.getByRole('dialog').getByRole('button', { name: articleTitle }).click()
   await expect(page.getByRole('heading', { level: 2, name: articleTitle })).toBeVisible()
 
-  await page.getByRole('button', { name: '編集' }).click()
+  await page.getByRole('button', { name: '編集', exact: true }).click()
   await page.getByRole('textbox', { name: 'メモ', exact: true }).fill('Edited on mobile')
   await page.getByRole('button', { name: '戻る' }).click()
   await expect(page.getByRole('dialog')).toContainText('未保存の編集があります')
   await page.getByRole('button', { name: '編集を続ける' }).click()
-  await page.getByRole('button', { name: '保存' }).click()
+  await page.getByRole('button', { name: '保存', exact: true }).click()
   await expect(page.getByText('Edited on mobile')).toBeVisible()
 
-  await page.getByRole('button', { name: '編集' }).click()
+  await page.getByRole('button', { name: '編集', exact: true }).click()
   await page.getByRole('button', { name: '削除' }).click()
   await expect(page.getByRole('dialog')).toContainText('記事を削除しますか')
   await page.getByRole('button', { name: 'キャンセル' }).click()
@@ -78,6 +78,7 @@ async function createArticleFromBottomNav(
   input: { url: string, title: string, notes?: string, tags?: string[] }
 ): Promise<void> {
   await page.locator('.mobile-bottom-nav').getByRole('button', { name: '追加' }).click()
+  await openArticleFormDetails(page)
   await page.getByRole('textbox', { name: 'URL', exact: true }).fill(input.url)
   await page.getByRole('textbox', { name: 'タイトル（任意）', exact: true }).fill(input.title)
 
@@ -92,6 +93,13 @@ async function createArticleFromBottomNav(
 
   await page.getByRole('button', { name: '保存する' }).click()
   await expect(page.getByRole('dialog')).toHaveCount(0)
+}
+
+async function openArticleFormDetails(page: Page): Promise<void> {
+  const titleInput = page.getByRole('textbox', { name: 'タイトル（任意）', exact: true })
+  if (await titleInput.isVisible().catch(() => false)) return
+  await page.getByRole('button', { name: /タグ・メモ・おすすめ度を追加/ }).click()
+  await expect(titleInput).toBeVisible()
 }
 
 function articleCard(page: Page, title: string) {

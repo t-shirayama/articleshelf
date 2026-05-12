@@ -1,5 +1,8 @@
 FROM maven:3.9.14-eclipse-temurin-25 AS dev
 WORKDIR /workspace
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
 COPY pom.xml .
 RUN for attempt in 1 2 3; do \
       mvn -B -ntp -DskipTests dependency:go-offline && break; \
