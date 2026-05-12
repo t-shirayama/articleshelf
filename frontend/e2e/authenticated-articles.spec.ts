@@ -542,6 +542,7 @@ test('user separation also blocks update and delete through the API', async ({ r
     },
     data: {
       ...created.payload,
+      version: created.version,
       title: 'Stolen title'
     }
   })
@@ -730,7 +731,7 @@ async function createArticleByApi(
   url: string,
   title: string,
   overrides: Partial<Record<string, unknown>> = {}
-): Promise<{ id: string, payload: Record<string, unknown> }> {
+): Promise<{ id: string, version: number, payload: Record<string, unknown> }> {
   const payload = {
     url,
     title,
@@ -750,5 +751,5 @@ async function createArticleByApi(
   })
   expect(response.status()).toBe(201)
   const body = await response.json()
-  return { id: body.id as string, payload }
+  return { id: body.id as string, version: body.version as number, payload }
 }
