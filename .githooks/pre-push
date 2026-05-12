@@ -12,6 +12,7 @@ fi
 zero_sha='0000000000000000000000000000000000000000'
 all_changed_files=''
 cr="$(printf '\r')"
+pushes_main=false
 
 append_changed_files() {
   range="$1"
@@ -165,6 +166,10 @@ do
 
   [ -n "${local_ref:-}" ] || continue
 
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    pushes_main=true
+  fi
+
   if [ "$local_sha" = "$zero_sha" ]; then
     continue
   fi
@@ -197,6 +202,7 @@ run_mobile_e2e=false
 run_composable_tests=false
 run_backend_architecture=false
 run_backend_check=false
+run_pre_push_e2e=false
 
 if has_changed '^(frontend/playwright\.config\.ts|frontend/e2e/.*|frontend/scripts/e2e-webserver\.(mjs|sh)|docker-compose\.e2e\.yml|frontend/src/app/providers/router\.ts|frontend/src/features/auth/.*|frontend/src/features/articles/composables/useWorkspaceAccountActions\.ts|frontend/src/features/articles/views/ArticleWorkspace\.vue)$'; then
   run_frontend_auth_checks=true
@@ -218,6 +224,10 @@ if has_changed '^(backend/pom\.xml|backend/src/main/java/com/articleshelf/infras
   run_backend_check=true
 fi
 
+if [ "${ARTICLESHELF_PRE_PUSH_E2E:-0}" = "1" ] || [ "$pushes_main" = true ]; then
+  run_pre_push_e2e=true
+fi
+
 if [ "$run_frontend_auth_checks" = false ] && [ "$run_mobile_e2e" = false ] && [ "$run_composable_tests" = false ] && [ "$run_backend_architecture" = false ] && [ "$run_backend_check" = false ]; then
   echo "ArticleShelf pre-push: no targeted verification rules matched."
   exit 0
@@ -227,15 +237,23 @@ if [ "$run_frontend_auth_checks" = true ]; then
   run_check \
     "frontend auth/router targeted unit tests" \
     "cd frontend && npm run test:unit -- src/features/articles/composables/useWorkspaceAccountActions.test.ts src/features/auth/components/AuthScreen.test.ts"
-  run_e2e_check \
-    "frontend authenticated article smoke E2E" \
-    "cd frontend && npx playwright test e2e/authenticated-articles.spec.ts -g \"user can register, create an article, logout and login again\""
+  if [ "$run_pre_push_e2e" = true ]; then
+    run_e2e_check \
+      "frontend authenticated article smoke E2E" \
+      "cd frontend && npx playwright test e2e/authenticated-articles.spec.ts -g \"user can register, create an article, logout and login again\""
+  else
+    echo "ArticleShelf pre-push: skipping authenticated article smoke E2E for non-main push. Set ARTICLESHELF_PRE_PUSH_E2E=1 to run it locally."
+  fi
 fi
 
 if [ "$run_mobile_e2e" = true ]; then
-  run_e2e_check \
-    "frontend mobile shell smoke E2E" \
-    "cd frontend && npx playwright test e2e/mobile-responsive.spec.ts -g \"mobile drawer and bottom navigation reach primary screens\""
+  if [ "$run_pre_push_e2e" = true ]; then
+    run_e2e_check \
+      "frontend mobile shell smoke E2E" \
+      "cd frontend && npx playwright test e2e/mobile-responsive.spec.ts -g \"mobile drawer and bottom navigation reach primary screens\""
+  else
+    echo "ArticleShelf pre-push: skipping mobile shell smoke E2E for non-main push. Set ARTICLESHELF_PRE_PUSH_E2E=1 to run it locally."
+  fi
 fi
 
 if [ "$run_composable_tests" = true ]; then
