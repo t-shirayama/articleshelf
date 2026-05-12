@@ -4,9 +4,9 @@ import {
   CalendarDays,
   CheckCircle2,
   Circle,
+  CircleHelp,
   Heart,
   Library,
-  Download,
   LogOut,
   Tags,
   UserCog,
@@ -14,7 +14,6 @@ import {
 import { useI18n } from "vue-i18n";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
 import type { SupportedLocale } from "../../../shared/i18n/locales";
-import { extensionDownloadUrl } from "../../../shared/config/extensionDownload";
 import MotivationCard from "./MotivationCard.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
 
@@ -41,6 +40,7 @@ const emit = defineEmits<{
   favoriteOnly: [];
   calendar: [];
   tags: [];
+  help: [];
   account: [];
   logout: [];
 }>();
@@ -175,13 +175,12 @@ function changeLocale(value: unknown): void {
         variant="outlined"
         color="primary"
         class="sidebar-account-button"
-        :href="extensionDownloadUrl"
-        download
+        @click="emit('help')"
       >
         <template #prepend>
-          <Download :size="17" />
+          <CircleHelp :size="17" />
         </template>
-        {{ t("nav.chromeExtension") }}
+        {{ t("nav.help") }}
       </VBtn>
       <VBtn
         block

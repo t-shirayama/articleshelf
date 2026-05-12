@@ -344,6 +344,14 @@ async function captureAccountSettingsDialog(page) {
   await saveScreenshot(page, "account_settings_dialog.png");
 }
 
+async function captureHelpDialog(page) {
+  await openArticleList(page);
+  await page.getByRole("button", { name: "ヘルプ", exact: true }).click();
+  await page.waitForSelector(".help-dialog", { timeout: 30000 });
+  await page.waitForTimeout(500);
+  await saveScreenshot(page, "help_dialog.png");
+}
+
 async function captureMobileList(page) {
   await page.setViewportSize(requestedViewport || defaultMobileViewport);
   await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
@@ -434,6 +442,11 @@ async function captureOfficialTargets(browser, page) {
     return;
   }
 
+  if (captureTarget === "help-dialog") {
+    await captureHelpDialog(page);
+    return;
+  }
+
   if (captureTarget === "add-article-modal") {
     await captureAddModal(page);
     return;
@@ -468,6 +481,7 @@ async function captureOfficialTargets(browser, page) {
     await captureTagDeleteDialog(page);
     await captureDeleteArticleDialog(page);
     await captureAccountSettingsDialog(page);
+    await captureHelpDialog(page);
   }
   if (targetMatches("mobile")) {
     await captureMobileList(page);

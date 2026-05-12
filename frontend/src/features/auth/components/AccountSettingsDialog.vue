@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-import { Download, KeyRound, LogOut, Puzzle, Trash2, X } from "lucide-vue-next";
-import {
-  extensionDownloadUrl,
-  shouldLoadExtensionVersionFromGitHub,
-} from "../../../shared/config/extensionDownload";
+import { KeyRound, LogOut, Trash2, X } from "lucide-vue-next";
 
 const props = defineProps<{
   open: boolean;
@@ -22,45 +18,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const extensionVersion = ref(
-  normalizeVersionLabel(import.meta.env.VITE_EXTENSION_VERSION),
-);
 const currentPassword = ref("");
 const newPassword = ref("");
 const deletePassword = ref("");
 const pendingAction = ref<"password" | "logoutAll" | "delete" | null>(null);
-const releaseApiUrl = "https://api.github.com/repos/t-shirayama/articleshelf/releases/latest";
-
-function normalizeVersionLabel(input: string | undefined): string {
-  const value = input?.trim() ?? "";
-  if (!value) return "latest";
-  return value.startsWith("v") ? value.slice(1) : value;
-}
-
-async function loadExtensionVersionFromGitHub(): Promise<void> {
-  try {
-    const response = await fetch(releaseApiUrl, {
-      headers: {
-        Accept: "application/vnd.github+json",
-      },
-    });
-
-    if (!response.ok) return;
-
-    const payload = (await response.json()) as { tag_name?: string };
-    if (payload.tag_name) {
-      extensionVersion.value = normalizeVersionLabel(payload.tag_name);
-    }
-  } catch {
-    // keep fallback value
-  }
-}
-
-onMounted(() => {
-  if (shouldLoadExtensionVersionFromGitHub) {
-    void loadExtensionVersionFromGitHub();
-  }
-});
 
 watch(
   () => props.open,
@@ -144,40 +105,6 @@ function handleDialogUpdate(open: boolean): void {
         <div v-if="error" class="form-error-banner" role="alert" aria-live="assertive">
           <span>{{ error }}</span>
         </div>
-
-        <section class="account-settings-section">
-          <div class="account-settings-section-heading">
-            <Puzzle :size="18" />
-            <strong>{{ t("auth.account.extensionTitle") }}</strong>
-            <span class="account-settings-chip">
-              {{ t("auth.account.extensionVersion", { version: extensionVersion }) }}
-            </span>
-          </div>
-          <p>{{ t("auth.account.extensionDescription") }}</p>
-          <div class="account-settings-extension-actions">
-            <VBtn
-              class="account-change-password-button"
-              color="primary"
-              variant="flat"
-              :href="extensionDownloadUrl"
-              download
-            >
-              <template #prepend>
-                <Download :size="18" />
-              </template>
-              {{ t("auth.account.extensionDownload") }}
-            </VBtn>
-          </div>
-          <ol class="account-settings-steps">
-            <li>{{ t("auth.account.extensionStepOne") }}</li>
-            <li>{{ t("auth.account.extensionStepTwo") }}</li>
-            <li>{{ t("auth.account.extensionStepThree") }}</li>
-            <li>{{ t("auth.account.extensionStepFour") }}</li>
-          </ol>
-          <p>{{ t("auth.account.extensionReinstall") }}</p>
-        </section>
-
-        <VDivider />
 
         <section class="account-settings-section">
           <div class="account-settings-section-heading">

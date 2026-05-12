@@ -4,9 +4,9 @@ import {
   CalendarDays,
   CheckCircle2,
   Circle,
+  CircleHelp,
   Heart,
   Library,
-  Download,
   LogOut,
   Menu,
   Plus,
@@ -15,7 +15,6 @@ import {
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import type { SupportedLocale } from "../../../shared/i18n/locales";
-import { extensionDownloadUrl } from "../../../shared/config/extensionDownload";
 import AppSidebar from "./AppSidebar.vue";
 import type { ArticleStatus, MotivationCardData } from "../types";
 
@@ -47,6 +46,7 @@ const emit = defineEmits<{
   "favorite-only": [];
   "calendar": [];
   "tags": [];
+  "help": [];
   "account": [];
   "logout": [];
   "change-locale": [value: SupportedLocale];
@@ -97,6 +97,7 @@ function setDrawerOpen(value: boolean): void {
       @favorite-only="emit('favorite-only')"
       @calendar="emit('calendar')"
       @tags="emit('tags')"
+      @help="emit('help')"
       @account="emit('account')"
       @logout="emit('logout')"
     />
@@ -226,13 +227,12 @@ function setDrawerOpen(value: boolean): void {
             variant="outlined"
             color="primary"
             class="sidebar-account-button"
-            :href="extensionDownloadUrl"
-            download
+            @click="emit('help')"
           >
             <template #prepend>
-              <Download :size="17" />
+              <CircleHelp :size="17" />
             </template>
-            {{ t("nav.chromeExtension") }}
+            {{ t("nav.help") }}
           </VBtn>
           <VBtn
             block

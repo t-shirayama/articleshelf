@@ -782,13 +782,56 @@
   gap: 10px;
 }
 
-.account-settings-extension-actions {
+.help-dialog {
+  width: min(560px, 100%);
+}
+
+.help-dialog-header h2 {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.help-dialog-header h2 svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.help-dialog-body {
+  padding: 10px 24px 24px;
+}
+
+.help-dialog-section {
+  display: grid;
+  gap: 12px;
+}
+
+.help-dialog-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.help-dialog-section-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text);
+}
+
+.help-dialog-section-heading svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.help-dialog-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.account-settings-chip {
+.help-dialog-chip {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
@@ -802,7 +845,12 @@
   border-radius: 999px;
 }
 
-.account-settings-steps {
+.help-dialog-subtitle {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.help-dialog-steps {
   display: grid;
   gap: 8px;
   margin: 0;

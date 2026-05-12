@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import {
-  BookOpen,
-} from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import AccountSettingsDialog from "../../auth/components/AccountSettingsDialog.vue";
@@ -16,6 +13,7 @@ import ArticleListView from "../components/ArticleListView.vue";
 import CalendarView from "../components/CalendarView.vue";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog.vue";
 import FilterDialog from "../components/FilterDialog.vue";
+import HelpDialog from "../components/HelpDialog.vue";
 import StatusUndoSnackbar from "../components/StatusUndoSnackbar.vue";
 import TagManagementView from "../components/TagManagementView.vue";
 import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
@@ -42,6 +40,7 @@ const route = useRoute();
 const router = useRouter();
 const filterDialogOpen = ref(false);
 const accountDialogOpen = ref(false);
+const helpDialogOpen = ref(false);
 const detailFormError = ref("");
 const searchDraft = ref("");
 const createSnackbarOpen = ref(false);
@@ -165,6 +164,7 @@ const mobileBottomNavigationVisible = computed(
     !modalOpen.value &&
     !filterDialogOpen.value &&
     !accountDialogOpen.value &&
+    !helpDialogOpen.value &&
     !deleteCandidate.value &&
     !unsavedChangesDialogOpen.value,
 );
@@ -277,6 +277,11 @@ function changeLocale(value: unknown): void {
   const nextLocale: SupportedLocale = value === "ja" ? "ja" : "en";
   setCurrentLocale(nextLocale);
   locale.value = getCurrentLocale();
+}
+
+function openHelpDialog(): void {
+  mobileDrawerOpen.value = false;
+  helpDialogOpen.value = true;
 }
 
 async function loadInitialData(): Promise<void> {
@@ -485,6 +490,7 @@ const {
     @favorite-only="setFavoriteOnly"
     @calendar="showCalendar"
     @tags="showTags"
+    @help="openHelpDialog"
     @account="openAccountSettings"
     @logout="logout"
     @change-locale="changeLocale"
@@ -620,5 +626,10 @@ const {
     @change-password="changePassword"
     @logout-all="logoutAll"
     @delete-account="deleteAccount"
+  />
+
+  <HelpDialog
+    :open="helpDialogOpen"
+    @close="helpDialogOpen = false"
   />
 </template>

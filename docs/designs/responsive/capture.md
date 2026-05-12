@@ -16,7 +16,7 @@
 - `npm run capture:responsive:tablet`: `frontend/test-results/responsive-screenshots/capture-responsive-tablet/` に `820x1180` を撮影する
 - `npm run capture:responsive:mobile`: `frontend/test-results/responsive-screenshots/capture-responsive-mobile/` に `430x932`、`390x844`、`375x667` を撮影する
 
-対象画面だけ確認する場合は、`ARTICLESHELF_SCREENSHOT_TARGET=list|detail|dialogs|calendar|tags|mobile|all` を指定する。
+対象画面だけ確認する場合は、`ARTICLESHELF_SCREENSHOT_TARGET=list|detail|dialogs|calendar|tags|mobile|account-settings-dialog|help-dialog|all` を指定する。
 特定サイズだけ直接指定する場合は、`ARTICLESHELF_SCREENSHOT_VIEWPORT=desktop|macbook|laptop|tablet|mobile|mobile-md|mobile-sm` を使う。
 
 ## 3. 確認観点

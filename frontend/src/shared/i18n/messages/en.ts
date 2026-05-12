@@ -105,15 +105,6 @@ export const en = {
       },
       account: {
         title: 'Account settings',
-        extensionTitle: 'Chrome extension',
-        extensionVersion: 'v{version}',
-        extensionDescription: 'Send the current article page into the ArticleShelf add-article modal. The extension does not store tokens, and each package has a fixed ArticleShelf target. Use the localhost package for local development and the public URL package for production.',
-        extensionDownload: 'Chrome extension',
-        extensionStepOne: 'Download the zip file and extract it to any folder.',
-        extensionStepTwo: 'Open chrome://extensions in Chrome and enable Developer mode in the top right.',
-        extensionStepThree: 'Choose Load unpacked and select the extracted articleshelf-chrome-extension folder.',
-        extensionStepFour: 'Open the extension on a regular http or https page, then choose Open draft in ArticleShelf.',
-        extensionReinstall: 'To update, download the new zip and load it again with the same steps.',
         changePasswordTitle: 'Change password',
         currentPassword: 'Current password',
         newPassword: 'New password',
@@ -132,6 +123,20 @@ export const en = {
         deleteFailed: 'Could not delete account'
       }
     },
+    help: {
+      title: 'Help',
+      chromeExtensionTitle: 'Chrome extension',
+      extensionVersion: 'v{version}',
+      chromeExtensionDescription: 'Send the current article page into the ArticleShelf add-article modal. The extension does not store tokens or cookies, and each package has a fixed ArticleShelf target.',
+      chromeExtensionDownload: 'Download Chrome extension',
+      chromeExtensionTarget: 'Use the localhost package for local development and the public URL package for production. The popup cannot change the target URL.',
+      chromeExtensionStepsTitle: 'Load in Chrome',
+      chromeExtensionStepOne: 'Download the zip file and extract it to any folder.',
+      chromeExtensionStepTwo: 'Open chrome://extensions in Chrome and enable Developer mode in the top right.',
+      chromeExtensionStepThree: 'Choose Load unpacked and select the extracted articleshelf-chrome-extension folder.',
+      chromeExtensionStepFour: 'Open the extension on a regular http or https page, then choose Open draft in ArticleShelf.',
+      chromeExtensionReinstall: 'To update, download the new zip, extract it, and load the same folder again.'
+    },
     nav: {
       allArticles: 'All articles',
       unread: 'Unread',
@@ -139,7 +144,7 @@ export const en = {
       favorite: 'Favorites',
       calendar: 'Calendar',
       tagManagement: 'Tag management',
-      chromeExtension: 'Chrome extension',
+      help: 'Help',
       account: 'Account',
       logout: 'Log out'
     },

@@ -63,6 +63,17 @@ describe('AccountSettingsDialog', () => {
 
     second.app.unmount()
   })
+
+  it('keeps extension guidance out of account settings', () => {
+    const { root, app } = mountAccountSettingsDialog()
+
+    expect(root.textContent).not.toContain('Chrome 拡張機能')
+    expect(root.textContent).toContain('パスワード変更')
+    expect(root.textContent).toContain('全端末ログアウト')
+    expect(root.textContent).toContain('退会')
+
+    app.unmount()
+  })
 })
 
 function mountAccountSettingsDialog(handlers: {

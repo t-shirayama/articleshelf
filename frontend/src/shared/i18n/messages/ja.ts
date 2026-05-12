@@ -105,15 +105,6 @@ export const ja = {
       },
       account: {
         title: 'アカウント設定',
-        extensionTitle: 'Chrome 拡張機能',
-        extensionVersion: 'v{version}',
-        extensionDescription: '現在開いている記事ページを ArticleShelf の追加モーダルへ渡せます。拡張機能は token を保存せず、接続先は配布物ごとに固定されています。ローカル開発では localhost 用、本番では公開URL用の zip を使います。',
-        extensionDownload: 'Chrome拡張機能',
-        extensionStepOne: 'zip をダウンロードして任意のフォルダへ展開します。',
-        extensionStepTwo: 'Chrome で chrome://extensions を開き、右上のデベロッパーモードを有効にします。',
-        extensionStepThree: '「パッケージ化されていない拡張機能を読み込む」から、展開したフォルダ内の articleshelf-chrome-extension を選びます。',
-        extensionStepFour: '通常の http / https ページで拡張機能を開き、「ArticleShelf で下書きを開く」を選びます。',
-        extensionReinstall: '新しい zip を再ダウンロードして同じ手順で読み込み直すと更新できます。',
         changePasswordTitle: 'パスワード変更',
         currentPassword: '現在のパスワード',
         newPassword: '新しいパスワード',
@@ -132,6 +123,20 @@ export const ja = {
         deleteFailed: '退会処理に失敗しました'
       }
     },
+    help: {
+      title: 'ヘルプ',
+      chromeExtensionTitle: 'Chrome 拡張機能',
+      extensionVersion: 'v{version}',
+      chromeExtensionDescription: '現在開いている記事ページを ArticleShelf の追加モーダルへ渡せます。拡張機能は token や cookie を保存せず、接続先は配布物ごとに固定されています。',
+      chromeExtensionDownload: 'Chrome拡張機能をダウンロード',
+      chromeExtensionTarget: 'ローカル開発では localhost 用、本番では公開URL用の zip を使います。popup から接続先 URL は変更できません。',
+      chromeExtensionStepsTitle: '読み込み手順',
+      chromeExtensionStepOne: 'zip をダウンロードして任意のフォルダへ展開します。',
+      chromeExtensionStepTwo: 'Chrome で chrome://extensions を開き、右上のデベロッパーモードを有効にします。',
+      chromeExtensionStepThree: '「パッケージ化されていない拡張機能を読み込む」から、展開したフォルダ内の articleshelf-chrome-extension を選びます。',
+      chromeExtensionStepFour: '通常の http / https ページで拡張機能を開き、「ArticleShelfで下書きを開く」を選びます。',
+      chromeExtensionReinstall: '更新するときは新しい zip を再ダウンロードし、展開後に同じフォルダを読み込み直します。'
+    },
     nav: {
       allArticles: 'すべての記事',
       unread: '未読',
@@ -139,7 +144,7 @@ export const ja = {
       favorite: 'お気に入り',
       calendar: 'カレンダー',
       tagManagement: 'タグ管理',
-      chromeExtension: 'Chrome拡張機能',
+      help: 'ヘルプ',
       account: 'アカウント',
       logout: 'ログアウト'
     },
