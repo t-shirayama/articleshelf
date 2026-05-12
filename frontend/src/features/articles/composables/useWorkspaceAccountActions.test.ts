@@ -84,6 +84,79 @@ describe('useWorkspaceAccountActions', () => {
     expect(accountDialogOpen.value).toBe(true)
     expect(store.resetState).not.toHaveBeenCalled()
   })
+
+  it('deletes the account and resets the scoped workspace state', async () => {
+    const authStore = createAuthStore()
+    const store = { resetState: vi.fn() }
+    const cancelSearch = vi.fn()
+    const resetNavigation = vi.fn()
+    const accountDialogOpen = ref(true)
+
+    const actions = useWorkspaceAccountActions({
+      authStore: authStore as never,
+      store: store as never,
+      cancelSearch,
+      resetNavigation,
+      accountDialogOpen,
+      mobileDrawerOpen: ref(false),
+    })
+
+    await actions.deleteAccount({ currentPassword: 'current-password' })
+
+    expect(authStore.deleteAccount).toHaveBeenCalledWith({
+      currentPassword: 'current-password',
+    })
+    expect(actions.accountDialogError.value).toBe('')
+    expect(accountDialogOpen.value).toBe(false)
+    expect(cancelSearch).toHaveBeenCalled()
+    expect(store.resetState).toHaveBeenCalled()
+    expect(resetNavigation).toHaveBeenCalled()
+  })
+
+  it('keeps the account dialog open when account deletion fails', async () => {
+    const authStore = createAuthStore()
+    authStore.deleteAccount.mockRejectedValueOnce(new Error('delete failed'))
+    authStore.error = 'Current password is incorrect'
+    const store = { resetState: vi.fn() }
+    const cancelSearch = vi.fn()
+    const resetNavigation = vi.fn()
+    const accountDialogOpen = ref(true)
+
+    const actions = useWorkspaceAccountActions({
+      authStore: authStore as never,
+      store: store as never,
+      cancelSearch,
+      resetNavigation,
+      accountDialogOpen,
+      mobileDrawerOpen: ref(false),
+    })
+
+    await actions.deleteAccount({ currentPassword: 'wrong-password' })
+
+    expect(actions.accountDialogError.value).toBe('Current password is incorrect')
+    expect(accountDialogOpen.value).toBe(true)
+    expect(cancelSearch).not.toHaveBeenCalled()
+    expect(store.resetState).not.toHaveBeenCalled()
+    expect(resetNavigation).not.toHaveBeenCalled()
+  })
+
+  it('opens account settings and closes the mobile drawer', () => {
+    const accountDialogOpen = ref(false)
+    const mobileDrawerOpen = ref(true)
+    const actions = useWorkspaceAccountActions({
+      authStore: createAuthStore() as never,
+      store: { resetState: vi.fn() } as never,
+      cancelSearch: vi.fn(),
+      resetNavigation: vi.fn(),
+      accountDialogOpen,
+      mobileDrawerOpen,
+    })
+
+    actions.openAccountSettings()
+
+    expect(mobileDrawerOpen.value).toBe(false)
+    expect(accountDialogOpen.value).toBe(true)
+  })
 })
 
 function createAuthStore() {
