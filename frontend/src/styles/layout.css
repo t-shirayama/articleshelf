@@ -159,6 +159,66 @@
   line-height: 1.45;
 }
 
+.learning-boost-card.boost-palette-1 {
+  --boost-bg: #fff4df;
+  --boost-accent: #f1b84f;
+  --boost-ink: #2d7c5d;
+}
+
+.learning-boost-card.boost-palette-2 {
+  --boost-bg: #eaf7f3;
+  --boost-accent: #64b987;
+  --boost-ink: #186c74;
+}
+
+.learning-boost-card.boost-palette-3 {
+  --boost-bg: #f2eeff;
+  --boost-accent: #9d86f5;
+  --boost-ink: #4b3e86;
+}
+
+.learning-boost-card.boost-palette-4 {
+  --boost-bg: #fff0f0;
+  --boost-accent: #e38b73;
+  --boost-ink: #8e3f36;
+}
+
+.learning-boost-card.boost-palette-5 {
+  --boost-bg: #eef5ff;
+  --boost-accent: #7ea6e8;
+  --boost-ink: #244e7e;
+}
+
+.learning-boost-card.boost-palette-6 {
+  --boost-bg: #f7f2e8;
+  --boost-accent: #d7a84e;
+  --boost-ink: #6b5122;
+}
+
+.learning-boost-card.boost-palette-7 {
+  --boost-bg: #edf8e9;
+  --boost-accent: #80c47a;
+  --boost-ink: #2d6734;
+}
+
+.learning-boost-card.boost-palette-8 {
+  --boost-bg: #f0f8ff;
+  --boost-accent: #74b7d8;
+  --boost-ink: #245b70;
+}
+
+.learning-boost-card.boost-palette-9 {
+  --boost-bg: #fff7e8;
+  --boost-accent: #f0a85b;
+  --boost-ink: #7a4b1e;
+}
+
+.learning-boost-card.boost-palette-10 {
+  --boost-bg: #f6f4ef;
+  --boost-accent: #afa58b;
+  --boost-ink: #4f4736;
+}
+
 .sidebar-account {
   display: grid;
   gap: 8px;

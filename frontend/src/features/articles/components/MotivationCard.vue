@@ -12,13 +12,8 @@ const { t } = useI18n();
 
 <template>
   <section
-    class="learning-boost-card"
+    :class="['learning-boost-card', card.paletteClass]"
     :aria-label="t('articles.motivationLabel')"
-    :style="{
-      '--boost-bg': card.background,
-      '--boost-accent': card.accent,
-      '--boost-ink': card.ink
-    }"
   >
     <div>
       <strong>{{ card.title }}</strong>

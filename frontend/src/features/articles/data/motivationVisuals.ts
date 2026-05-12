@@ -1,14 +1,14 @@
-export const motivationPalettes = [
-  ['#FFF4DF', '#F1B84F', '#2D7C5D'],
-  ['#EAF7F3', '#64B987', '#186C74'],
-  ['#F2EEFF', '#9D86F5', '#4B3E86'],
-  ['#FFF0F0', '#E38B73', '#8E3F36'],
-  ['#EEF5FF', '#7EA6E8', '#244E7E'],
-  ['#F7F2E8', '#D7A84E', '#6B5122'],
-  ['#EDF8E9', '#80C47A', '#2D6734'],
-  ['#F0F8FF', '#74B7D8', '#245B70'],
-  ['#FFF7E8', '#F0A85B', '#7A4B1E'],
-  ['#F6F4EF', '#AFA58B', '#4F4736']
+export const motivationPaletteClasses = [
+  'boost-palette-1',
+  'boost-palette-2',
+  'boost-palette-3',
+  'boost-palette-4',
+  'boost-palette-5',
+  'boost-palette-6',
+  'boost-palette-7',
+  'boost-palette-8',
+  'boost-palette-9',
+  'boost-palette-10'
 ] as const
 
 export const motivationIllustrations = [

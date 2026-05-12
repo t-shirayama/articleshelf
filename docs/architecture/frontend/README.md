@@ -21,6 +21,7 @@
 - `styles`: design token、base、layout、controls、feature styles、responsive を責務単位で分割
 - `App.vue`: Vuetify アプリの最上位 shell、auth 初期化待ち表示、`router-view` の配置
 - `Vuetify`: ボタン、入力、カード、ダイアログ、チップなどのUIコンポーネント
+- `frontend/public/_headers`: Cloudflare Pages 用の frontend security header 正本。static asset 配信時の CSP / nosniff / HSTS などをここで管理する
 
 ## 責務分割
 
@@ -46,6 +47,7 @@
 
 - feature-oriented: `features/articles` と `features/auth` に画面、API adapter、store、composable、domain helper をまとめ、機能内の変更理由を近くに置く
 - app providers: `main.ts` は Vue app 作成と provider 登録に集中し、Pinia、i18n、Vuetify の設定は `app/providers` に分ける
+- CSP-aware styling: app 固有の配色や可変幅は class / static CSS で表現し、element の inline `style` 属性へ依存しない。Vuetify theme runtime が必要とする `<style>` 注入だけを CSP の `style-src-elem` で許可する
 - router-backed workspace: `/login`、`/register`、`/articles`、`/articles/:id`、`/calendar`、`/tags`、`/settings` を Vue Router で定義し、guest route は `AuthRouteView`、protected route は `WorkspaceRouteView` を lazy load する。認証状態に応じた redirect は router guard に寄せる
 - article form split: 詳細ページの閲覧セクション、メモ編集 / preview、追加モーダルの create form state は dedicated component / composable に分ける
 - shared boundary: 認証付き fetch、共通 UI、i18n、日付 formatting、IndexedDB cache のような横断処理だけを `shared` に置く

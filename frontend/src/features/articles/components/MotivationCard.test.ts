@@ -16,15 +16,13 @@ describe('MotivationCard', () => {
       title: 'Read small',
       note: 'One article is enough.',
       illustration: 'spark',
-      background: '#fff',
-      accent: '#123456',
-      ink: '#111'
+      paletteClass: 'boost-palette-3'
     })
 
     const card = root.querySelector<HTMLElement>('.learning-boost-card')
     expect(card?.textContent).toContain('Read small')
     expect(card?.textContent).toContain('One article is enough.')
-    expect(card?.style.getPropertyValue('--boost-accent')).toBe('#123456')
+    expect(card?.classList.contains('boost-palette-3')).toBe(true)
 
     app.unmount()
   })

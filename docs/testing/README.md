@@ -1,6 +1,6 @@
 # ArticleShelf Test Strategy
 
-最終更新: 2026-05-10
+最終更新: 2026-05-12
 
 ArticleShelf のテストは、記事を「読んだ知識資産」として安全に登録・検索・更新できることを継続的に保証するために整備する。
 この README はテスト文書の入口とし、Unit / Integration / E2E の詳細は配下ディレクトリに分割する。
@@ -45,6 +45,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - フロントエンド focused coverage: `npm run test:unit:coverage:focused`
 - フロントエンド bundle size check: `npm run check:bundle`。事前に `npm run build` で `dist/assets` を生成する
 - ブラウザ E2E: `npm run test:e2e`
+- frontend security header regression: `npm run test:unit -- src/shared/security/cspHeaders.test.ts`
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド PR gate: `docker compose run --rm backend mvn test spotbugs:check` を CI で必須化し、JUnit / PostgreSQL IT / Clean Architecture dependency test / SpotBugs をまとめて確認する
 - deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie 固定値、health check path を確認する
@@ -66,6 +67,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 
 Backend の品質ゲートは、SpotBugs と Clean Architecture dependency test を早期チェック、domain / application coverage threshold を unit test、PostgreSQL 実体確認を integration test、主要導線確認を E2E に分担する。
 Frontend の品質ゲートは、ESLint、型チェック、Vite build、bundle size check、API client / Markdown / domain helper の unit test、主要導線の Playwright E2E、必要に応じた design screenshot capture に分担する。
+Frontend security header regression は `_headers` を正本にし、`cspHeaders.test.ts` で `style-src` / `style-src-elem` / `style-src-attr` の分離を確認する。deploy 前後の smoke check では build 済み `dist/_headers` と production response header の一致を見る。
 Frontend unit coverage は lines 43%、statements 42%、functions 35%、branches 29% を現行下限にし、`src/**/*.{ts,vue}` の実装を対象にする。
 Focused coverage gate は `articleFilters`、calendar helper、Markdown rendering / sanitization、API client、JWT decode、proactive refresh timer、主要 article composable を対象にし、lines / statements 85%、functions 90%、branches 70% を下限にする。
 API client unit test では refresh retry、CSRF header、Accept-Language、error mapping、AbortSignal forwarding、production API base URL validation を確認する。

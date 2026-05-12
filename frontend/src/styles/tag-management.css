@@ -48,23 +48,15 @@
   max-width: 100%;
 }
 
-.tag-management-sort-measure {
-  position: absolute;
-  pointer-events: none;
-  visibility: hidden;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
 .tag-management-search {
   flex: 1 1 280px;
   max-width: 400px;
 }
 
 .tag-management-sort {
-  flex: 0 0 var(--tag-management-sort-width, 252px);
-  width: var(--tag-management-sort-width, 252px);
-  min-width: var(--tag-management-sort-width, 252px);
+  flex: 0 0 clamp(196px, 20vw, 236px);
+  width: clamp(196px, 20vw, 236px);
+  min-width: clamp(196px, 20vw, 236px);
 }
 
 .tag-management-row {

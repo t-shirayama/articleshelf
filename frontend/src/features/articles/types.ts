@@ -70,7 +70,5 @@ export interface MotivationCardData {
   title: string
   note: string
   illustration: string
-  background: string
-  accent: string
-  ink: string
+  paletteClass: string
 }

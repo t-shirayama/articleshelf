@@ -15,7 +15,6 @@
 
 ### P2
 
-- [CSP unsafe-inline removal](csp-unsafe-inline-removal.md)
 - [Chrome extension local distribution](chrome-extension-local-distribution.md)
 
 ### P3

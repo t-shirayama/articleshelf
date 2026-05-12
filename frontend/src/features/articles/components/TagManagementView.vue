@@ -35,10 +35,7 @@ const {
   deleteCandidate,
   searchQuery,
   sortMode,
-  sortMeasureEl,
   sortOptions,
-  longestSortTitle,
-  sortWidthStyle,
   sortedTags,
   mergeOptions,
   openAddDialog,
@@ -89,9 +86,6 @@ function confirmDelete(): void {
         </h1>
       </div>
       <div class="tag-management-toolbar">
-        <span ref="sortMeasureEl" class="tag-management-sort-measure" aria-hidden="true">
-          {{ longestSortTitle }}
-        </span>
         <VTextField
           v-model="searchQuery"
           class="search-input tag-management-search"
@@ -107,7 +101,6 @@ function confirmDelete(): void {
         <VSelect
           v-model="sortMode"
           class="articleshelf-select sort-select tag-management-sort"
-          :style="sortWidthStyle"
           :items="sortOptions"
           item-title="title"
           item-value="value"
