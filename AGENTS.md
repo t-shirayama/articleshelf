@@ -113,7 +113,7 @@
 - 挙動変更を伴う修正では、確認手順または確認結果を残す
 - コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI 変更時は関連ドキュメント更新の注意喚起を行う
 - `.githooks/pre-push` は CI の代替ではなく早期検知用とし、変更パスに応じた targeted unit test / E2E smoke / backend check を担わせる
-- `.githooks/pre-push` や Playwright E2E smoke が `http://localhost:4173` / `http://localhost:18080` を使う場合、hook は E2E の前後で `docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans` を実行し、専用 stack を残さない。その後 TCP port 使用状況を確認し、HTTP 応答がない待受も検出する。それでも port が埋まる場合は、別の dev server や手動起動 process を止める。hook は ArticleShelf 専用 stack 以外の process を自動停止しない。`PLAYWRIGHT_USE_EXISTING_SERVER=1` は、意図して準備済み E2E server を再利用する場合だけ使う
+- `.githooks/pre-push` や Playwright E2E smoke が `http://localhost:4173` / `http://localhost:18080` を使う場合、hook は E2E の前後で `docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans` を実行し、専用 stack を残さない。その後 TCP port 使用状況を確認し、HTTP 応答がない待受も検出する。Docker 停止直後の port 解放遅延には短時間待機し、それでも port が埋まる場合は、別の dev server や手動起動 process を止める。hook は ArticleShelf 専用 stack 以外の process を自動停止しない。`PLAYWRIGHT_USE_EXISTING_SERVER=1` は、意図して準備済み E2E server を再利用する場合だけ使う
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
 - Maven が必要な確認は `docker compose exec backend mvn ...` または `docker compose run --rm backend mvn ...` のように Docker 経由で行う

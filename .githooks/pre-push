@@ -54,7 +54,7 @@ run_e2e_check() {
   command="$2"
 
   stop_e2e_stack
-  assert_e2e_ports_free
+  wait_for_e2e_ports_free
 
   echo "Running [$description]"
   echo "  $command"
@@ -116,7 +116,7 @@ is_port_listening() {
   return 1
 }
 
-assert_e2e_ports_free() {
+busy_e2e_ports() {
   busy_ports=''
   for port in 4173 18080
   do
@@ -125,7 +125,23 @@ assert_e2e_ports_free() {
     fi
   done
 
-  busy_ports="$(printf '%s\n' "$busy_ports" | sed '/^$/d')"
+  printf '%s\n' "$busy_ports" | sed '/^$/d'
+}
+
+wait_for_e2e_ports_free() {
+  attempt=1
+  max_attempts=10
+  busy_ports="$(busy_e2e_ports)"
+
+  while [ -n "$busy_ports" ] && [ "$attempt" -lt "$max_attempts" ]
+  do
+    echo "ArticleShelf pre-push: waiting for dedicated E2E ports to be released:"
+    printf '%s\n' "$busy_ports" | sed 's/^/  - /'
+    sleep 2
+    attempt=$((attempt + 1))
+    busy_ports="$(busy_e2e_ports)"
+  done
+
   if [ -n "$busy_ports" ]; then
     echo "ERROR: ArticleShelf pre-push E2E requires dedicated localhost TCP ports, but these ports are already in use:"
     printf '%s\n' "$busy_ports" | sed 's/^/  - /'
