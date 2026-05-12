@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { Download, KeyRound, LogOut, Puzzle, Trash2, X } from "lucide-vue-next";
 
@@ -17,7 +17,10 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-const extensionVersion = "0.1.0";
+
+const extensionVersion = ref(
+  normalizeVersionLabel(import.meta.env.VITE_EXTENSION_VERSION),
+);
 const extensionDownloadUrl =
   import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
   "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
@@ -25,6 +28,39 @@ const currentPassword = ref("");
 const newPassword = ref("");
 const deletePassword = ref("");
 const pendingAction = ref<"password" | "logoutAll" | "delete" | null>(null);
+const releaseApiUrl = "https://api.github.com/repos/t-shirayama/articleshelf/releases/latest";
+
+function normalizeVersionLabel(input: string | undefined): string {
+  const value = input?.trim() ?? "";
+  if (!value) return "latest";
+  return value.startsWith("v") ? value.slice(1) : value;
+}
+
+async function loadExtensionVersionFromGitHub(): Promise<void> {
+  if (!extensionDownloadUrl.includes("github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip")) return;
+  try {
+    const response = await fetch(releaseApiUrl, {
+      headers: {
+        Accept: "application/vnd.github+json",
+      },
+    });
+
+    if (!response.ok) return;
+
+    const payload = (await response.json()) as { tag_name?: string };
+    if (payload.tag_name) {
+      extensionVersion.value = normalizeVersionLabel(payload.tag_name);
+    }
+  } catch {
+    // keep fallback value
+  }
+}
+
+onMounted(() => {
+  if (!import.meta.env.VITE_EXTENSION_VERSION) {
+    void loadExtensionVersionFromGitHub();
+  }
+});
 
 watch(
   () => props.open,

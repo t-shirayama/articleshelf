@@ -108,7 +108,7 @@ export const en = {
         extensionTitle: 'Chrome extension',
         extensionVersion: 'v{version}',
         extensionDescription: 'Send the current article page into the ArticleShelf add-article modal. The first release does not store tokens in the extension. It opens the authenticated web app in a new tab and passes a draft instead. Installation is done from a GitHub-distributed zip, not Chrome Web Store.',
-        extensionDownload: 'Download latest from GitHub',
+        extensionDownload: 'Chrome extension',
         extensionStepOne: 'Download the zip file and extract it to any folder.',
         extensionStepTwo: 'Open chrome://extensions in Chrome and enable Developer mode in the top right.',
         extensionStepThree: 'Choose Load unpacked and select the extracted articleshelf-chrome-extension folder.',
@@ -139,6 +139,7 @@ export const en = {
       favorite: 'Favorites',
       calendar: 'Calendar',
       tagManagement: 'Tag management',
+      chromeExtension: 'Chrome extension',
       account: 'Account',
       logout: 'Log out'
     },

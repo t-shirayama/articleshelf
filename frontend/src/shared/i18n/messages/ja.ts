@@ -108,7 +108,7 @@ export const ja = {
         extensionTitle: 'Chrome 拡張機能',
         extensionVersion: 'v{version}',
         extensionDescription: '現在開いている記事ページを ArticleShelf の追加モーダルへ渡せます。初期版は token を拡張機能へ保存せず、認証済みの Web アプリを新しいタブで開いて下書きを渡します。インストールは Chrome Web Store ではなく、GitHub の配布 zip から行います。',
-        extensionDownload: 'GitHub から最新版をダウンロード',
+        extensionDownload: 'Chrome拡張機能',
         extensionStepOne: 'zip をダウンロードして任意のフォルダへ展開します。',
         extensionStepTwo: 'Chrome で chrome://extensions を開き、右上のデベロッパーモードを有効にします。',
         extensionStepThree: '「パッケージ化されていない拡張機能を読み込む」から、展開したフォルダ内の articleshelf-chrome-extension を選びます。',
@@ -139,6 +139,7 @@ export const ja = {
       favorite: 'お気に入り',
       calendar: 'カレンダー',
       tagManagement: 'タグ管理',
+      chromeExtension: 'Chrome拡張機能',
       account: 'アカウント',
       logout: 'ログアウト'
     },

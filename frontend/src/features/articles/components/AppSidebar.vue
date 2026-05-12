@@ -6,6 +6,7 @@ import {
   Circle,
   Heart,
   Library,
+  Download,
   LogOut,
   Tags,
   UserCog,
@@ -44,6 +45,9 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n({ useScope: "global" });
+const extensionDownloadUrl =
+  import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
+  "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
 
 function changeLocale(value: unknown): void {
   const nextLocale: SupportedLocale = value === "ja" ? "ja" : "en";
@@ -168,6 +172,19 @@ function changeLocale(value: unknown): void {
         <VBtn value="ja">{{ t("locale.ja") }}</VBtn>
         <VBtn value="en">{{ t("locale.en") }}</VBtn>
       </VBtnToggle>
+      <VBtn
+        block
+        variant="outlined"
+        color="primary"
+        class="sidebar-account-button"
+        :href="extensionDownloadUrl"
+        download
+      >
+        <template #prepend>
+          <Download :size="17" />
+        </template>
+        {{ t("nav.chromeExtension") }}
+      </VBtn>
       <VBtn
         block
         variant="outlined"

@@ -6,6 +6,7 @@ import {
   Circle,
   Heart,
   Library,
+  Download,
   LogOut,
   Menu,
   Plus,
@@ -52,6 +53,9 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n({ useScope: "global" });
+const extensionDownloadUrl =
+  import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
+  "https://github.com/t-shirayama/articleshelf/releases/latest/download/articleshelf-chrome-extension.zip";
 
 function setDrawerOpen(value: boolean): void {
   emit("update:drawerOpen", value);
@@ -219,6 +223,19 @@ function setDrawerOpen(value: boolean): void {
             <VBtn value="ja">{{ t("locale.ja") }}</VBtn>
             <VBtn value="en">{{ t("locale.en") }}</VBtn>
           </VBtnToggle>
+          <VBtn
+            block
+            variant="outlined"
+            color="primary"
+            class="sidebar-account-button"
+            :href="extensionDownloadUrl"
+            download
+          >
+            <template #prepend>
+              <Download :size="17" />
+            </template>
+            {{ t("nav.chromeExtension") }}
+          </VBtn>
           <VBtn
             block
             variant="outlined"
