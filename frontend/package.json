@@ -12,6 +12,7 @@
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest run",
     "test:unit:coverage": "vitest run --coverage --exclude '**/*.integration.test.ts'",
+    "test:unit:coverage:focused": "vitest run --config vitest.focused-coverage.config.ts --coverage --exclude '**/*.integration.test.ts'",
     "test:integration": "vitest run \"src/**/*.integration.test.ts\" --passWithNoTests",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
