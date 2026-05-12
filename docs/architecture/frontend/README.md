@@ -35,6 +35,7 @@
 - `useArticlesStore` の記事一覧 state は `articles` を canonical source とし、検索 / フィルタ / ソート後の一覧は getter と `features/articles/domain` の純粋関数で派生させる
 - `useArticlesStore` は list page 用の current page response と、カレンダー / サイドバー件数 / 一部遷移互換のための `articleSnapshot` を分けて持つ
 - optimistic update / rollback は canonical な `articles` と `selectedArticle` だけを復元対象にし、同じ記事一覧を別配列で二重保持しない
+- 記事更新 input は article `version` を含み、詳細画面の `useArticleActions` は `ARTICLE_VERSION_CONFLICT` を検知したときだけ競合 article ID を保持して「最新を読み直す」導線を出す。フォームドラフトは reload するまで保持する
 - 検索、フィルタ、ソート、フォーム変換などの純粋処理は `features/articles/domain` に置く
 - feature 固有の静的文言や表示候補は `features/articles/data` に置き、component / composable から生成関数越しに参照する
 - 画像 Blob キャッシュ、日付 formatting、認証付き fetch など機能横断の処理は `shared` に置く

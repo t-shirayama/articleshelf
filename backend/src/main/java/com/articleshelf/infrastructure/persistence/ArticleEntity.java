@@ -13,6 +13,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.Version;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -63,6 +64,10 @@ public class ArticleEntity {
 
     @OneToMany(mappedBy = "article", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ArticleTagEntity> articleTags = new LinkedHashSet<>();
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
@@ -198,5 +203,13 @@ public class ArticleEntity {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 }

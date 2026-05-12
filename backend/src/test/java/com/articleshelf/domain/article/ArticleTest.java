@@ -16,6 +16,7 @@ class ArticleTest {
         Article article = new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/article",
                 "Title",
                 null,
@@ -46,6 +47,7 @@ class ArticleTest {
         Article article = new Article(
                 null,
                 userId,
+                0L,
                 " https://example.com/article ",
                 "Title",
                 "Summary",
@@ -86,6 +88,7 @@ class ArticleTest {
         assertThatThrownBy(() -> new Article(
                 null,
                 userId,
+                0L,
                 " ",
                 "Title",
                 null,

@@ -11,6 +11,7 @@ import java.util.UUID;
 
 public record ArticleResponse(
         UUID id,
+        long version,
         String url,
         String title,
         String summary,
@@ -27,6 +28,7 @@ public record ArticleResponse(
     public static ArticleResponse from(Article article) {
         return new ArticleResponse(
                 article.getId(),
+                article.getVersion(),
                 article.getUrl(),
                 article.getTitle(),
                 article.getSummary(),

@@ -61,6 +61,7 @@ describe('articleFilters', () => {
 function article(overrides: Partial<Article>): Article {
   return {
     id: 'article',
+    version: 0,
     url: 'https://example.com/article',
     title: 'Article',
     summary: '',

@@ -4,6 +4,7 @@ import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.ArticleStatus;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.Tag;
 import com.articleshelf.domain.article.TagUsage;
 import com.articleshelf.domain.user.UserStatus;
@@ -100,6 +101,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         Article updated = repository.save(new Article(
                 saved.getId(),
                 userId,
+                saved.getVersion(),
                 saved.getUrl(),
                 saved.getTitle(),
                 saved.getSummary(),
@@ -126,6 +128,52 @@ class JpaArticleRepositoryPostgresIntegrationTest {
     }
 
     @Test
+    void postgresSaveRejectsStaleArticleVersion() {
+        UUID userId = createUser("postgres-version");
+        Article saved = repository.save(article(userId, "https://example.com/versioned", 3, null, Set.of(tag(userId, "Vue"))));
+
+        Article stale = new Article(
+                saved.getId(),
+                userId,
+                saved.getVersion(),
+                saved.getUrl(),
+                "Updated once",
+                saved.getSummary(),
+                saved.getThumbnailUrl(),
+                saved.getStatus(),
+                saved.getReadDate(),
+                saved.isFavorite(),
+                saved.getRating(),
+                saved.getNotes(),
+                saved.getTags(),
+                saved.getCreatedAt(),
+                saved.getUpdatedAt()
+        );
+        Article firstUpdate = repository.save(stale);
+
+        Article staleRetry = new Article(
+                firstUpdate.getId(),
+                userId,
+                saved.getVersion(),
+                firstUpdate.getUrl(),
+                "Stale retry",
+                firstUpdate.getSummary(),
+                firstUpdate.getThumbnailUrl(),
+                firstUpdate.getStatus(),
+                firstUpdate.getReadDate(),
+                firstUpdate.isFavorite(),
+                firstUpdate.getRating(),
+                firstUpdate.getNotes(),
+                firstUpdate.getTags(),
+                firstUpdate.getCreatedAt(),
+                firstUpdate.getUpdatedAt()
+        );
+
+        assertThatThrownBy(() -> repository.save(staleRetry))
+                .isInstanceOf(ArticleVersionConflictException.class);
+    }
+
+    @Test
     void postgresSearchAppliesOptionalFiltersWithoutTypeInferenceErrors() {
         UUID userId = createUser("postgres-search");
         Tag vue = tag(userId, "Vue");
@@ -134,6 +182,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         repository.save(new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/pinia",
                 "Pinia patterns",
                 "Vue store summary",
@@ -150,6 +199,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         repository.save(new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/spring",
                 "Spring guide",
                 "Backend summary",
@@ -181,6 +231,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         repository.save(new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/percent",
                 "100% coverage",
                 "",
@@ -197,6 +248,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         repository.save(new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/wide-percent",
                 "100x coverage",
                 "",
@@ -213,6 +265,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         repository.save(new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/underscore",
                 "foo_bar note",
                 "",
@@ -229,6 +282,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         repository.save(new Article(
                 null,
                 userId,
+                0L,
                 "https://example.com/wide-underscore",
                 "fooXbar note",
                 "",
@@ -331,6 +385,7 @@ class JpaArticleRepositoryPostgresIntegrationTest {
         return new Article(
                 null,
                 userId,
+                0L,
                 url,
                 title,
                 "Stored summary",

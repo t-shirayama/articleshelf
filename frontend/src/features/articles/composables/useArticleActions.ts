@@ -28,11 +28,13 @@ export function useArticleActions(options: ArticleActionOptions) {
   const isSavingDetail = ref(false);
   const isDeletingArticle = ref(false);
   const deleteCandidate = ref<Article | null>(null);
+  const detailConflictArticleId = ref("");
 
   async function createArticle(article: ArticleInput): Promise<void> {
     if (isCreatingArticle.value) return;
     options.articleFormError.value = "";
     options.duplicateArticleId.value = "";
+    detailConflictArticleId.value = "";
     isCreatingArticle.value = true;
     try {
       const created = await options.store.createArticle(article);
@@ -53,12 +55,15 @@ export function useArticleActions(options: ArticleActionOptions) {
   async function saveArticle(article: ArticleInput): Promise<void> {
     if (isSavingDetail.value) return;
     options.detailFormError.value = "";
+    detailConflictArticleId.value = "";
     isSavingDetail.value = true;
     try {
       await options.store.updateArticle(article);
     } catch (error: unknown) {
       options.detailFormError.value =
         errorMessage(error, options.t("articles.saveError"));
+      detailConflictArticleId.value =
+        error instanceof ApiRequestError && error.code === "ARTICLE_VERSION_CONFLICT" ? article.id || "" : "";
     } finally {
       isSavingDetail.value = false;
     }
@@ -67,6 +72,7 @@ export function useArticleActions(options: ArticleActionOptions) {
   async function deleteArticle(articleId: string): Promise<void> {
     if (isDeletingArticle.value) return;
     options.detailFormError.value = "";
+    detailConflictArticleId.value = "";
     isDeletingArticle.value = true;
     try {
       await options.store.deleteArticle(articleId);
@@ -99,6 +105,7 @@ export function useArticleActions(options: ArticleActionOptions) {
   async function openArticle(article: Article): Promise<void> {
     options.detailFormError.value = "";
     options.store.error = "";
+    detailConflictArticleId.value = "";
     try {
       await options.store.selectArticle(article);
       options.rotateMotivation();
@@ -115,6 +122,7 @@ export function useArticleActions(options: ArticleActionOptions) {
   async function openDuplicateArticle(articleId: string): Promise<void> {
     options.closeForDuplicateOpen();
     options.detailFormError.value = "";
+    detailConflictArticleId.value = "";
     try {
       await options.store.selectArticleById(articleId);
       options.rotateMotivation();
@@ -124,8 +132,21 @@ export function useArticleActions(options: ArticleActionOptions) {
     }
   }
 
+  async function reloadConflictedArticle(): Promise<void> {
+    if (!detailConflictArticleId.value) return;
+    options.detailFormError.value = "";
+    const articleId = detailConflictArticleId.value;
+    detailConflictArticleId.value = "";
+    try {
+      await options.store.selectArticleById(articleId);
+    } catch (error: unknown) {
+      options.detailFormError.value = errorMessage(error, options.t("articles.fetchError"));
+    }
+  }
+
   return {
     deleteCandidate,
+    detailConflictArticleId,
     isCreatingArticle,
     isSavingDetail,
     isDeletingArticle,
@@ -137,5 +158,6 @@ export function useArticleActions(options: ArticleActionOptions) {
     openArticle,
     toggleFavorite,
     openDuplicateArticle,
+    reloadConflictedArticle,
   };
 }

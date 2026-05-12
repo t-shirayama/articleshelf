@@ -8,6 +8,7 @@ import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.ArticleStatus;
 import com.articleshelf.domain.article.ArticleUrlUnavailableException;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.Tag;
 import com.articleshelf.domain.article.TagNotFoundException;
@@ -202,6 +203,7 @@ class ArticleServiceTest {
         metadataProvider.fetchCount = 0;
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 "https://example.com/original",
                 "Updated title",
                 "Updated summary",
@@ -225,6 +227,7 @@ class ArticleServiceTest {
         metadataProvider.next = new ArticleMetadata("Updated OGP", "Updated summary", "https://example.com/new-thumb.png", true);
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 "https://example.com/updated",
                 "Updated title",
                 "Updated summary",
@@ -247,6 +250,7 @@ class ArticleServiceTest {
         service.addArticle(user, command("https://example.com/second", "Second"));
 
         assertThatThrownBy(() -> service.updateArticle(user, first.id(), new UpdateArticleCommand(
+                first.version(),
                 "https://example.com/second",
                 "First",
                 "",
@@ -263,6 +267,7 @@ class ArticleServiceTest {
         ArticleResponse ownArticle = service.addArticle(user, command("https://example.com/user-owned", "Mine"));
 
         ArticleResponse updated = service.updateArticle(user, ownArticle.id(), new UpdateArticleCommand(
+                ownArticle.version(),
                 "https://example.com/shared",
                 "Mine updated",
                 "",
@@ -292,6 +297,7 @@ class ArticleServiceTest {
         ));
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 response.url(),
                 response.title(),
                 response.summary(),
@@ -322,6 +328,7 @@ class ArticleServiceTest {
         ));
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 response.url(),
                 response.title(),
                 response.summary(),
@@ -336,6 +343,28 @@ class ArticleServiceTest {
         assertThat(updated.rating()).isZero();
         assertThat(updated.tags()).extracting(TagResponse::name).containsExactly("Vue");
         assertThat(updated.tags()).extracting(TagResponse::name).doesNotContain("Java", "Spring");
+    }
+
+    @Test
+    void updateArticleRejectsStaleVersionBeforeFetchingMetadata() {
+        metadataProvider.next = new ArticleMetadata("Original", "Summary", "https://example.com/thumb.png", true);
+        ArticleResponse response = service.addArticle(user, command("https://example.com/stale", "Original"));
+        metadataProvider.fetchCount = 0;
+
+        assertThatThrownBy(() -> service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version() - 1,
+                response.url(),
+                "Updated title",
+                response.summary(),
+                response.status(),
+                response.readDate(),
+                response.favorite(),
+                response.rating(),
+                response.notes(),
+                List.of()
+        ))).isInstanceOf(ArticleVersionConflictException.class);
+
+        assertThat(metadataProvider.fetchCount).isZero();
     }
 
     private AddArticleCommand command(String url, String title) {
@@ -422,6 +451,7 @@ class ArticleServiceTest {
             Article persisted = new Article(
                     article.getId(),
                     article.getUserId(),
+                    article.getVersion() + 1,
                     article.getUrl(),
                     article.getTitle(),
                     article.getSummary(),
@@ -547,6 +577,7 @@ class ArticleServiceTest {
             return new Article(
                     article.getId(),
                     article.getUserId(),
+                    article.getVersion(),
                     article.getUrl(),
                     article.getTitle(),
                     article.getSummary(),

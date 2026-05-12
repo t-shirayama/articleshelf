@@ -87,6 +87,7 @@ const {
   isCreatingArticle,
   isSavingDetail,
   isDeletingArticle,
+  detailConflictArticleId,
   createArticle,
   saveArticle,
   deleteArticle,
@@ -95,6 +96,7 @@ const {
   openArticle,
   toggleFavorite,
   openDuplicateArticle,
+  reloadConflictedArticle,
 } = useArticleActions({
   store,
   t,
@@ -495,10 +497,12 @@ const {
     :saving="isSavingDetail"
     :deleting="isDeletingArticle"
     :error="detailFormError"
+    :error-action-label="detailConflictArticleId ? t('detail.reloadLatest') : ''"
     @update:dirty="detailHasUnsavedChanges = $event"
     @back="showDetailReturnView"
     @save="saveArticle"
     @delete="deleteArticle"
+    @error-action="reloadConflictedArticle"
   />
 
   <ArticleFormModal

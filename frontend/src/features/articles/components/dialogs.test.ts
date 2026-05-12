@@ -201,6 +201,7 @@ function setInput(root: HTMLElement, value: string): void {
 function article(): Article {
   return {
     id: 'article-1',
+    version: 0,
     url: 'https://example.com',
     title: 'Test article',
     summary: '',

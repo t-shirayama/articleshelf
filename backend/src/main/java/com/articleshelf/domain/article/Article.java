@@ -9,6 +9,7 @@ import java.util.UUID;
 public class Article {
     private final UUID id;
     private final UUID userId;
+    private final long version;
     private String url;
     private String title;
     private String summary;
@@ -25,6 +26,7 @@ public class Article {
     public Article(
             UUID id,
             UUID userId,
+            long version,
             String url,
             String title,
             String summary,
@@ -40,6 +42,7 @@ public class Article {
     ) {
         this.id = id == null ? UUID.randomUUID() : id;
         this.userId = userId;
+        this.version = version;
         this.url = ArticleUrl.normalize(url);
         this.title = normalizeText(title);
         this.summary = normalizeText(summary);
@@ -88,6 +91,10 @@ public class Article {
 
     public UUID getUserId() {
         return userId;
+    }
+
+    public long getVersion() {
+        return version;
     }
 
     public String getUrl() {

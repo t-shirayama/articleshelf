@@ -89,7 +89,7 @@ public class ArticleController {
     public ArticleResponse updateArticle(
             @AuthenticationPrincipal CurrentUser user,
             @PathVariable UUID id,
-            @Valid @RequestBody ArticleRequest request
+            @Valid @RequestBody UpdateArticleRequest request
     ) {
         return articleService.updateArticle(user, id, articleRequestMapper.toUpdateCommand(request));
     }

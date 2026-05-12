@@ -4,7 +4,7 @@
 
 - 説明: 記事一覧を取得
 - 認証: 必須
-- レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
+- レスポンス: `id`, `version`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
 - パラメータ: `status`, `tag`, `search`, `favorite`, `rating`, `createdFrom`, `createdTo`, `readFrom`, `readTo`, `page`, `size`, `sort`
 - `status` は `UNREAD` または `READ`
 - `tag` は repeatable query parameter として複数指定でき、OR 条件で大文字小文字を区別せず一致判定する
@@ -25,7 +25,7 @@
 
 - 説明: 記事詳細を取得
 - 認証: 必須
-- レスポンス: `id`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
+- レスポンス: `id`, `version`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
 - 他ユーザーの記事 ID は `404 Not Found`
 
 ## `POST /api/articles`
@@ -33,6 +33,7 @@
 - 説明: 記事を追加
 - 認証: 必須
 - リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
+- レスポンスには optimistic locking 用の `version` を含め、作成直後は `0` から始まる
 - `url` は必須かつURL形式、最大2048文字
 - `title` は任意、最大255文字
 - `title` が未入力の場合は OGP タイトル、OGP タイトルがない場合は URL を使う
@@ -61,10 +62,13 @@
 
 - 説明: 記事を更新
 - 認証: 必須
-- リクエスト: `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
+- リクエスト: `version`, `url`, `title`, `summary`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`
+- レスポンス: `id`, `version`, `url`, `title`, `summary`, `thumbnailUrl`, `status`, `readDate`, `favorite`, `rating`, `notes`, `tags`, `createdAt`, `updatedAt`
+- `version` は client が最後に読んだ記事 version を送る。server は保存成功時に increment 済み version を返す
 - `url` は必須かつURL形式、最大2048文字
 - `title` は任意、最大255文字
 - `summary` は任意、最大5000文字
+- `version` は必須、`0` 以上の整数
 - `rating` は `0` - `5`
 - `notes` は任意、最大20000文字
 - `tags` は最大20件、各タグ名は最大255文字
@@ -72,6 +76,7 @@
 - `url` を変更した場合、または既存記事に `thumbnailUrl` がない場合は OGP を再取得してサムネイルURLを補完する
 - `title`, `status`, `favorite`, `rating` が未指定の場合は既存値を維持する
 - `tags` はリクエスト内容で置き換える
+- client の `version` が古い場合は `409 Conflict` と `ARTICLE_VERSION_CONFLICT` を返し、lost update を避ける
 
 ## `DELETE /api/articles/{id}`
 

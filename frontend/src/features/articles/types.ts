@@ -16,6 +16,7 @@ export interface Tag {
 
 export interface Article {
   id: string
+  version: number
   url: string
   title: string
   summary?: string | null
@@ -43,6 +44,7 @@ export interface ArticleFilters {
 
 export interface ArticleInput {
   id?: string
+  version?: number
   url: string
   title?: string
   summary?: string | null

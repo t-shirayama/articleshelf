@@ -2,6 +2,7 @@ package com.articleshelf.adapter.web;
 
 import com.articleshelf.application.auth.AuthException;
 import com.articleshelf.application.auth.AuthRateLimitExceededException;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.DuplicateTagNameException;
 import com.articleshelf.domain.user.PasswordPolicyException;
@@ -50,6 +51,17 @@ class ApiExceptionHandlerTest {
         assertThat(response.messages()).containsExactly("This URL is already registered.");
         assertThat(response.fieldErrors()).isEmpty();
         assertThat(response.existingArticleId()).isEqualTo(existingArticleId);
+    }
+
+    @Test
+    void articleVersionConflictUsesMachineReadableConflictCode() {
+        ApiExceptionHandler.ErrorResponse response = handler.handleVersionConflict(
+                new ArticleVersionConflictException(UUID.randomUUID())
+        );
+
+        assertThat(response.code()).isEqualTo("ARTICLE_VERSION_CONFLICT");
+        assertThat(response.messages()).containsExactly("This article was updated in another tab or device. Reload the latest content, then apply your changes again.");
+        assertThat(response.existingArticleId()).isNull();
     }
 
     @Test

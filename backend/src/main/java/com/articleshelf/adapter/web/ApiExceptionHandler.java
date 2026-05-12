@@ -8,6 +8,7 @@ import com.articleshelf.application.auth.DuplicateUsernameException;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleStatus;
 import com.articleshelf.domain.article.ArticleUrlUnavailableException;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.DuplicateTagNameException;
 import com.articleshelf.domain.article.TagInUseException;
@@ -64,6 +65,12 @@ public class ApiExceptionHandler {
                 message("error.article.duplicateUrl"),
                 exception.getExistingArticleId()
         );
+    }
+
+    @ExceptionHandler(ArticleVersionConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleVersionConflict(ArticleVersionConflictException exception) {
+        return ErrorResponse.of("ARTICLE_VERSION_CONFLICT", message("error.article.versionConflict"));
     }
 
     @ExceptionHandler(DuplicateTagNameException.class)

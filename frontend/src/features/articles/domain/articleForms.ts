@@ -2,6 +2,7 @@ import type { Article, ArticleInput, ArticleStatus } from '../types'
 
 export interface ArticleDetailForm {
   id: string
+  version: number
   url: string
   title: string
   summary: string
@@ -28,6 +29,7 @@ export interface ArticleCreateForm {
 export function createEmptyArticleDetailForm(): ArticleDetailForm {
   return {
     id: '',
+    version: 0,
     url: '',
     title: '',
     summary: '',
@@ -57,6 +59,7 @@ export function createEmptyArticleCreateForm(): ArticleCreateForm {
 export function articleToDetailForm(article: Article): ArticleDetailForm {
   return {
     id: article.id,
+    version: article.version,
     url: article.url,
     title: article.title,
     summary: article.summary || '',
@@ -119,6 +122,7 @@ export function normalizeTagNames(tags: string[]): string[] {
 function areArticleInputsEqual(current: ArticleInput, original: ArticleInput): boolean {
   return (
     current.id === original.id &&
+    current.version === original.version &&
     current.url === original.url &&
     current.title === original.title &&
     current.summary === original.summary &&

@@ -17,18 +17,21 @@ const props = withDefaults(defineProps<{
   saving?: boolean
   deleting?: boolean
   error?: string
+  errorActionLabel?: string
 }>(), {
   article: null,
   tags: () => [],
   saving: false,
   deleting: false,
-  error: ''
+  error: '',
+  errorActionLabel: ''
 })
 
 const emit = defineEmits<{
   back: []
   save: [article: ArticleInput]
   delete: [articleId: string]
+  errorAction: []
   'update:dirty': [value: boolean]
 }>()
 
@@ -160,6 +163,15 @@ function confirmDelete(): void {
             aria-live="assertive"
           >
             <span>{{ props.error }}</span>
+            <VBtn
+              v-if="props.errorActionLabel"
+              class="detail-error-action"
+              color="error"
+              variant="text"
+              @click="emit('errorAction')"
+            >
+              {{ props.errorActionLabel }}
+            </VBtn>
           </div>
           <template v-if="isEditing">
             <section class="detail-section detail-edit-article-section">

@@ -47,6 +47,7 @@ public class AddArticleUseCase {
             Article article = new Article(
                     null,
                     user.id(),
+                    0L,
                     command.url(),
                     firstPresent(command.title(), metadata.title(), command.url()),
                     firstPresent(command.summary(), metadata.description(), ""),

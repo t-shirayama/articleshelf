@@ -232,6 +232,7 @@ export const ja = {
       deleteTitle: '記事を削除しますか？',
       deleteBody: '「{title}」を削除します。この操作は取り消せません。',
       deleteConfirm: '削除する',
+      reloadLatest: '最新を読み直す',
       titleRequired: 'タイトルを入力してください',
       readDateRequired: '既読にする場合は既読日を入力してください',
       favorite: 'お気に入り',

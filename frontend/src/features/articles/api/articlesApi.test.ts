@@ -42,6 +42,7 @@ describe('articlesApi', () => {
 
   it('uses the expected article and tag endpoints', async () => {
     const input: ArticleInput = {
+      version: 3,
       url: 'https://example.com',
       title: 'Title',
       summary: '',

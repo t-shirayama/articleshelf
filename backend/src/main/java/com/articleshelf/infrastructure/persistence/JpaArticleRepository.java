@@ -4,11 +4,13 @@ import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.Tag;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -96,6 +98,12 @@ public class JpaArticleRepository implements ArticleRepository {
     public Article save(Article article) {
         ArticleEntity entity = articleJpaRepository.findByIdAndUserId(article.getId(), article.getUserId())
                 .orElseGet(ArticleEntity::new);
+        if (entity.getId() != null && !article.getId().equals(entity.getId())) {
+            throw new IllegalStateException("loaded wrong article entity");
+        }
+        if (entity.getVersion() != null && entity.getVersion() != article.getVersion()) {
+            throw new ArticleVersionConflictException(article.getId());
+        }
         entity.setId(article.getId());
         entity.setUserId(article.getUserId());
         entity.setUrl(article.getUrl());
@@ -108,7 +116,11 @@ public class JpaArticleRepository implements ArticleRepository {
         entity.setRating(article.getRating());
         entity.setNotes(article.getNotes());
         entity.setArticleTags(resolveArticleTagEntities(entity, article.getUserId(), article.getTags()));
-        return toDomain(articleJpaRepository.save(entity));
+        try {
+            return toDomain(articleJpaRepository.saveAndFlush(entity));
+        } catch (ObjectOptimisticLockingFailureException exception) {
+            throw new ArticleVersionConflictException(article.getId());
+        }
     }
 
     @Override
@@ -138,6 +150,7 @@ public class JpaArticleRepository implements ArticleRepository {
         return new Article(
                 entity.getId(),
                 entity.getUserId(),
+                entity.getVersion() == null ? 0L : entity.getVersion(),
                 entity.getUrl(),
                 entity.getTitle(),
                 entity.getSummary(),

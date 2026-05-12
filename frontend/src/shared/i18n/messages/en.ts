@@ -232,6 +232,7 @@ export const en = {
       deleteTitle: 'Delete article?',
       deleteBody: 'Delete “{title}”. This cannot be undone.',
       deleteConfirm: 'Delete',
+      reloadLatest: 'Reload latest',
       titleRequired: 'Enter a title',
       readDateRequired: 'Enter a read date when marking as read',
       favorite: 'Favorite',
