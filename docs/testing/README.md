@@ -78,6 +78,7 @@ Router 導入後の E2E / 手動確認では、未認証 protected route が rou
 server-driven article list query では、backend の `JpaArticleRepositoryPostgresIntegrationTest` で multi-tag OR、rating、created/read range、wildcard search、pagination / sort を PostgreSQL 実体で確認し、frontend E2E では検索、フィルタ、並び替え、詳細遷移、カレンダー、タグ管理の既存導線が回帰していないことを見る。
 article optimistic locking では、frontend の `useArticleActions.test.ts` と `useArticleDetailForm.test.ts` で version を含む detail save input と競合時の reload 導線を確認し、backend API integration で `ARTICLE_VERSION_CONFLICT` response を確認する。
 記事追加 preview は backend integration で OGP 成功、OGP 取得不可の partial success、重複 URL、URL validation を確認し、frontend unit で URL 変更、modal close、race condition、duplicate reset、空の title / summary を payload に含めないことを確認する。
+OGP egress control は `ProductionEnvironmentValidatorTest` で production 時の `ARTICLESHELF_OGP_PROXY_URL` 必須化を確認し、運用 smoke check では proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されることを確認する。
 Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 Supply chain security は Dependabot の更新 PR、Dependency Review の PR 差分検知、CodeQL の code scanning、Trivy の filesystem / backend image scan に分担する。
 Dependency Review は GitHub repository の Dependency graph が有効で、repository variable `DEPENDENCY_REVIEW_ENABLED=true` が設定されている場合に moderate 以上の既知脆弱性を PR gate として扱う。Dependency graph が使えない repository では job 内で skip notice を出し、Trivy / CodeQL / Dependabot を継続する。

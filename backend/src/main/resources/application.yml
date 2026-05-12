@@ -58,3 +58,6 @@ articleshelf:
     login-window-seconds: ${ARTICLESHELF_LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
     register-capacity: ${ARTICLESHELF_REGISTER_RATE_LIMIT_CAPACITY:3}
     register-window-seconds: ${ARTICLESHELF_REGISTER_RATE_LIMIT_WINDOW_SECONDS:600}
+  ogp:
+    proxy-url: ${ARTICLESHELF_OGP_PROXY_URL:}
+    require-proxy-in-prod: ${ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD:false}

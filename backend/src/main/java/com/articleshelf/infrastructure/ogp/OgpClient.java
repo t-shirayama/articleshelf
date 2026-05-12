@@ -1,10 +1,13 @@
 package com.articleshelf.infrastructure.ogp;
 
+import com.articleshelf.config.OgpProperties;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,11 +19,16 @@ public class OgpClient {
     private static final int MAX_REDIRECTS = 3;
     private static final int MAX_BODY_BYTES = 1024 * 1024;
 
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(3))
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build();
+    private final HttpClient httpClient;
     private final OgpRequestGuard requestGuard = new OgpRequestGuard();
+
+    public OgpClient(OgpProperties properties) {
+        HttpClient.Builder builder = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(3))
+                .followRedirects(HttpClient.Redirect.NEVER);
+        configureProxy(builder, properties.proxyUrl());
+        this.httpClient = builder.build();
+    }
 
     public OgpMetadata fetch(String url) {
         try {
@@ -99,4 +107,11 @@ public class OgpClient {
         }
     }
 
+    private void configureProxy(HttpClient.Builder builder, String proxyUrl) {
+        if (proxyUrl == null || proxyUrl.isBlank()) {
+            return;
+        }
+        URI proxyUri = URI.create(proxyUrl);
+        builder.proxy(ProxySelector.of(new InetSocketAddress(proxyUri.getHost(), proxyUri.getPort())));
+    }
 }

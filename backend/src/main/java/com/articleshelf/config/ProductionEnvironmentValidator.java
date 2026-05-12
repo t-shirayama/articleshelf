@@ -5,6 +5,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -16,17 +17,20 @@ public class ProductionEnvironmentValidator {
 
     private final Environment environment;
     private final AuthProperties authProperties;
+    private final OgpProperties ogpProperties;
     private final String frontendOrigin;
     private final String datasourceUrl;
 
     public ProductionEnvironmentValidator(
             Environment environment,
             AuthProperties authProperties,
+            OgpProperties ogpProperties,
             @Value("${articleshelf.frontend-origin}") String frontendOrigin,
             @Value("${spring.datasource.url:}") String datasourceUrl
     ) {
         this.environment = environment;
         this.authProperties = authProperties;
+        this.ogpProperties = ogpProperties;
         this.frontendOrigin = frontendOrigin;
         this.datasourceUrl = datasourceUrl;
     }
@@ -49,6 +53,7 @@ public class ProductionEnvironmentValidator {
             validateProductionSecret("JWT_ACCESS_SECRET", authProperties.accessTokenSecret());
             validateProductionSecret("AUTH_REFRESH_TOKEN_HASH_SECRET", authProperties.refreshTokenHashSecret());
             validateProductionDatasourceTls(datasourceUrl);
+            validateOgpProxyPolicy();
         }
     }
 
@@ -72,6 +77,28 @@ public class ProductionEnvironmentValidator {
             throw new IllegalStateException(
                     "production profile では SPRING_DATASOURCE_URL に sslmode=require 以上を設定してください"
             );
+        }
+    }
+
+    private void validateOgpProxyPolicy() {
+        if (!ogpProperties.requireProxyInProd()) {
+            return;
+        }
+        if (ogpProperties.proxyUrl() == null || ogpProperties.proxyUrl().isBlank()) {
+            throw new IllegalStateException("production profile では ARTICLESHELF_OGP_PROXY_URL を設定してください");
+        }
+        URI proxyUri;
+        try {
+            proxyUri = URI.create(ogpProperties.proxyUrl());
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException("ARTICLESHELF_OGP_PROXY_URL は有効なURIである必要があります");
+        }
+        String scheme = proxyUri.getScheme() == null ? "" : proxyUri.getScheme().toLowerCase();
+        if (!"http".equals(scheme) && !"https".equals(scheme)) {
+            throw new IllegalStateException("ARTICLESHELF_OGP_PROXY_URL は http または https を使用してください");
+        }
+        if (proxyUri.getHost() == null || proxyUri.getHost().isBlank() || proxyUri.getPort() < 0) {
+            throw new IllegalStateException("ARTICLESHELF_OGP_PROXY_URL には host と port が必要です");
         }
     }
 

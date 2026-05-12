@@ -12,6 +12,7 @@ class ProductionEnvironmentValidatorTest {
         ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
                 new MockEnvironment().withProperty("spring.profiles.active", "prod"),
                 authProperties(true, "Lax", false),
+                new OgpProperties("", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("require")
         );
@@ -26,6 +27,7 @@ class ProductionEnvironmentValidatorTest {
         ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
                 new MockEnvironment(),
                 authProperties(false, "None", true),
+                new OgpProperties("", false),
                 "http://localhost:5173",
                 "jdbc:postgresql://localhost:5432/articleshelf"
         );
@@ -40,6 +42,7 @@ class ProductionEnvironmentValidatorTest {
         ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
                 new MockEnvironment().withProperty("spring.profiles.active", "prod"),
                 authProperties(true, "None", true),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("require")
         );
@@ -58,6 +61,7 @@ class ProductionEnvironmentValidatorTest {
                         "dev-articleshelf-access-secret-change-me-please-32bytes",
                         "prod-refresh-token-secret-with-enough-length"
                 ),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("require")
         );
@@ -78,6 +82,7 @@ class ProductionEnvironmentValidatorTest {
                         "short",
                         "prod-refresh-token-secret-with-enough-length"
                 ),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("require")
         );
@@ -92,6 +97,7 @@ class ProductionEnvironmentValidatorTest {
         ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
                 new MockEnvironment().withProperty("spring.profiles.active", "prod"),
                 authProperties(true, "None", true),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 "jdbc:postgresql://db.example.com:5432/postgres"
         );
@@ -106,6 +112,7 @@ class ProductionEnvironmentValidatorTest {
         ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
                 new MockEnvironment().withProperty("spring.profiles.active", "prod"),
                 authProperties(true, "None", true),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("disable")
         );
@@ -120,6 +127,7 @@ class ProductionEnvironmentValidatorTest {
         assertThatCode(() -> new ProductionEnvironmentValidator(
                 new MockEnvironment().withProperty("spring.profiles.active", "prod"),
                 authProperties(true, "None", true),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("verify-ca")
         ).validate()).doesNotThrowAnyException();
@@ -127,9 +135,40 @@ class ProductionEnvironmentValidatorTest {
         assertThatCode(() -> new ProductionEnvironmentValidator(
                 new MockEnvironment().withProperty("spring.profiles.active", "prod"),
                 authProperties(true, "None", true),
+                new OgpProperties("http://proxy.internal:8080", true),
                 "https://articleshelf.example.com",
                 productionDatasourceUrl("verify-full")
         ).validate()).doesNotThrowAnyException();
+    }
+
+    @Test
+    void rejectsMissingOgpProxyWhenProductionPolicyRequiresIt() {
+        ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
+                new MockEnvironment().withProperty("spring.profiles.active", "prod"),
+                authProperties(true, "None", true),
+                new OgpProperties("", true),
+                "https://articleshelf.example.com",
+                productionDatasourceUrl("require")
+        );
+
+        assertThatThrownBy(validator::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("production profile では ARTICLESHELF_OGP_PROXY_URL を設定してください");
+    }
+
+    @Test
+    void rejectsInvalidOgpProxyUrlWhenProductionPolicyRequiresIt() {
+        ProductionEnvironmentValidator validator = new ProductionEnvironmentValidator(
+                new MockEnvironment().withProperty("spring.profiles.active", "prod"),
+                authProperties(true, "None", true),
+                new OgpProperties("socks5://proxy.internal:1080", true),
+                "https://articleshelf.example.com",
+                productionDatasourceUrl("require")
+        );
+
+        assertThatThrownBy(validator::validate)
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("ARTICLESHELF_OGP_PROXY_URL は http または https を使用してください");
     }
 
     private AuthProperties authProperties(boolean cookieSecure, String cookieSameSite, boolean csrfEnabled) {

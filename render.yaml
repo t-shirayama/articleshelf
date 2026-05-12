@@ -21,6 +21,8 @@ services:
         sync: false
       - key: AUTH_REFRESH_TOKEN_HASH_SECRET
         sync: false
+      - key: ARTICLESHELF_OGP_PROXY_URL
+        sync: false
       - key: AUTH_CSRF_ENABLED
         value: "true"
       - key: AUTH_COOKIE_SECURE
@@ -30,6 +32,8 @@ services:
       - key: ARTICLESHELF_INITIAL_USER_ENABLED
         value: "false"
       - key: ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED
+        value: "true"
+      - key: ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD
         value: "true"
       - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
         value: "3"
