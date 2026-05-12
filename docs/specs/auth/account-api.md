@@ -27,20 +27,26 @@
 ## `POST /api/auth/refresh`
 
 - 認証: refresh cookie
+- CSRF: `@CookieCsrfProtected`。`ARTICLESHELF_CSRF` cookie と `X-CSRF-Token` header の一致が必要
 - response: `user`, `accessToken`
 - side effect: refresh token rotation と cookie 再設定
 - error:
   - `401`: refresh token 不正、期限切れ、失効済み、ユーザー inactive
+  - `403`: CSRF token 不一致または欠落
 
 ## `POST /api/auth/logout`
 
 - 認証: refresh cookie を主とする
+- CSRF: `@CookieCsrfProtected`。`ARTICLESHELF_CSRF` cookie と `X-CSRF-Token` header の一致が必要
 - response: `204 No Content`
 - side effect: 現在端末の refresh token を失効し、cookie を削除する
+- error:
+  - `403`: CSRF token 不一致または欠落
 
 ## `POST /api/auth/logout-all`
 
 - 認証: 必須
+- CSRF: 不要。Bearer access token 認証のため `@CookieCsrfProtected` の対象外
 - response: `204 No Content`
 - side effect: 現在ユーザーの refresh token を全失効し、`token_valid_after` を更新して既発行 access token も無効化し、cookie を削除する
 
