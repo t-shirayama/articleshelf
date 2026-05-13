@@ -813,36 +813,20 @@
   line-height: 1.6;
 }
 
-.help-dialog-section-heading {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  color: var(--text);
-}
-
-.help-dialog-section-heading svg {
-  flex: 0 0 auto;
-  color: var(--accent);
-}
-
 .help-dialog-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.help-dialog-chip {
-  display: inline-flex;
-  align-items: center;
-  min-height: 26px;
-  margin-left: auto;
-  padding: 2px 10px;
-  color: var(--accent-strong);
-  font-size: 0.76rem;
-  font-weight: 800;
-  background: rgba(216, 239, 238, 0.78);
-  border: 1px solid rgba(24, 108, 116, 0.16);
-  border-radius: 999px;
+.help-dialog-download-button {
+  color: #fff !important;
+  background: var(--accent-strong) !important;
+  box-shadow: 0 10px 22px rgba(7, 78, 84, 0.18);
+}
+
+.help-dialog-download-button:hover {
+  background: #063f45 !important;
 }
 
 .help-dialog-subtitle {

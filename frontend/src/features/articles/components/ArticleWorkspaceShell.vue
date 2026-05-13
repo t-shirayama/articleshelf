@@ -4,12 +4,12 @@ import {
   CalendarDays,
   CheckCircle2,
   Circle,
-  CircleHelp,
   Heart,
   Library,
   LogOut,
   Menu,
   Plus,
+  Puzzle,
   Tags,
   UserCog,
 } from "lucide-vue-next";
@@ -230,7 +230,7 @@ function setDrawerOpen(value: boolean): void {
             @click="emit('help')"
           >
             <template #prepend>
-              <CircleHelp :size="17" />
+              <Puzzle :size="17" />
             </template>
             {{ t("nav.help") }}
           </VBtn>

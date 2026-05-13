@@ -1,5 +1,5 @@
 const APP_BASE_URL = 'https://articleshelf.pages.dev'
-const API_BASE_URL = 'https://articleshelf-api.onrender.com'
+const API_BASE_URL = 'https://articleshelf.onrender.com'
 const CLIENT_ID = 'articleshelf-chrome-extension'
 const EXTENSION_ID = 'bpkppkfmcfdpfbododebdbaaoodglnde'
 const REDIRECT_URI = 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/'

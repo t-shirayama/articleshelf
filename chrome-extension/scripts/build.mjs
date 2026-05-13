@@ -17,12 +17,12 @@ const variants = [
   {
     name: 'production',
     appBaseUrl: 'https://articleshelf.pages.dev',
-    apiBaseUrl: 'https://articleshelf-api.onrender.com',
+    apiBaseUrl: 'https://articleshelf.onrender.com',
     clientId: 'articleshelf-chrome-extension',
     extensionId: 'bpkppkfmcfdpfbododebdbaaoodglnde',
     redirectUri: 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/',
     extensionKey: productionExtensionKey,
-    hostPermissions: ['https://articleshelf-api.onrender.com/*'],
+    hostPermissions: ['https://articleshelf.onrender.com/*'],
     extensionName: '__MSG_extensionName__',
     actionTitle: '__MSG_actionTitle__',
     packageName: 'articleshelf-chrome-extension',
@@ -100,7 +100,7 @@ async function prepareVariant(variant) {
     popupPath,
     popupSource
       .replace("const APP_BASE_URL = 'https://articleshelf.pages.dev'", `const APP_BASE_URL = '${variant.appBaseUrl}'`)
-      .replace("const API_BASE_URL = 'https://articleshelf-api.onrender.com'", `const API_BASE_URL = '${variant.apiBaseUrl}'`)
+      .replace("const API_BASE_URL = 'https://articleshelf.onrender.com'", `const API_BASE_URL = '${variant.apiBaseUrl}'`)
       .replace("const CLIENT_ID = 'articleshelf-chrome-extension'", `const CLIENT_ID = '${variant.clientId}'`)
       .replace("const EXTENSION_ID = 'bpkppkfmcfdpfbododebdbaaoodglnde'", `const EXTENSION_ID = '${variant.extensionId}'`)
       .replace("const REDIRECT_URI = 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/'", `const REDIRECT_URI = '${variant.redirectUri}'`)

@@ -6,7 +6,3 @@ const localExtensionDownloadUrl = "/downloads/articleshelf-chrome-extension-loca
 export const extensionDownloadUrl =
   import.meta.env.VITE_EXTENSION_DOWNLOAD_URL ??
   (import.meta.env.PROD ? releaseExtensionDownloadUrl : localExtensionDownloadUrl);
-
-export const shouldLoadExtensionVersionFromGitHub =
-  !import.meta.env.VITE_EXTENSION_VERSION &&
-  extensionDownloadUrl === releaseExtensionDownloadUrl;

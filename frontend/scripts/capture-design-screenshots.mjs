@@ -346,7 +346,7 @@ async function captureAccountSettingsDialog(page) {
 
 async function captureHelpDialog(page) {
   await openArticleList(page);
-  await page.getByRole("button", { name: "ヘルプ", exact: true }).click();
+  await page.getByRole("button", { name: "Chrome 拡張機能", exact: true }).click();
   await page.waitForSelector(".help-dialog", { timeout: 30000 });
   await page.waitForTimeout(500);
   await saveScreenshot(page, "help_dialog.png");

@@ -124,12 +124,10 @@ export const ja = {
       }
     },
     help: {
-      title: 'ヘルプ',
-      chromeExtensionTitle: 'Chrome 拡張機能',
-      extensionVersion: 'v{version}',
+      title: 'Chrome 拡張機能',
       chromeExtensionDescription: '現在開いている記事ページを popup から未読または既読として直接保存できます。初回だけ ArticleShelf にログインし、拡張機能には保存専用の短命 token だけを保持します。',
       chromeExtensionDownload: 'Chrome拡張機能をダウンロード',
-      chromeExtensionTarget: 'ローカル開発では localhost 用、本番では公開URL用の zip を使います。popup から接続先 URL は変更できません。',
+      chromeExtensionTarget: 'ダウンロードした zip を展開して Chrome に読み込むと、ArticleShelf と連携して記事を保存できます。',
       chromeExtensionStepsTitle: '読み込み手順',
       chromeExtensionStepOne: 'zip をダウンロードして任意のフォルダへ展開します。',
       chromeExtensionStepTwo: 'Chrome で chrome://extensions を開き、右上のデベロッパーモードを有効にします。',
@@ -151,7 +149,7 @@ export const ja = {
       favorite: 'お気に入り',
       calendar: 'カレンダー',
       tagManagement: 'タグ管理',
-      help: 'ヘルプ',
+      help: 'Chrome 拡張機能',
       account: 'アカウント',
       logout: 'ログアウト'
     },
