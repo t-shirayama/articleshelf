@@ -50,4 +50,4 @@ docker run --rm -v ${PWD}:/workspace -w /workspace/chrome-extension node:24-alpi
 
 ローカルの ArticleShelf 画面から zip をダウンロードする場合は、frontend を `http://localhost:5173` で起動したあと、`/downloads/articleshelf-chrome-extension-local.zip` を取得します。
 
-ローカル確認用 artifact は ArticleShelf app URL を `http://localhost:5173`、API URL を `http://localhost:8080` に固定します。本番用 artifact は `https://articleshelf.pages.dev` と `https://articleshelf-api.onrender.com` に固定します。
+ローカル確認用 artifact は ArticleShelf app URL を `http://localhost:5173`、API URL を `http://localhost:8080` に固定します。本番用 artifact は `https://articleshelf.pages.dev` と `https://articleshelf.onrender.com` に固定します。

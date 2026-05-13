@@ -6,7 +6,7 @@
   "description": "__MSG_extensionDescription__",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsYnnEXb3ic6SFRGCv9L+hk3EPJAJ6QfBVFlbsCmdeJADdi/FLMXQOLcgTyXGsa2Ic9E2fsl5bHymYzoqeKhjeXfJSJtXynjKZORz//bHdb0MbcEQg7Fmd9fqOjvkqaE/it7EB5wquUQcqNVJ3GAmtFtuGlnyOw/+0089Op01KHpsoNxh9FCI885epPubGVwx8BX4IkKEHdHA1TUkDAnUc7C1oyZL84pao8tVwrNUFBeMXhTwlniL+mrhA7chhMkxiUY7S+RcCQxcm3YdWg4unanJGbwgirA3M24268y8Z9dqjnXLMr8ZOYWfuY5H2A7QXYIZ0o40u3NTn1QkCKXj4QIDAQAB",
   "permissions": ["activeTab", "storage", "identity"],
-  "host_permissions": ["https://articleshelf-api.onrender.com/*"],
+  "host_permissions": ["https://articleshelf.onrender.com/*"],
   "action": {
     "default_title": "__MSG_actionTitle__",
     "default_popup": "popup.html"
