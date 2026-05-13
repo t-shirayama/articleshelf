@@ -24,6 +24,7 @@ import { useArticleSearchDebounce } from "../composables/useArticleSearchDebounc
 import { useMotivationRotation } from "../composables/useMotivationRotation";
 import { useStatusUndo } from "../composables/useStatusUndo";
 import { useTagActions } from "../composables/useTagActions";
+import { useWorkspaceAutoRefresh } from "../composables/useWorkspaceAutoRefresh";
 import { useWorkspaceAccountActions } from "../composables/useWorkspaceAccountActions";
 import { useWorkspaceNavigation } from "../composables/useWorkspaceNavigation";
 import { useArticlesStore } from "../stores/articles";
@@ -173,6 +174,10 @@ const { cancelSearch } = useArticleSearchDebounce(searchDraft, async (value) => 
   store.setSearch(value);
   await store.fetchArticles();
 });
+const workspaceAutoRefresh = useWorkspaceAutoRefresh({
+  refresh: refreshArticlesFromExternalChanges,
+  hasUnsavedChanges: () => detailHasUnsavedChanges.value,
+});
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
@@ -192,6 +197,8 @@ onMounted(async () => {
     return false;
   });
   await loadInitialData();
+  workspaceAutoRefresh.markLoaded();
+  workspaceAutoRefresh.mount();
   await applyWorkspaceRoute();
 });
 
@@ -201,6 +208,7 @@ watch(() => route.path, () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
+  workspaceAutoRefresh.dispose();
   removeWorkspaceRouteGuard?.();
   removeWorkspaceRouteGuard = null;
 });
@@ -286,6 +294,10 @@ function openHelpDialog(): void {
 
 async function loadInitialData(): Promise<void> {
   await Promise.all([store.fetchArticles(), store.fetchArticleSnapshot(), store.fetchTags()]);
+}
+
+async function refreshArticlesFromExternalChanges(): Promise<void> {
+  await Promise.all([store.fetchArticles(), store.fetchArticleSnapshot()]);
 }
 
 async function applyWorkspaceRoute(): Promise<void> {
