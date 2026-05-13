@@ -63,7 +63,7 @@ Supabase Free PostgreSQL
 - OGP 取得は timeout、User-Agent、SSRF 対策、redirect 再検証、body size 制限、`text/html` 制限に対応済み
 - 現行の Render Free 運用では `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=false` とし、OGP 取得は app-level SSRF guard で防御する。dedicated outbound proxy を用意できる構成へ移行したら `ARTICLESHELF_OGP_PROXY_URL` を設定し、proxy / firewall 側で metadata endpoint と private network 宛て egress を遮断する
 - DB schema は Flyway migration と JPA `validate` で管理しており、Supabase PostgreSQL へ起動時 migration を適用できる
-- 現行 frontend は Vue Router を使っていないため SPA fallback は必須ではない。history mode の routing を導入した場合は `_redirects` を追加する
+- 現行 frontend は Vue Router の browser history route を使うため、Cloudflare Pages では `frontend/public/_redirects` による SPA fallback を build output へコピーする
 
 ## 4. フロントエンド: Cloudflare Pages
 
@@ -101,8 +101,8 @@ https://articleshelf.pages.dev
 
 ### 4.4 SPA fallback
 
-現行実装は Vue Router を使っていないため、現時点では `_redirects` は必須ではない。
-Vue Router の history mode を導入した場合は、`frontend/public/_redirects` を追加し、build output にコピーされるようにする。
+現行実装は Vue Router の browser history route を使う。
+Cloudflare Pages で `/articles`、`/articles/:id`、`/calendar`、`/tags`、`/settings` へ直接アクセスしても SPA が返るように、`frontend/public/_redirects` を build output にコピーする。
 
 ```text
 /* /index.html 200
@@ -246,7 +246,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] `frontend/public/_headers` の security headers が production deploy に反映されている
 - [ ] `style-src 'self'`、`style-src-elem 'self' 'unsafe-inline'`、`style-src-attr 'none'` の CSP 分離が production deploy の response header に反映されている
 - [ ] 公開 URL を `FRONTEND_ORIGIN` に反映した
-- [ ] Vue Router history mode を導入した場合は `_redirects` を追加した
+- [ ] `frontend/public/_redirects` が build output にコピーされ、Vue Router の直接アクセスが SPA fallback される
 
 ### 8.2 Backend
 
