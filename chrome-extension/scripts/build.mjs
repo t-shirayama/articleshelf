@@ -23,8 +23,8 @@ const variants = [
     redirectUri: 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/',
     extensionKey: productionExtensionKey,
     hostPermissions: ['https://articleshelf-api.onrender.com/*'],
-    extensionName: 'ArticleShelf Quick Add',
-    actionTitle: 'Save to ArticleShelf',
+    extensionName: '__MSG_extensionName__',
+    actionTitle: '__MSG_actionTitle__',
     packageName: 'articleshelf-chrome-extension',
     mirrorToFrontend: false
   },
@@ -37,8 +37,8 @@ const variants = [
     redirectUri: 'https://ncdpeooneagfjhgnhenhakjnfflmpdbj.chromiumapp.org/',
     extensionKey: localExtensionKey,
     hostPermissions: ['http://localhost:8080/*'],
-    extensionName: 'ArticleShelf Quick Add Local',
-    actionTitle: 'Save to local ArticleShelf',
+    extensionName: '__MSG_extensionNameLocal__',
+    actionTitle: '__MSG_actionTitleLocal__',
     packageName: 'articleshelf-chrome-extension-local',
     mirrorToFrontend: true
   }

@@ -1,0 +1,17 @@
+{
+  "extensionName": {
+    "message": "ArticleShelf Quick Add"
+  },
+  "extensionNameLocal": {
+    "message": "ArticleShelf Quick Add Local"
+  },
+  "extensionDescription": {
+    "message": "Save the current page to ArticleShelf."
+  },
+  "actionTitle": {
+    "message": "Save to ArticleShelf"
+  },
+  "actionTitleLocal": {
+    "message": "Save to local ArticleShelf"
+  }
+}

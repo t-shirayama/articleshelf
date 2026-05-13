@@ -7,6 +7,85 @@ const REDIRECT_URI = 'https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/'
 const TOKEN_STORAGE_KEY = 'articleshelfExtensionToken'
 const AUTH_SESSION_KEY = 'articleshelfExtensionAuthSession'
 
+const messages = {
+  en: {
+    documentTitle: 'ArticleShelf Quick Add',
+    popupTitle: 'Quick Save',
+    popupCopy: 'Save the current page directly to ArticleShelf with a short-lived extension token.',
+    targetLabel: 'Target',
+    loadingTitle: 'Loading current page...',
+    loadingUrl: 'Preparing draft...',
+    login: 'Log in to ArticleShelf',
+    saveUnread: 'Save unread',
+    saveRead: 'Save read',
+    initializeError: 'Could not initialize the extension popup.',
+    unsupportedTitle: 'This page cannot be saved',
+    unsupportedUrl: 'Open a regular http or https article page, then try again.',
+    unsupportedStatus: 'Chrome internal pages, extension pages, and blank tabs are not supported.',
+    untitledPage: 'Untitled page',
+    loginRequired: 'Log in to save this page to ArticleShelf.',
+    openingLogin: 'Opening ArticleShelf login...',
+    invalidLoginResponse: 'Could not verify the ArticleShelf login response.',
+    loginComplete: 'Logged in. You can save this page now.',
+    loginFailed: 'Could not log in to ArticleShelf.',
+    savingRead: 'Saving as read...',
+    savingUnread: 'Saving as unread...',
+    savedRead: 'Saved as read.',
+    savedUnread: 'Saved as unread.',
+    alreadyRead: 'Already saved as read.',
+    alreadyUnread: 'Already saved as unread.',
+    updatedRead: 'Updated to read.',
+    updatedUnread: 'Updated to unread.',
+    tokenExchangeFailed: 'Could not exchange ArticleShelf authorization code.',
+    loginExpired: 'ArticleShelf login expired. Please log in again.',
+    saveFailed: 'Could not save this page.',
+    ready: 'Ready to save this page.',
+    invalidBaseUrl: 'Use an http or https URL for ArticleShelf.',
+    apiFailed: (status) => `ArticleShelf API request failed (${status}).`
+  },
+  ja: {
+    documentTitle: 'ArticleShelf クイック追加',
+    popupTitle: 'クイック保存',
+    popupCopy: '現在のページを、短命の拡張機能トークンで ArticleShelf に直接保存します。',
+    targetLabel: '接続先',
+    loadingTitle: '現在のページを読み込み中...',
+    loadingUrl: '下書きを準備しています...',
+    login: 'ArticleShelf にログイン',
+    saveUnread: '未読で保存',
+    saveRead: '既読で保存',
+    initializeError: '拡張機能 popup を初期化できませんでした。',
+    unsupportedTitle: 'このページは保存できません',
+    unsupportedUrl: '通常の http または https の記事ページを開いてから、もう一度試してください。',
+    unsupportedStatus: 'Chrome 内部ページ、拡張機能ページ、空のタブは対象外です。',
+    untitledPage: '無題のページ',
+    loginRequired: 'このページを ArticleShelf に保存するにはログインしてください。',
+    openingLogin: 'ArticleShelf のログインを開いています...',
+    invalidLoginResponse: 'ArticleShelf のログイン応答を確認できませんでした。',
+    loginComplete: 'ログインしました。このページを保存できます。',
+    loginFailed: 'ArticleShelf にログインできませんでした。',
+    savingRead: '既読で保存しています...',
+    savingUnread: '未読で保存しています...',
+    savedRead: '既読で保存しました。',
+    savedUnread: '未読で保存しました。',
+    alreadyRead: 'すでに既読で保存されています。',
+    alreadyUnread: 'すでに未読で保存されています。',
+    updatedRead: '既読に更新しました。',
+    updatedUnread: '未読に更新しました。',
+    tokenExchangeFailed: 'ArticleShelf の認可コードをトークンに交換できませんでした。',
+    loginExpired: 'ArticleShelf のログイン期限が切れました。もう一度ログインしてください。',
+    saveFailed: 'このページを保存できませんでした。',
+    ready: 'このページを保存できます。',
+    invalidBaseUrl: 'ArticleShelf には http または https の URL を指定してください。',
+    apiFailed: (status) => `ArticleShelf API リクエストに失敗しました (${status})。`
+  }
+}
+
+const locale = detectLocale()
+const t = messages[locale]
+
+const popupTitle = document.querySelector('#popup-title')
+const popupCopy = document.querySelector('#popup-copy')
+const targetLabel = document.querySelector('#target-label')
 const appBaseUrlDisplay = document.querySelector('#app-base-url-display')
 const pageTitle = document.querySelector('#page-title')
 const pageUrl = document.querySelector('#page-url')
@@ -20,8 +99,10 @@ let currentToken = null
 let currentArticle = null
 let currentPageSupported = false
 
+localizeStaticText()
+
 initialize().catch((error) => {
-  setStatus(error instanceof Error ? error.message : 'Could not initialize the extension popup.')
+  setStatus(error instanceof Error ? error.message : t.initializeError)
   setBusy(false)
 })
 
@@ -44,25 +125,25 @@ async function initialize() {
 
   if (!currentTab?.url || !isHttpUrl(currentTab.url)) {
     currentPageSupported = false
-    pageTitle.textContent = 'This page cannot be saved'
-    pageUrl.textContent = 'Open a regular http or https article page, then try again.'
+    pageTitle.textContent = t.unsupportedTitle
+    pageUrl.textContent = t.unsupportedUrl
     currentToken = await readStoredToken()
-    renderState('Chrome internal pages, extension pages, and blank tabs are not supported.')
+    renderState(t.unsupportedStatus)
     return
   }
 
   currentPageSupported = true
-  pageTitle.textContent = currentTab.title?.trim() || 'Untitled page'
+  pageTitle.textContent = currentTab.title?.trim() || t.untitledPage
   pageUrl.textContent = currentTab.url
   currentToken = await readStoredToken()
   if (currentToken) {
     await lookupCurrentArticle()
   }
-  renderState(currentToken ? statusForCurrentArticle() : 'Log in to save this page to ArticleShelf.')
+  renderState(currentToken ? statusForCurrentArticle() : t.loginRequired)
 }
 
 async function login() {
-  setBusy(true, 'Opening ArticleShelf login...')
+  setBusy(true, t.openingLogin)
   try {
     const verifier = randomBase64Url(32)
     const state = randomBase64Url(24)
@@ -86,7 +167,7 @@ async function login() {
     const returnedState = response.searchParams.get('state')
     const session = await readAuthSession()
     if (!code || !session || returnedState !== session.state) {
-      throw new Error('Could not verify the ArticleShelf login response.')
+      throw new Error(t.invalidLoginResponse)
     }
 
     const token = await exchangeToken(code, session.verifier)
@@ -94,15 +175,15 @@ async function login() {
     await storeToken(token)
     currentToken = token
     await lookupCurrentArticle()
-    renderState('Logged in. You can save this page now.')
+    renderState(t.loginComplete)
   } catch (error) {
-    renderState(error instanceof Error ? error.message : 'Could not log in to ArticleShelf.')
+    renderState(error instanceof Error ? error.message : t.loginFailed)
   }
 }
 
 async function saveArticle(status) {
   if (!currentPageSupported || !currentToken || !currentTab?.url) return
-  setBusy(true, status === 'READ' ? 'Saving as read...' : 'Saving as unread...')
+  setBusy(true, status === 'READ' ? t.savingRead : t.savingUnread)
   try {
     if (!currentArticle) {
       currentArticle = await apiRequest('/api/extension/articles', {
@@ -114,12 +195,12 @@ async function saveArticle(status) {
           readDate: status === 'READ' ? today() : null
         })
       })
-      renderState(status === 'READ' ? 'Saved as read.' : 'Saved as unread.')
+      renderState(status === 'READ' ? t.savedRead : t.savedUnread)
       return
     }
 
     if (currentArticle.status === status && (status === 'UNREAD' || currentArticle.readDate === today())) {
-      renderState(status === 'READ' ? 'Already saved as read.' : 'Already saved as unread.')
+      renderState(status === 'READ' ? t.alreadyRead : t.alreadyUnread)
       return
     }
 
@@ -130,7 +211,7 @@ async function saveArticle(status) {
         readDate: status === 'READ' ? today() : null
       })
     })
-    renderState(status === 'READ' ? 'Updated to read.' : 'Updated to unread.')
+    renderState(status === 'READ' ? t.updatedRead : t.updatedUnread)
   } catch (error) {
     await handleApiError(error)
   }
@@ -161,7 +242,7 @@ async function exchangeToken(code, verifier) {
   })
   const payload = await response.json().catch(() => null)
   if (!response.ok || !payload?.access_token) {
-    throw new Error('Could not exchange ArticleShelf authorization code.')
+    throw new Error(t.tokenExchangeFailed)
   }
   return {
     accessToken: payload.access_token,
@@ -175,6 +256,7 @@ async function apiRequest(path, options = {}) {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      'Accept-Language': locale === 'ja' ? 'ja-JP,ja;q=0.9,en;q=0.8' : 'en-US,en;q=0.9',
       Authorization: `Bearer ${currentToken.accessToken}`,
       ...(options.headers || {})
     }
@@ -189,10 +271,10 @@ async function handleApiError(error) {
     await clearToken()
     currentToken = null
     currentArticle = null
-    renderState('ArticleShelf login expired. Please log in again.')
+    renderState(t.loginExpired)
     return
   }
-  renderState(error instanceof Error ? error.message : 'Could not save this page.')
+  renderState(error instanceof Error ? error.message : t.saveFailed)
 }
 
 async function readStoredToken() {
@@ -236,14 +318,14 @@ function setBusy(busy, message = '') {
 }
 
 function statusForCurrentArticle() {
-  if (!currentArticle) return 'Ready to save this page.'
-  return currentArticle.status === 'READ' ? 'Already saved as read.' : 'Already saved as unread.'
+  if (!currentArticle) return t.ready
+  return currentArticle.status === 'READ' ? t.alreadyRead : t.alreadyUnread
 }
 
 function normalizeAppBaseUrl(value) {
   const parsed = new URL(value)
   if (!isHttpUrl(parsed.toString())) {
-    throw new Error('Use an http or https URL for ArticleShelf.')
+    throw new Error(t.invalidBaseUrl)
   }
   parsed.pathname = '/'
   parsed.search = ''
@@ -272,6 +354,29 @@ function setStatus(message) {
   statusMessage.textContent = message
 }
 
+function localizeStaticText() {
+  document.documentElement.lang = locale
+  document.title = t.documentTitle
+  popupTitle.textContent = t.popupTitle
+  popupCopy.textContent = t.popupCopy
+  targetLabel.textContent = t.targetLabel
+  pageTitle.textContent = t.loadingTitle
+  pageUrl.textContent = t.loadingUrl
+  loginButton.textContent = t.login
+  saveUnreadButton.textContent = t.saveUnread
+  saveReadButton.textContent = t.saveRead
+}
+
+function detectLocale() {
+  const candidates = [
+    chrome.i18n?.getUILanguage?.(),
+    ...(navigator.languages || []),
+    navigator.language
+  ]
+
+  return candidates.some((candidate) => String(candidate || '').toLowerCase().startsWith('ja')) ? 'ja' : 'en'
+}
+
 function randomBase64Url(length) {
   const bytes = new Uint8Array(length)
   crypto.getRandomValues(bytes)
@@ -292,7 +397,7 @@ function base64Url(bytes) {
 
 class ApiError extends Error {
   constructor(status, payload) {
-    super(payload?.messages?.join(', ') || `ArticleShelf API request failed (${status}).`)
+    super(payload?.messages?.join(', ') || t.apiFailed(status))
     this.status = status
     this.payload = payload
   }

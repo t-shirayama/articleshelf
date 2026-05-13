@@ -10,15 +10,15 @@
     <main class="popup-shell">
       <section class="popup-section">
         <p class="eyebrow">ArticleShelf</p>
-        <h1>Quick Save</h1>
-        <p class="copy">Save the current page directly to ArticleShelf with a short-lived extension token.</p>
-        <p class="app-target">Target: <span id="app-base-url-display">ArticleShelf</span></p>
+        <h1 id="popup-title">Quick Save</h1>
+        <p id="popup-copy" class="copy">Save the current page directly to ArticleShelf with a short-lived extension token.</p>
+        <p class="app-target"><span id="target-label">Target</span>: <span id="app-base-url-display">ArticleShelf</span></p>
       </section>
 
       <section class="popup-section">
         <div class="preview-card">
           <strong id="page-title">Loading current page...</strong>
-          <span id="page-url">Preparing draft…</span>
+          <span id="page-url">Preparing draft...</span>
         </div>
         <p id="status-message" class="hint"></p>
         <button id="login" class="button button-secondary" type="button">Log in to ArticleShelf</button>
