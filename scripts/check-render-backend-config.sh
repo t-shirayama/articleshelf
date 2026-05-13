@@ -42,14 +42,13 @@ assert_key_present "SPRING_DATASOURCE_USERNAME"
 assert_key_present "SPRING_DATASOURCE_PASSWORD"
 assert_key_present "JWT_ACCESS_SECRET"
 assert_key_present "AUTH_REFRESH_TOKEN_HASH_SECRET"
-assert_key_present "ARTICLESHELF_OGP_PROXY_URL"
 
 assert_key_value "SPRING_PROFILES_ACTIVE" "prod"
 assert_key_value "AUTH_CSRF_ENABLED" "true"
 assert_key_value "AUTH_COOKIE_SECURE" "true"
 assert_key_value "AUTH_COOKIE_SAME_SITE" "None"
 assert_key_value "ARTICLESHELF_INITIAL_USER_ENABLED" "false"
-assert_key_value "ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD" "true"
+assert_key_value "ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD" "false"
 
 if ! grep -Fq "healthCheckPath: /actuator/health" "$config_file"; then
   echo "Render blueprint must keep /actuator/health as the health check path" >&2

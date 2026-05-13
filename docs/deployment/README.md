@@ -1,6 +1,6 @@
 # 無料枠を中心にした公開構成とデプロイ運用
 
-最終更新: 2026-05-12
+最終更新: 2026-05-14
 
 ## 1. 目的
 
@@ -61,7 +61,7 @@ Supabase Free PostgreSQL
 - production profile は `AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None` を既定にし、frontend / API が別 site になる構成に合っている
 - production profile は `SPRING_DATASOURCE_URL` の `sslmode=require` / `verify-ca` / `verify-full` を起動時に検証し、TLS なしの DB 接続を拒否する
 - OGP 取得は timeout、User-Agent、SSRF 対策、redirect 再検証、body size 制限、`text/html` 制限に対応済み
-- production profile の OGP 取得は `ARTICLESHELF_OGP_PROXY_URL` で指定した outbound proxy を経由させ、proxy / firewall 側で metadata endpoint と private network 宛て egress を遮断する
+- 現行の Render Free 運用では `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=false` とし、OGP 取得は app-level SSRF guard で防御する。dedicated outbound proxy を用意できる構成へ移行したら `ARTICLESHELF_OGP_PROXY_URL` を設定し、proxy / firewall 側で metadata endpoint と private network 宛て egress を遮断する
 - DB schema は Flyway migration と JPA `validate` で管理しており、Supabase PostgreSQL へ起動時 migration を適用できる
 - 現行 frontend は Vue Router を使っていないため SPA fallback は必須ではない。history mode の routing を導入した場合は `_redirects` を追加する
 
@@ -150,12 +150,15 @@ README やアプリ画面で表示する注意書き例:
 | `AUTH_COOKIE_SAME_SITE`                      | `None`                                           | Cloudflare Pages と Render が別 site のため既定は `None` |
 | `ARTICLESHELF_INITIAL_USER_ENABLED`          | `false`                                          | 通常は初期 ADMIN 自動作成を無効化                        |
 | `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED`       | `true`                                           | 登録 / ログイン API の shared DB rate limit              |
-| `ARTICLESHELF_OGP_PROXY_URL`                 | `http://ogp-proxy.internal:8080`                 | OGP fetch を通す outbound proxy。production では必須     |
+| `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD`     | `false`                                          | Render Free 運用では proxy 必須化を外す。dedicated outbound proxy を用意したら `true` に戻す |
+| `ARTICLESHELF_OGP_PROXY_URL`                 | `http://ogp-proxy.internal:8080`                 | OGP fetch を通す outbound proxy。`ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=true` の production では必須 |
 | `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS`      | `chrome-extension://bpkppkfmcfdpfbododebdbaaoodglnde` | Chrome 拡張機能の固定 extension origin。複数ある場合は comma-separated |
 | `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` | `3`                                              | Supabase Free の接続数を圧迫しないため小さめにする       |
 
-`render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定し、`FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard 側の secret env として入力する。
+`render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false`、`ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=false` を固定し、`FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard 側の secret env として入力する。現行 Render Free 運用では `ARTICLESHELF_OGP_PROXY_URL` を blueprint に要求しない。
 GitHub Actions の `Deployment config check` は `render.yaml` の固定値を検証し、production profile を外した blueprint が `main` へ入らないようにする。
+
+Render Free では private service を使った内部 proxy を無料で常時運用しにくいため、現行は proxy 必須化を外す。`OgpRequestGuard` による scheme、host、DNS、private IP、metadata endpoint、redirect 再検証は維持するが、Java HttpClient の接続時再解決に対する network-layer 防御は未導入として扱う。
 
 本番必須の認証設定:
 
@@ -174,7 +177,7 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 - backend コンテナは final image で root ではなく `articleshelf` user として実行する
 - frontend の Docker 開発 / E2E image は root ではなく `node` user として実行する
 - 認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う
-- OGP fetch は dedicated outbound proxy を経由し、proxy / firewall 側で `169.254.169.254`、`100.100.100.200`、RFC1918 private range、loopback、link-local 宛て egress を遮断する
+- OGP fetch は現行 Render Free 運用では app-level SSRF guard で防御する。dedicated outbound proxy を導入したら、proxy / firewall 側で `169.254.169.254`、`100.100.100.200`、RFC1918 private range、loopback、link-local 宛て egress を遮断する
 - `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
 - Chrome 拡張機能 CORS は固定 extension ID の origin だけを `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS` に指定し、`chrome-extension://*` は使わない
 - secret と DB password は GitHub / Render / Cloudflare の secret 管理に置き、Git へコミットしない
@@ -259,7 +262,8 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] `AUTH_COOKIE_SECURE=true` を設定した
 - [ ] `AUTH_COOKIE_SAME_SITE=None` を設定した
 - [ ] `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` に十分長いランダム値を設定した
-- [ ] `ARTICLESHELF_OGP_PROXY_URL` を設定した
+- [ ] Render Free 運用では `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=false` を確認した
+- [ ] dedicated outbound proxy を導入する場合は `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=true` と `ARTICLESHELF_OGP_PROXY_URL` を設定した
 - [ ] `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS` に本番用 Chrome 拡張機能 origin を設定した
 - [ ] `ARTICLESHELF_INITIAL_USER_ENABLED=false` を確認した
 - [ ] `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` を小さめに設定した
@@ -280,7 +284,8 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] 登録、ログイン、refresh、logout が cookie / CSRF 込みで動く
 - [ ] 記事追加、一覧、詳細、編集、削除が動く
 - [ ] OGP 取得が公開環境から動く
-- [ ] OGP proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されている
+- [ ] Render Free 運用では OGP の app-level SSRF guard が有効であることを確認した
+- [ ] dedicated outbound proxy を導入している場合は proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されている
 - [ ] Render cold start 時の表示が破綻しない
 - [ ] Cloudflare Worker の 10 分ごと ping が Render health check に成功している
 - [ ] Markdown 安全境界が維持されている
