@@ -108,7 +108,7 @@ function handleModeUpdate(value: unknown): void {
 
   const nextPath = nextMode === "register" ? "/register" : "/login";
   if (route.path !== nextPath) {
-    void router.push(nextPath);
+    void router.push({ path: nextPath, query: route.query });
   }
 }
 

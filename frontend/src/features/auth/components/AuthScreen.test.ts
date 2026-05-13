@@ -5,8 +5,12 @@ import AuthScreen from './AuthScreen.vue'
 import { i18n } from '../../../shared/i18n'
 
 const routeState = reactive<{ path: string, query: Record<string, string> }>({ path: '/login', query: {} })
-const routerPush = vi.fn((path: string) => {
-  routeState.path = path
+type RouterPushTarget = string | { path: string, query?: Record<string, string> }
+const routerPush = vi.fn((target: RouterPushTarget) => {
+  routeState.path = typeof target === 'string' ? target : target.path
+  if (typeof target !== 'string') {
+    routeState.query = { ...target.query }
+  }
   return Promise.resolve()
 })
 
@@ -33,8 +37,11 @@ describe('AuthScreen', () => {
     routeState.path = '/login'
     routeState.query = {}
     routerPush.mockClear()
-    routerPush.mockImplementation((path: string) => {
-      routeState.path = path
+    routerPush.mockImplementation((target: RouterPushTarget) => {
+      routeState.path = typeof target === 'string' ? target : target.path
+      if (typeof target !== 'string') {
+        routeState.query = { ...target.query }
+      }
       return Promise.resolve()
     })
     authStore.loading = false
@@ -57,16 +64,43 @@ describe('AuthScreen', () => {
     modeButton(root, 'register')?.click()
     await nextTick()
 
-    expect(routerPush).toHaveBeenCalledWith('/register')
+    expect(routerPush).toHaveBeenCalledWith({ path: '/register', query: {} })
     expect(root.textContent).toContain('ユーザー登録')
     expect(root.querySelector('#auth-display-name')).not.toBeNull()
 
     modeButton(root, 'login')?.click()
     await nextTick()
 
-    expect(routerPush).toHaveBeenCalledWith('/login')
+    expect(routerPush).toHaveBeenCalledWith({ path: '/login', query: {} })
     expect(root.textContent).toContain('ログイン')
     expect(root.querySelector('#auth-display-name')).toBeNull()
+
+    app.unmount()
+  })
+
+  it('keeps returnTo when switching between login and registration', async () => {
+    routeState.query = { returnTo: '/extension/authorize?client_id=articleshelf-chrome-extension&state=abc' }
+    const { root, app } = mountAuthScreen()
+
+    modeButton(root, 'register')?.click()
+    await nextTick()
+
+    expect(routerPush).toHaveBeenCalledWith({
+      path: '/register',
+      query: {
+        returnTo: '/extension/authorize?client_id=articleshelf-chrome-extension&state=abc'
+      }
+    })
+
+    modeButton(root, 'login')?.click()
+    await nextTick()
+
+    expect(routerPush).toHaveBeenCalledWith({
+      path: '/login',
+      query: {
+        returnTo: '/extension/authorize?client_id=articleshelf-chrome-extension&state=abc'
+      }
+    })
 
     app.unmount()
   })
@@ -152,8 +186,8 @@ describe('AuthScreen', () => {
   it('keeps registration locked until navigation completes', async () => {
     routeState.path = '/register'
     let resolveNavigation: () => void = () => {}
-    routerPush.mockImplementationOnce((path: string) => {
-      routeState.path = path
+    routerPush.mockImplementationOnce((target: RouterPushTarget) => {
+      routeState.path = typeof target === 'string' ? target : target.path
       return new Promise<void>((resolve) => {
         resolveNavigation = resolve
       })
