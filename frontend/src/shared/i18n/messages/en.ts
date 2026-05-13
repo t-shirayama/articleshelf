@@ -124,12 +124,12 @@ export const en = {
       }
     },
     help: {
-      title: 'Help',
+      title: 'Chrome extension',
       chromeExtensionTitle: 'Chrome extension',
       extensionVersion: 'v{version}',
       chromeExtensionDescription: 'Save the current article page directly from the popup as unread or read. You log in to ArticleShelf once, and the extension stores only a short-lived save-only token.',
       chromeExtensionDownload: 'Download Chrome extension',
-      chromeExtensionTarget: 'Use the localhost package for local development and the public URL package for production. The popup cannot change the target URL.',
+      chromeExtensionTarget: 'Download and extract the zip, then load it in Chrome to save articles directly to ArticleShelf.',
       chromeExtensionStepsTitle: 'Load in Chrome',
       chromeExtensionStepOne: 'Download the zip file and extract it to any folder.',
       chromeExtensionStepTwo: 'Open chrome://extensions in Chrome and enable Developer mode in the top right.',
@@ -151,7 +151,7 @@ export const en = {
       favorite: 'Favorites',
       calendar: 'Calendar',
       tagManagement: 'Tag management',
-      help: 'Help',
+      help: 'Chrome extension',
       account: 'Account',
       logout: 'Log out'
     },

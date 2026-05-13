@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { CircleHelp, Download, Puzzle, X } from "lucide-vue-next";
+import { Download, Puzzle, X } from "lucide-vue-next";
 import {
   extensionDownloadUrl,
   shouldLoadExtensionVersionFromGitHub,
@@ -68,7 +68,7 @@ function handleDialogUpdate(open: boolean): void {
     <VCard class="help-dialog">
       <header class="article-modal-header help-dialog-header">
         <h2>
-          <CircleHelp :size="20" />
+          <Puzzle :size="20" />
           <span>{{ t("help.title") }}</span>
         </h2>
         <div class="article-modal-header-actions">

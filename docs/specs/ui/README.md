@@ -129,9 +129,10 @@
 - 入力欄の項目名は入力欄外の固定ラベルとして表示し、ブラウザの自動入力時に入力値と重ならないようにする
 - 入力欄のプレースホルダーは入力例に限定し、ユーザー登録時のユーザー名やパスワードの入力ルールは欄下のヒントとして表示する
 - 認証処理中は送信ボタンをローディング表示にし、文言を「ログイン中...」「登録中...」へ切り替え、入力とログイン / 登録切り替えを一時的に disabled にして二重送信を防止する
-- ログイン後のサイドバーには Help、アカウント設定、ログアウト導線を表示する
-- Help ダイアログでは、Chrome 拡張機能の direct save の役割、配布 zip ダウンロード導線、現在のバージョン表示、`chrome://extensions` でのローカルインストール手順、再インストール案内を確認できるようにする
-- Chrome 拡張機能の配信 URL は production では GitHub Releases の本番用 zip、local development では `/downloads/articleshelf-chrome-extension-local.zip` を既定とし、必要な場合は `VITE_EXTENSION_DOWNLOAD_URL` で上書き可能
+- ログイン後のサイドバーには Chrome 拡張機能、アカウント設定、ログアウト導線を表示する
+- Chrome 拡張機能ダイアログでは、direct save の役割、配布 zip ダウンロード導線、現在のバージョン表示、`chrome://extensions` での読み込み手順、再インストール案内を確認できるようにする
+- Chrome 拡張機能ダイアログでは利用者に環境別の配布差を説明せず、ダウンロードした zip を展開して Chrome に読み込む操作だけを案内する
+- Chrome 拡張機能の配信 URL は、公開環境では GitHub Releases の配布 zip、開発時は `/downloads/articleshelf-chrome-extension-local.zip` を既定とし、必要な場合は `VITE_EXTENSION_DOWNLOAD_URL` で上書き可能
 - アカウント設定では、パスワード変更、全端末ログアウト、退会だけを扱う
 - 通常のログアウト、パスワード変更、全端末ログアウト、退会に成功した場合は auth state と記事一覧系 state をクリアし、ログイン画面へ戻る
 

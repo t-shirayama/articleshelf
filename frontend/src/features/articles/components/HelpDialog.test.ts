@@ -12,10 +12,12 @@ describe('HelpDialog', () => {
   it('shows Chrome extension download and loading steps', () => {
     const { root, app } = mountHelpDialog()
 
-    expect(root.textContent).toContain('ヘルプ')
     expect(root.textContent).toContain('Chrome 拡張機能')
+    expect(root.textContent).toContain('ArticleShelf と連携して記事を保存できます')
     expect(root.textContent).toContain('読み込み手順')
     expect(root.textContent).toContain('デベロッパーモード')
+    expect(root.textContent).not.toContain('ローカル開発')
+    expect(root.textContent).not.toContain('本番')
 
     const downloadLink = root.querySelector<HTMLAnchorElement>('a[download]')
     expect(downloadLink?.getAttribute('href')).toBe('/downloads/articleshelf-chrome-extension-local.zip')
