@@ -18,6 +18,7 @@ describe('HelpDialog', () => {
     expect(root.textContent).toContain('デベロッパーモード')
     expect(root.textContent).not.toContain('ローカル開発')
     expect(root.textContent).not.toContain('本番')
+    expect(root.textContent).not.toContain('vlatest')
 
     const downloadLink = root.querySelector<HTMLAnchorElement>('a[download]')
     expect(downloadLink?.getAttribute('href')).toBe('/downloads/articleshelf-chrome-extension-local.zip')

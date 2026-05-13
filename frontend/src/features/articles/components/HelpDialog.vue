@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Download, Puzzle, X } from "lucide-vue-next";
-import {
-  extensionDownloadUrl,
-  shouldLoadExtensionVersionFromGitHub,
-} from "../../../shared/config/extensionDownload";
+import { extensionDownloadUrl } from "../../../shared/config/extensionDownload";
 
 defineProps<{
   open: boolean;
@@ -16,42 +12,6 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
-
-const extensionVersion = ref(
-  normalizeVersionLabel(import.meta.env.VITE_EXTENSION_VERSION),
-);
-const releaseApiUrl = "https://api.github.com/repos/t-shirayama/articleshelf/releases/latest";
-
-function normalizeVersionLabel(input: string | undefined): string {
-  const value = input?.trim() ?? "";
-  if (!value) return "latest";
-  return value.startsWith("v") ? value.slice(1) : value;
-}
-
-async function loadExtensionVersionFromGitHub(): Promise<void> {
-  try {
-    const response = await fetch(releaseApiUrl, {
-      headers: {
-        Accept: "application/vnd.github+json",
-      },
-    });
-
-    if (!response.ok) return;
-
-    const payload = (await response.json()) as { tag_name?: string };
-    if (payload.tag_name) {
-      extensionVersion.value = normalizeVersionLabel(payload.tag_name);
-    }
-  } catch {
-    // keep fallback value
-  }
-}
-
-onMounted(() => {
-  if (shouldLoadExtensionVersionFromGitHub) {
-    void loadExtensionVersionFromGitHub();
-  }
-});
 
 function handleDialogUpdate(open: boolean): void {
   if (!open) emit("close");
@@ -85,16 +45,10 @@ function handleDialogUpdate(open: boolean): void {
 
       <VCardText class="help-dialog-body">
         <section class="help-dialog-section">
-          <div class="help-dialog-section-heading">
-            <Puzzle :size="18" />
-            <strong>{{ t("help.chromeExtensionTitle") }}</strong>
-            <span class="help-dialog-chip">
-              {{ t("help.extensionVersion", { version: extensionVersion }) }}
-            </span>
-          </div>
           <p>{{ t("help.chromeExtensionDescription") }}</p>
           <div class="help-dialog-actions">
             <VBtn
+              class="help-dialog-download-button"
               color="primary"
               variant="flat"
               :href="extensionDownloadUrl"

@@ -125,8 +125,6 @@ export const en = {
     },
     help: {
       title: 'Chrome extension',
-      chromeExtensionTitle: 'Chrome extension',
-      extensionVersion: 'v{version}',
       chromeExtensionDescription: 'Save the current article page directly from the popup as unread or read. You log in to ArticleShelf once, and the extension stores only a short-lived save-only token.',
       chromeExtensionDownload: 'Download Chrome extension',
       chromeExtensionTarget: 'Download and extract the zip, then load it in Chrome to save articles directly to ArticleShelf.',

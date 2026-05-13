@@ -125,8 +125,6 @@ export const ja = {
     },
     help: {
       title: 'Chrome 拡張機能',
-      chromeExtensionTitle: 'Chrome 拡張機能',
-      extensionVersion: 'v{version}',
       chromeExtensionDescription: '現在開いている記事ページを popup から未読または既読として直接保存できます。初回だけ ArticleShelf にログインし、拡張機能には保存専用の短命 token だけを保持します。',
       chromeExtensionDownload: 'Chrome拡張機能をダウンロード',
       chromeExtensionTarget: 'ダウンロードした zip を展開して Chrome に読み込むと、ArticleShelf と連携して記事を保存できます。',
