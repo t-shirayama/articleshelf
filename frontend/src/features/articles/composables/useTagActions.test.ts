@@ -63,6 +63,7 @@ describe('useTagActions', () => {
     expect(store.setSearch).toHaveBeenCalledWith('')
     expect(store.setAllArticles).toHaveBeenCalled()
     expect(store.setTags).toHaveBeenCalledWith(['Vue'])
+    expect(store.fetchArticles).toHaveBeenCalled()
   })
 })
 
@@ -74,7 +75,8 @@ function createStore() {
     mergeTag: vi.fn().mockResolvedValue(undefined),
     deleteTag: vi.fn().mockResolvedValue(undefined),
     setSearch: vi.fn(),
-    setAllArticles: vi.fn().mockResolvedValue(undefined),
-    setTags: vi.fn()
+    setAllArticles: vi.fn(),
+    setTags: vi.fn(),
+    fetchArticles: vi.fn().mockResolvedValue(undefined)
   }
 }

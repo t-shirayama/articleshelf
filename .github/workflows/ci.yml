@@ -10,6 +10,7 @@ jobs:
     outputs:
       run_all: ${{ steps.scope.outputs.run_all }}
       backend: ${{ steps.filter.outputs.backend }}
+      deployment: ${{ steps.filter.outputs.deployment }}
       frontend: ${{ steps.filter.outputs.frontend }}
       e2e: ${{ steps.filter.outputs.e2e }}
     steps:
@@ -33,6 +34,15 @@ jobs:
               - 'backend/**'
               - 'docker-compose*.yml'
               - '.github/workflows/ci.yml'
+              - 'render.yaml'
+              - 'scripts/check-render-backend-config.sh'
+            deployment:
+              - 'render.yaml'
+              - 'scripts/check-render-backend-config.sh'
+              - 'docs/deployment/README.md'
+              - 'docs/specs/security/README.md'
+              - 'docs/testing/README.md'
+              - '.github/workflows/ci.yml'
             frontend:
               - 'frontend/**'
               - 'docker-compose*.yml'
@@ -42,6 +52,16 @@ jobs:
               - 'frontend/**'
               - 'docker-compose*.yml'
               - '.github/workflows/ci.yml'
+
+  deployment-config:
+    name: Deployment config check
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: ${{ needs.changes.outputs.run_all == 'true' || needs.changes.outputs.deployment == 'true' }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate Render production profile config
+        run: bash scripts/check-render-backend-config.sh
 
   backend-check:
     name: Backend check

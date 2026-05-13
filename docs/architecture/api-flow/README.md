@@ -10,11 +10,14 @@
 ## 記事 / タグ API フロー
 
 - フロントエンドは `GET /api/articles` で一覧を取得
-- 初回取得では検索、ステータス、単一タグ、お気に入り条件をクエリパラメータで送信でき、バックエンドは Repository / JPA クエリで user scoped に絞り込む
-- 複数タグ、おすすめ度、登録日範囲、既読日範囲、並び替えは取得後にフロントエンド側の Pinia store で適用する
+- 記事一覧では検索、ステータス、複数タグ OR、お気に入り、複数おすすめ度、登録日範囲、既読日範囲、並び順、ページ番号をクエリパラメータで送信し、バックエンドは Repository / JPA クエリで user scoped に絞り込む
+- `page` / `size` / `sort` は backend の repository 実装が PostgreSQL の `LIMIT` / `OFFSET` / `ORDER BY` に変換し、同一値時は API 契約で定めた tie-breaker を使う
+- カレンダー、タグ管理、サイドバー件数は current page 一覧とは別に全件 snapshot を取得し、一覧の正本と互換用途を分ける
 - `POST /api/articles` で記事を追加
 - `PUT /api/articles/{id}` で記事を更新
+- 記事詳細の `GET /api/articles/{id}` と一覧レスポンスは optimistic locking 用 `version` を返し、frontend は更新時にその `version` を同送する
 - 記事追加 / URL 変更を伴う更新では、URL 重複確認と保存だけを短い transaction にし、外部 HTTP アクセスである OGP 取得は DB transaction 外で同期実行する
+- 記事更新では、まず current article と client version を照合し、競合していれば `409 ARTICLE_VERSION_CONFLICT` を返して外部 OGP fetch と保存 transaction を開始しない
 - 記事一覧カードの未読 / 既読切り替えとお気に入り切り替えは、フロントエンドで楽観的に反映してから `PUT /api/articles/{id}` で保存する
 - `GET /api/tags` でタグ一覧を取得
 - `POST /api/tags` でタグを追加

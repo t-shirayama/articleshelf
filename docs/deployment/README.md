@@ -1,6 +1,6 @@
 # 無料枠を中心にした公開構成とデプロイ運用
 
-最終更新: 2026-05-10
+最終更新: 2026-05-12
 
 ## 1. 目的
 
@@ -19,6 +19,7 @@ CI の段階構成と品質ゲートの詳細は [CI / CD](../architecture/ci-cd
 現時点の運用では Cloudflare Pages / Render の Git 連携による自動デプロイを使う。
 Render Free Web Service の休眠抑制は、Cloudflare Worker から 10 分ごとに health check を送る運用とする。
 GitHub Actions は CI を担当し、定期 ping は Cloudflare Worker 側へ分離する。
+Render Web Service の固定 env は repository root の `render.yaml` を正本とし、`SPRING_PROFILES_ACTIVE=prod`、CSRF / cookie secure などの公開必須値を Git 管理下で固定する。
 
 | レイヤー         | 採用サービス                          | 役割                                                             |
 | ---------------- | ------------------------------------- | ---------------------------------------------------------------- |
@@ -60,6 +61,7 @@ Supabase Free PostgreSQL
 - production profile は `AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None` を既定にし、frontend / API が別 site になる構成に合っている
 - production profile は `SPRING_DATASOURCE_URL` の `sslmode=require` / `verify-ca` / `verify-full` を起動時に検証し、TLS なしの DB 接続を拒否する
 - OGP 取得は timeout、User-Agent、SSRF 対策、redirect 再検証、body size 制限、`text/html` 制限に対応済み
+- production profile の OGP 取得は `ARTICLESHELF_OGP_PROXY_URL` で指定した outbound proxy を経由させ、proxy / firewall 側で metadata endpoint と private network 宛て egress を遮断する
 - DB schema は Flyway migration と JPA `validate` で管理しており、Supabase PostgreSQL へ起動時 migration を適用できる
 - 現行 frontend は Vue Router を使っていないため SPA fallback は必須ではない。history mode の routing を導入した場合は `_redirects` を追加する
 
@@ -78,6 +80,7 @@ Supabase Free PostgreSQL
 Cloudflare Pages は Vite / Vue の build command と output directory として `npm run build` / `dist` を扱える。
 依存関係の install は Pages build が行う前提とし、必要な場合だけ install command に `npm ci` を明示する。
 `frontend/public/_headers` は build output にコピーされ、CSP、nosniff、Referrer-Policy、HSTS、Permissions-Policy を Cloudflare Pages response header として設定する。
+local の `vite dev` / `vite preview` は Cloudflare Pages `_headers` をそのまま response header としては返さないため、CSP の差分確認は `frontend/public/_headers` と build 済み `dist/_headers` の一致、および production / preview deploy 上の response header smoke check を正本とする。
 
 ### 4.2 環境変数
 
@@ -146,8 +149,13 @@ README やアプリ画面で表示する注意書き例:
 | `AUTH_COOKIE_SECURE`                         | `true`                                           | HTTPS cookie 必須                                        |
 | `AUTH_COOKIE_SAME_SITE`                      | `None`                                           | Cloudflare Pages と Render が別 site のため既定は `None` |
 | `ARTICLESHELF_INITIAL_USER_ENABLED`          | `false`                                          | 通常は初期 ADMIN 自動作成を無効化                        |
-| `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED`       | `true`                                           | 登録 / ログイン API の in-memory rate limit              |
+| `ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED`       | `true`                                           | 登録 / ログイン API の shared DB rate limit              |
+| `ARTICLESHELF_OGP_PROXY_URL`                 | `http://ogp-proxy.internal:8080`                 | OGP fetch を通す outbound proxy。production では必須     |
+| `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS`      | `chrome-extension://bpkppkfmcfdpfbododebdbaaoodglnde` | Chrome 拡張機能の固定 extension origin。複数ある場合は comma-separated |
 | `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` | `3`                                              | Supabase Free の接続数を圧迫しないため小さめにする       |
+
+`render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定し、`FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard 側の secret env として入力する。
+GitHub Actions の `Deployment config check` は `render.yaml` の固定値を検証し、production profile を外した blueprint が `main` へ入らないようにする。
 
 本番必須の認証設定:
 
@@ -166,8 +174,9 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 - backend コンテナは final image で root ではなく `articleshelf` user として実行する
 - frontend の Docker 開発 / E2E image は root ではなく `node` user として実行する
 - 認証 rate limit の client IP は Spring / servlet container が確定した remote address を使う
-- 現行 rate limit は Render 無料枠の単一 backend インスタンス向け。複数インスタンスへ拡張する場合は Redis、proxy、WAF 側へ移す
+- OGP fetch は dedicated outbound proxy を経由し、proxy / firewall 側で `169.254.169.254`、`100.100.100.200`、RFC1918 private range、loopback、link-local 宛て egress を遮断する
 - `FRONTEND_ORIGIN` は Cloudflare Pages の production URL を明示し、CORS で `*` は使わない
+- Chrome 拡張機能 CORS は固定 extension ID の origin だけを `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS` に指定し、`chrome-extension://*` は使わない
 - secret と DB password は GitHub / Render / Cloudflare の secret 管理に置き、Git へコミットしない
 
 ## 6. Database: Supabase Free PostgreSQL
@@ -218,6 +227,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - PR / push では GitHub Actions の CI を実行する。CI の詳細は [CI / CD](../architecture/ci-cd/README.md) に従う
 - Cloudflare Pages は Git 連携で `frontend` を build / deploy する
 - Render は Git 連携で `backend` を Docker build / deploy する
+- Render の backend deploy は `render.yaml` の blueprint を起点にし、dashboard 上でも `SPRING_PROFILES_ACTIVE=prod` を外さない
 - Cloudflare Worker は 10 分ごとの scheduled event で Render の `/actuator/health` へ ping し、Free Web Service の spin down を抑制する
 - 公開反映は Cloudflare Pages / Render 側の auto deploy に任せ、必要時だけ dashboard で rollback / redeploy する
 
@@ -231,12 +241,14 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] Build output directory が `dist` になっている
 - [ ] `VITE_API_BASE_URL` が Render API URL を向いている
 - [ ] `frontend/public/_headers` の security headers が production deploy に反映されている
+- [ ] `style-src 'self'`、`style-src-elem 'self' 'unsafe-inline'`、`style-src-attr 'none'` の CSP 分離が production deploy の response header に反映されている
 - [ ] 公開 URL を `FRONTEND_ORIGIN` に反映した
 - [ ] Vue Router history mode を導入した場合は `_redirects` を追加した
 
 ### 8.2 Backend
 
 - [ ] Render Web Service を Docker で作成した
+- [ ] Render 作成時に repository root の `render.yaml` を import した
 - [ ] Root directory / build context が `backend` になっている
 - [ ] backend final Docker image が non-root user で起動している
 - [ ] Health check path が `/actuator/health` になっている
@@ -247,6 +259,8 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] `AUTH_COOKIE_SECURE=true` を設定した
 - [ ] `AUTH_COOKIE_SAME_SITE=None` を設定した
 - [ ] `JWT_ACCESS_SECRET` と `AUTH_REFRESH_TOKEN_HASH_SECRET` に十分長いランダム値を設定した
+- [ ] `ARTICLESHELF_OGP_PROXY_URL` を設定した
+- [ ] `ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS` に本番用 Chrome 拡張機能 origin を設定した
 - [ ] `ARTICLESHELF_INITIAL_USER_ENABLED=false` を確認した
 - [ ] `SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE` を小さめに設定した
 
@@ -266,6 +280,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 - [ ] 登録、ログイン、refresh、logout が cookie / CSRF 込みで動く
 - [ ] 記事追加、一覧、詳細、編集、削除が動く
 - [ ] OGP 取得が公開環境から動く
+- [ ] OGP proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されている
 - [ ] Render cold start 時の表示が破綻しない
 - [ ] Cloudflare Worker の 10 分ごと ping が Render health check に成功している
 - [ ] Markdown 安全境界が維持されている
@@ -287,6 +302,7 @@ jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=requi
 
 1. 作業ブランチで実装、関連ドキュメント更新、必要な確認を済ませる
 2. PR を作成し、CI の `check -> unit -> integration -> e2e` が通ることを確認する
+   deployment 設定を触った場合は `Deployment config check` が `render.yaml` の production 固定値を通していることも確認する
 3. PR を `main` にマージする
 4. GitHub 連携により Cloudflare Pages と Render の自動デプロイが始まる
 5. Cloudflare Pages 側で frontend deploy 成功、Render 側で backend deploy 成功を確認する

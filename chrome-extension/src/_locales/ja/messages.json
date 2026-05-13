@@ -1,0 +1,17 @@
+{
+  "extensionName": {
+    "message": "ArticleShelf クイック追加"
+  },
+  "extensionNameLocal": {
+    "message": "ArticleShelf クイック追加 Local"
+  },
+  "extensionDescription": {
+    "message": "現在のページを ArticleShelf に保存します。"
+  },
+  "actionTitle": {
+    "message": "ArticleShelf に保存"
+  },
+  "actionTitleLocal": {
+    "message": "ローカルの ArticleShelf に保存"
+  }
+}

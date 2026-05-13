@@ -7,7 +7,7 @@ import java.util.UUID;
 public interface ArticleRepository {
     List<Article> findAllByUserId(UUID userId);
 
-    List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria);
+    List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria, ArticleListQuery query);
 
     Optional<Article> findByIdAndUserId(UUID id, UUID userId);
 

@@ -17,6 +17,8 @@ ArticleShelf の主要データは PostgreSQL に保存します。
 - DB schema は Flyway migration で管理する
 - Spring Data JPA は schema validation を行い、migration と Entity のずれを検知する
 - PostgreSQL を正とし、DB 方言差が出やすい検索条件や制約変更では PostgreSQL 実体で確認する
+- 記事一覧 API の `page` / `size` / `sort` は application 層で取得後 `subList` せず、repository 実装が PostgreSQL の `LIMIT` / `OFFSET` / `ORDER BY` へ落とし込む
+- 記事更新の lost update 防止は `articles.version` を使う optimistic locking で扱い、共有環境へ適用済み schema は `V3__article_optimistic_locking.sql` のような追加 migration で進める
 
 ## Migration 履歴の扱い
 

@@ -1,7 +1,6 @@
 import { computed, ref, type Ref } from "vue";
 import { getCurrentLocale } from "../../../shared/i18n";
 import type { Tag } from "../types";
-import { useMeasuredSelectWidth } from "./useMeasuredSelectWidth";
 
 export type TagSort = "COUNT_DESC" | "COUNT_ASC" | "NAME_ASC";
 
@@ -21,18 +20,6 @@ export function useTagManagementState(tags: Ref<Tag[]>, t: (key: string, params?
     { title: t("tags.sortCountAsc"), value: "COUNT_ASC" },
     { title: t("tags.sortNameAsc"), value: "NAME_ASC" },
   ]);
-
-  const longestSortTitle = computed(() =>
-    sortOptions.value.reduce(
-      (longest, option) => (option.title.length > longest.length ? option.title : longest),
-      "",
-    ),
-  );
-
-  const {
-    measureEl: sortMeasureEl,
-    widthStyle: sortWidthStyle,
-  } = useMeasuredSelectWidth(longestSortTitle, "--tag-management-sort-width");
 
   const filteredTags = computed(() => {
     const keyword = (searchQuery.value || "").trim().toLocaleLowerCase(currentTextLocale());
@@ -120,10 +107,7 @@ export function useTagManagementState(tags: Ref<Tag[]>, t: (key: string, params?
     deleteCandidate,
     searchQuery,
     sortMode,
-    sortMeasureEl,
     sortOptions,
-    longestSortTitle,
-    sortWidthStyle,
     sortedTags,
     mergeOptions,
     openAddDialog,

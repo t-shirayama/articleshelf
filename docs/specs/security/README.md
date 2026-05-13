@@ -1,6 +1,6 @@
 # セキュリティ仕様
 
-最終更新: 2026-05-08
+最終更新: 2026-05-12
 
 ## 1. 位置づけ
 
@@ -18,7 +18,9 @@
 
 - protected API は認証済みユーザーだけが利用できる
 - access token は短命 JWT、refresh token は HttpOnly cookie として扱う
+- access token の `iat` / `exp` / `jti` は `JwtTokenService` が injected `Clock` / `IdGenerator` を使って発行し、auth test で固定値検証できる構成を維持する
 - Cookie 認証を使う refresh / logout 系 API は CSRF 保護の対象にする
+- CSRF 保護は `@CookieCsrfProtected` + `CookieCsrfGuardInterceptor` で中央化し、refresh / logout の controller が個別に validator を呼び忘れても漏れない構成を維持する
 - refresh token rotation は `RefreshTokenRotationService` に集約し、pessimistic lock と条件付き update で atomic に行い、並行 refresh で複数 replacement token が有効化されないようにする。条件付き update 失敗や失効済み token の再利用は replay / compromise signal として扱い、同一 token family を失効する
 - JWT の発行 / 検証は Spring Security JOSE に委譲し、自前実装しない
 
@@ -33,6 +35,7 @@
 - backend の production Docker final image は dedicated non-root user で実行する
 - frontend の Docker 開発 / E2E image も Node 公式 image の non-root user で実行し、Trivy の container escape misconfiguration を避ける
 - 通常起動では初期ユーザーを自動作成しない。検証環境で必要な場合のみ `ARTICLESHELF_INITIAL_USER_ENABLED=true` を明示する
+- Render 公開構成では repository root の `render.yaml` を正本とし、`SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定する
 
 ## 4. ユーザースコープとデータ保護
 
@@ -51,6 +54,7 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - application code では `X-Forwarded-For` を直接読まず、forwarded header の解釈は Spring / servlet container 側に寄せる
 - application code の client IP 解決は `ClientIpResolver` に集約し、現行は Spring / servlet container が確定した `remoteAddr` を使う
 - backend へ外部から直接到達させず、Render などの trusted proxy 経路からのみ到達する構成を前提にする
+- register / login の rate limit state は `auth_rate_limit_buckets` に保存し、複数 backend instance や process restart をまたいでも window 内の試行回数を共有する
 - access token の invalid / expired / inactive user などの拒否は token 値を記録せず、`articleshelf.auth.access_token_rejected` の reason のみで観測する
 
 ## 6. OGP 取得と SSRF 対策
@@ -72,6 +76,8 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - HTML は最大 1MB の bytes を読んだ後、`Content-Type` charset、meta charset、UTF-8 fallback の順で decode する
 - OGP 取得は timeout と専用 User-Agent を設定する
 - OGP 取得は DB transaction 外で同期実行し、外部サイトの遅延や失敗を保存 transaction に持ち込まない
+- production profile では `ARTICLESHELF_OGP_PROXY_URL` を経由して outbound access させ、proxy / firewall 側で `169.254.169.254`、`100.100.100.200`、private network 宛て egress を遮断する
+- Java HttpClient は検証後の接続で再解決される余地が残るため、app-level guard だけでは TOCTOU を完全には防げない。runtime / network layer の egress control を必須の補完策として扱う
 
 ## 7. 入力検証とエラー応答
 
@@ -80,7 +86,16 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - 認証失敗、権限不足、他ユーザーデータ参照、入力不正、重複、想定外エラーは共通ルールで HTTP status と error body に変換する
 - 想定外エラーでは内部実装の詳細をレスポンスに含めない
 
-## 8. Markdown 表示の安全境界
+## 8. ログの機密情報保護
+
+- request / response / exception の運用ログは障害調査のために残すが、password、access token、refresh token、CSRF token、Cookie 値、Authorization header、secret、記事本文、メモ本文は出力しない
+- username、表示名、検索語、外部 URL、IP address のように個人データや識別情報になり得る値は raw 値を既定で記録せず、必要な場合も内部 ID、件数、長さ、結果種別へ縮約する
+- body 全文、header 全量、stack trace の無制限出力は避け、例外ログは `requestId`、例外種別、要約メッセージ、発生箇所の追跡に必要な最小限の context にとどめる
+- 構造化ログの項目は allowlist で管理し、デバッグ目的でも blacklist 前提で機密値を後から除外する運用にしない
+- frontend の browser console は一時デバッグ用途に限り、本番収集を前提とした例外送信や外部収集を導入する場合も token や本文を含まない payload に限定する
+- `X-Request-Id` は frontend と backend の失敗を突き合わせるためにレスポンスヘッダーとログに残してよいが、認証トークンや本文の代替識別子として使わない
+
+## 9. Markdown 表示の安全境界
 
 - 詳細画面のメモ Markdown はフロントエンドだけで HTML に変換し、バックエンドには元のメモ本文を保存する
 - Markdown 変換と sanitization は `frontend/src/features/articles/domain/renderMarkdown.ts` が担当する
@@ -91,23 +106,29 @@ runtime 上の単一インスタンス前提と複数インスタンス移行時
 - 画像は `http` / `https` のみ許可し、`data:` や `javascript:` などのスキームは表示しない
 - コードブロックは静的に装飾するだけで、コード本文を評価・実行しない
 
-## 9. Frontend security headers
+## 10. Frontend security headers
 
 Cloudflare Pages の `_headers` で frontend response に security headers を付与する。
 
-- CSP は `script-src 'self'`、`object-src 'none'`、`base-uri 'none'`、`frame-ancestors 'none'` を含める
-- Vuetify の runtime style と既存 CSS 運用のため、`style-src` は当面 `'unsafe-inline'` を許可する
+- CSP は `script-src 'self'`、`style-src 'self'`、`style-src-elem 'self' 'unsafe-inline'`、`style-src-attr 'none'`、`object-src 'none'`、`base-uri 'none'`、`frame-ancestors 'none'` を含める
+- app 側の `style` 属性は使わず、学習継続カードの配色やタグ管理の並び替え幅は class / static CSS で表現する
+- Vuetify 4 の theme runtime は document head に `<style>` 要素を挿入できるため、Cloudflare Pages の静的 `_headers` だけでは nonce を安定配布できない。現行 production CSP では `style-src-elem` に限って `'unsafe-inline'` を残し、`style-src` 本体と `style-src-attr` では inline style を許可しない
 - Markdown / OGP 画像表示のため `img-src` は `https:`、`data:`、`blob:` を許可する。ただし Markdown renderer 側は画像 URL を `http` / `https` に制限する
 - API 通信のため `connect-src` は `https:` と local development の `http://localhost:8080` を許可する
 - `X-Content-Type-Options: nosniff`、`Referrer-Policy`、`Strict-Transport-Security`、`Permissions-Policy` を付与する
 
-## 10. テスト観点
+## 11. テスト観点
 
 - production profile で CSRF 無効、`SameSite=None; Secure=false`、未設定または弱い secret、TLS 無効の datasource URL を拒否する
+- cookie 認証を使う refresh / logout は CSRF token 欠落・不一致で `403 AUTH_CSRF_INVALID` を返し、Bearer access token を使う `/api/articles/**` や `/api/users/me/**` の state-changing API では CSRF を要求しないことを integration test で確認する
+- `render.yaml` の固定 env と health check path が CI の `Deployment config check` で検証され、production profile を外した公開設定が `main` に入らないことを確認する
 - JWT は Spring Security JOSE 経由で発行 / 検証し、改ざん、期限切れ、想定外 `alg` を拒否する
 - refresh token は hash 保存、rotation、reuse detection、全端末失効を検証する
 - register / login の rate limit は制限 key、429 応答、統一 error body を検証する
 - OGP SSRF 対策は scheme、localhost、loopback、private、link-local、multicast、metadata endpoint、IPv6 unique local、redirect 先再検証、body size、content-type を検証する
+- production では `ProductionEnvironmentValidatorTest` で `ARTICLESHELF_OGP_PROXY_URL` 必須化を確認し、運用 smoke check では proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されることを確認する
+- ログ設計では requestId の response header 伝搬、MDC への設定、例外時の request 単位追跡、機密情報と本文が log / metrics / 外部収集 payload に含まれないことをレビューまたは test で確認する
 - Markdown sanitization は raw HTML、危険タグ、危険属性、危険 scheme が実行または表示されないことを検証する
-- Frontend security headers は Cloudflare Pages `_headers` を正本とし、CSP / nosniff / Referrer-Policy / HSTS / Permissions-Policy の存在をレビューで確認する
+- Frontend security headers は Cloudflare Pages `_headers` を正本とし、`cspHeaders.test.ts` で `style-src` / `style-src-elem` / `style-src-attr` の分離を確認したうえで、deploy 後の response header を smoke check する
+- Chrome 拡張機能は Authorization Code + PKCE で初回認証し、保存するのは短命な拡張機能専用 opaque token と expiry だけにする。password、session cookie、CSRF token、refresh token は扱わない。token scope は `article:lookup`、`article:create`、`article:update_status` に限定し、extension API 専用 filter で通常 Web JWT と分離する。CORS は固定 extension ID の `chrome-extension://...` origin だけを許可し、`chrome-extension://*` は使わない
 - Supply chain security は Dependabot、Dependency Review、CodeQL、Trivy で分担する。Dependency Review は Dependency graph と repository variable `DEPENDENCY_REVIEW_ENABLED=true` が有効な repository で PR の依存差分を確認し、未対応 repository では skip notice に留める。CodeQL は Java / JavaScript / TypeScript の静的解析、Trivy は filesystem と backend Docker image の high / critical vulnerability、secret、misconfiguration を確認する。Trivy で固定版が示された dependency vulnerability は patch version を優先して更新する

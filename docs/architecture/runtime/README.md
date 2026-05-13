@@ -22,6 +22,12 @@
 - 開発時は `docker compose up --build` でフロントエンド、バックエンド、DB をまとめて起動できる構成とする
 - 本番向けにもコンテナイメージを再利用しやすいよう、Dockerfile はアプリ単体で完結する形を採用する
 
+## 公開 runtime の固定値
+
+- Render 公開構成では repository root の `render.yaml` を backend deploy 定義の正本にする
+- `render.yaml` では `SPRING_PROFILES_ACTIVE=prod`、`AUTH_CSRF_ENABLED=true`、`AUTH_COOKIE_SECURE=true`、`AUTH_COOKIE_SAME_SITE=None`、`ARTICLESHELF_INITIAL_USER_ENABLED=false` を固定し、公開時の dev default 混入を防ぐ
+- `FRONTEND_ORIGIN`、DB 接続情報、secret は Render dashboard の secret env として投入する
+
 ## 初期データ方針
 
 - 通常起動では初期ユーザー、記事、タグを自動投入しない
@@ -30,7 +36,9 @@
 
 ## 認証レート制限の運用前提
 
-- 現行 runtime は単一 backend インスタンスを前提に、backend in-memory の簡易制限を使う
-- 再起動やスリープ復帰でカウンタはリセットされる
-- 複数インスタンス構成へ移行する場合は、共有ストア、proxy、WAF 側 rate limit を導入する
+- 現行 runtime は backend DB の `auth_rate_limit_buckets` テーブルを共有ストアとして使い、register / login の試行回数を backend instance 間で共有する
+- login は `IP + username`、register は `IP` を key とし、username は trim / 小文字化後に扱う
+- backend instance を再起動しても window が残っている間は rate limit state を引き継ぐ
+- DB 障害時は auth API 自体の成功可否も不安定になるため、rate limit は fail-open にせず backend request failure として扱う
+- さらに大規模な公開構成では、DB 共有の application rate limit に加えて reverse proxy や WAF の upstream rate limit を前段に置く
 - 対象 API、制限 key、既定値、エラー応答は [アカウント API](../../specs/auth/account-api.md) を正本とする

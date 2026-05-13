@@ -1,31 +1,19 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import {
-  BookOpen,
-  CalendarDays,
-  CheckCircle2,
-  Circle,
-  Heart,
-  Library,
-  LogOut,
-  Menu,
-  Plus,
-  Tags,
-  UserCog,
-} from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useRoute, useRouter } from "vue-router";
 import AccountSettingsDialog from "../../auth/components/AccountSettingsDialog.vue";
 import { useAuthStore } from "../../auth/stores/auth";
 import { getCurrentLocale, setCurrentLocale } from "../../../shared/i18n";
 import type { SupportedLocale } from "../../../shared/i18n/locales";
+import ArticleWorkspaceShell from "../components/ArticleWorkspaceShell.vue";
 import ArticleDetail from "../components/ArticleDetail.vue";
 import ArticleFormModal from "../components/ArticleFormModal.vue";
 import ArticleListView from "../components/ArticleListView.vue";
-import AppSidebar from "../components/AppSidebar.vue";
 import CalendarView from "../components/CalendarView.vue";
 import DeleteConfirmDialog from "../components/DeleteConfirmDialog.vue";
 import FilterDialog from "../components/FilterDialog.vue";
+import HelpDialog from "../components/HelpDialog.vue";
 import StatusUndoSnackbar from "../components/StatusUndoSnackbar.vue";
 import TagManagementView from "../components/TagManagementView.vue";
 import UnsavedChangesDialog from "../components/UnsavedChangesDialog.vue";
@@ -36,9 +24,11 @@ import { useArticleSearchDebounce } from "../composables/useArticleSearchDebounc
 import { useMotivationRotation } from "../composables/useMotivationRotation";
 import { useStatusUndo } from "../composables/useStatusUndo";
 import { useTagActions } from "../composables/useTagActions";
+import { useWorkspaceAutoRefresh } from "../composables/useWorkspaceAutoRefresh";
+import { useWorkspaceAccountActions } from "../composables/useWorkspaceAccountActions";
 import { useWorkspaceNavigation } from "../composables/useWorkspaceNavigation";
 import { useArticlesStore } from "../stores/articles";
-import type { ArticleSort, ArticleStatus } from "../types";
+import type { ArticleFormSeed, ArticleSort, ArticleStatus } from "../types";
 import type { Article } from "../types";
 
 type DetailReturnView = "list" | "calendar";
@@ -51,7 +41,7 @@ const route = useRoute();
 const router = useRouter();
 const filterDialogOpen = ref(false);
 const accountDialogOpen = ref(false);
-const accountDialogError = ref("");
+const helpDialogOpen = ref(false);
 const detailFormError = ref("");
 const searchDraft = ref("");
 const createSnackbarOpen = ref(false);
@@ -60,6 +50,7 @@ const detailReturnView = ref<DetailReturnView>("list");
 const calendarVisibleMonthKey = ref(toMonthKey(new Date()));
 const calendarMode = ref<CalendarMode>("created");
 const mobileDrawerOpen = ref(false);
+const lastExtensionDraftKey = ref("");
 let removeWorkspaceRouteGuard: (() => void) | null = null;
 
 const availableTagNames = computed<string[]>(() =>
@@ -88,6 +79,7 @@ const {
   modalOpen,
   articleFormError,
   duplicateArticleId,
+  articleFormSeed,
   openArticleModal,
   closeArticleModal: closeArticleModalState,
   closeForDuplicateOpen,
@@ -97,6 +89,7 @@ const {
   isCreatingArticle,
   isSavingDetail,
   isDeletingArticle,
+  detailConflictArticleId,
   createArticle,
   saveArticle,
   deleteArticle,
@@ -105,6 +98,7 @@ const {
   openArticle,
   toggleFavorite,
   openDuplicateArticle,
+  reloadConflictedArticle,
 } = useArticleActions({
   store,
   t,
@@ -141,19 +135,28 @@ const {
 });
 const isAllArticlesActive = computed(
   () =>
-    isListMode.value &&
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
     store.filters.status === "ALL" &&
     activeFilterCount.value === 0 &&
     !store.filters.favorite,
 );
 const isUnreadActive = computed(
-  () => isListMode.value && store.filters.status === "UNREAD",
+  () =>
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
+    store.filters.status === "UNREAD",
 );
 const isReadActive = computed(
-  () => isListMode.value && store.filters.status === "READ",
+  () =>
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
+    store.filters.status === "READ",
 );
 const isFavoriteActive = computed(
-  () => isListMode.value && store.filters.favorite,
+  () =>
+    (isListMode.value || (viewMode.value === "detail" && detailReturnView.value === "list")) &&
+    store.filters.favorite,
+);
+const isCalendarNavigationActive = computed(
+  () => isCalendarActive.value || (viewMode.value === "detail" && detailReturnView.value === "calendar"),
 );
 const mobileBottomNavigationVisible = computed(
   () =>
@@ -162,11 +165,19 @@ const mobileBottomNavigationVisible = computed(
     !modalOpen.value &&
     !filterDialogOpen.value &&
     !accountDialogOpen.value &&
+    !helpDialogOpen.value &&
     !deleteCandidate.value &&
     !unsavedChangesDialogOpen.value,
 );
 
-const { cancelSearch } = useArticleSearchDebounce(searchDraft, (value) => store.setSearch(value));
+const { cancelSearch } = useArticleSearchDebounce(searchDraft, async (value) => {
+  store.setSearch(value);
+  await store.fetchArticles();
+});
+const workspaceAutoRefresh = useWorkspaceAutoRefresh({
+  refresh: refreshArticlesFromExternalChanges,
+  hasUnsavedChanges: () => detailHasUnsavedChanges.value,
+});
 
 onMounted(async () => {
   window.addEventListener("beforeunload", handleBeforeUnload);
@@ -186,6 +197,8 @@ onMounted(async () => {
     return false;
   });
   await loadInitialData();
+  workspaceAutoRefresh.markLoaded();
+  workspaceAutoRefresh.mount();
   await applyWorkspaceRoute();
 });
 
@@ -195,54 +208,10 @@ watch(() => route.path, () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("beforeunload", handleBeforeUnload);
+  workspaceAutoRefresh.dispose();
   removeWorkspaceRouteGuard?.();
   removeWorkspaceRouteGuard = null;
 });
-
-async function logout(): Promise<void> {
-  mobileDrawerOpen.value = false;
-  await authStore.logout();
-  resetUserScopedState();
-}
-
-async function changePassword(input: { currentPassword: string; newPassword: string }): Promise<void> {
-  accountDialogError.value = "";
-  try {
-    await authStore.changePassword(input);
-    resetUserScopedState();
-    accountDialogOpen.value = false;
-  } catch {
-    accountDialogError.value = authStore.error;
-  }
-}
-
-async function logoutAll(): Promise<void> {
-  accountDialogError.value = "";
-  try {
-    await authStore.logoutAll();
-    resetUserScopedState();
-    accountDialogOpen.value = false;
-  } catch {
-    accountDialogError.value = authStore.error;
-  }
-}
-
-async function deleteAccount(input: { currentPassword: string }): Promise<void> {
-  accountDialogError.value = "";
-  try {
-    await authStore.deleteAccount(input);
-    resetUserScopedState();
-    accountDialogOpen.value = false;
-  } catch {
-    accountDialogError.value = authStore.error;
-  }
-}
-
-function resetUserScopedState(): void {
-  cancelSearch();
-  store.resetState();
-  resetNavigation();
-}
 
 function showDetailReturnView(): void {
   mobileDrawerOpen.value = false;
@@ -271,7 +240,8 @@ function setStatus(status: ArticleStatus): void {
     void router.push("/articles");
     navigateToList();
     rotateMotivation();
-    void store.setStatus(status);
+    store.setStatus(status);
+    void store.fetchArticles();
   });
 }
 
@@ -281,7 +251,8 @@ function setFavoriteOnly(): void {
     void router.push("/articles");
     navigateToList();
     rotateMotivation();
-    void store.setFavoriteOnly();
+    store.setFavoriteOnly();
+    void store.fetchArticles();
   });
 }
 
@@ -291,12 +262,14 @@ function setAllArticles(): void {
     void router.push("/articles");
     navigateToList();
     rotateMotivation();
-    void store.setAllArticles();
+    store.setAllArticles();
+    void store.fetchArticles();
   });
 }
 
 function setSort(sort: ArticleSort): void {
   store.setSort(sort);
+  void store.fetchArticles();
 }
 
 function closeArticleModal(): void {
@@ -308,20 +281,23 @@ function openArticleModalFromMobile(): void {
   openArticleModal();
 }
 
-function openAccountSettings(): void {
-  mobileDrawerOpen.value = false;
-  void router.push("/settings");
-  accountDialogOpen.value = true;
-}
-
 function changeLocale(value: unknown): void {
   const nextLocale: SupportedLocale = value === "ja" ? "ja" : "en";
   setCurrentLocale(nextLocale);
   locale.value = getCurrentLocale();
 }
 
+function openHelpDialog(): void {
+  mobileDrawerOpen.value = false;
+  helpDialogOpen.value = true;
+}
+
 async function loadInitialData(): Promise<void> {
-  await Promise.all([store.fetchArticles(), store.fetchTags()]);
+  await Promise.all([store.fetchArticles(), store.fetchArticleSnapshot(), store.fetchTags()]);
+}
+
+async function refreshArticlesFromExternalChanges(): Promise<void> {
+  await Promise.all([store.fetchArticles(), store.fetchArticleSnapshot()]);
 }
 
 async function applyWorkspaceRoute(): Promise<void> {
@@ -337,6 +313,20 @@ async function applyWorkspaceRoute(): Promise<void> {
     navigateWorkspaceToList();
     accountDialogOpen.value = true;
     return;
+  }
+  if (route.path === "/articles") {
+    const extensionDraft = readExtensionDraftFromRoute();
+    if (extensionDraft) {
+      const draftKey = buildExtensionDraftKey(extensionDraft);
+      if (lastExtensionDraftKey.value !== draftKey) {
+        lastExtensionDraftKey.value = draftKey;
+        navigateWorkspaceToList();
+        openArticleModal(extensionDraft);
+        void router.replace("/articles");
+      }
+      return;
+    }
+    lastExtensionDraftKey.value = "";
   }
   if (typeof route.params.id === "string") {
     if (viewMode.value !== "calendar" && detailReturnView.value !== "calendar") {
@@ -366,6 +356,7 @@ function applyAdvancedFilters(filters: {
     store.setCreatedRange(filters.createdRange);
     store.setReadRange(filters.readRange);
     filterDialogOpen.value = false;
+    void store.fetchArticles();
   });
 }
 
@@ -426,6 +417,30 @@ function continueCreatingArticle(): void {
   openArticleModal();
 }
 
+function readExtensionDraftFromRoute(): ArticleFormSeed | null {
+  if (route.query.source !== "extension") return null;
+  const articleUrl = typeof route.query.articleUrl === "string" ? route.query.articleUrl.trim() : "";
+  if (!isHttpUrl(articleUrl)) return null;
+  const articleTitle = typeof route.query.articleTitle === "string" ? route.query.articleTitle.trim() : "";
+  return {
+    url: articleUrl,
+    title: articleTitle,
+  };
+}
+
+function buildExtensionDraftKey(seed: ArticleFormSeed): string {
+  return `${seed.url}::${seed.title}`;
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function toMonthKey(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -447,199 +462,54 @@ function isWorkspaceRoute(path: string): boolean {
     path === "/settings"
   );
 }
+
+const {
+  accountDialogError,
+  logout,
+  changePassword,
+  logoutAll,
+  deleteAccount,
+  openAccountSettings,
+} = useWorkspaceAccountActions({
+  authStore,
+  store,
+  cancelSearch,
+  resetNavigation,
+  navigateToLogin: () => router.push("/login"),
+  accountDialogOpen,
+  mobileDrawerOpen,
+});
 </script>
 
 <template>
-  <div v-if="viewMode !== 'detail'" class="app-shell">
-    <header class="mobile-app-header">
-      <VBtn
-        class="mobile-menu-button"
-        variant="text"
-        :aria-label="t('mobile.openMenu')"
-        @click="mobileDrawerOpen = true"
-      >
-        <Menu :size="22" />
-      </VBtn>
-      <div class="brand mobile-brand">
-        <div class="brand-mark">
-          <BookOpen :size="20" />
-        </div>
-        <div class="brand-copy">
-          <strong>{{ t("common.appName") }}</strong>
-          <span>{{ t("common.appTagline") }}</span>
-        </div>
-      </div>
-    </header>
-
-    <AppSidebar
-      :counts="store.counts"
-      :current-motivation="currentMotivation"
-      :is-all-articles-active="isAllArticlesActive"
-      :is-unread-active="isUnreadActive"
-      :is-read-active="isReadActive"
-      :is-favorite-active="isFavoriteActive"
-      :is-calendar-active="isCalendarActive"
-      :is-tags-active="isTagsActive"
-      :user-name="authStore.user?.displayName || authStore.user?.username || ''"
-      @all-articles="setAllArticles"
-      @status="setStatus"
-      @favorite-only="setFavoriteOnly"
-      @calendar="showCalendar"
-      @tags="showTags"
-      @account="openAccountSettings"
-      @logout="logout"
-    />
-
-    <VNavigationDrawer
-      v-model="mobileDrawerOpen"
-      class="mobile-navigation-drawer"
-      temporary
-      width="304"
-      :aria-label="t('mobile.menu')"
-    >
-      <div class="mobile-drawer-inner">
-        <div class="brand">
-          <div class="brand-mark">
-            <BookOpen :size="22" />
-          </div>
-          <div class="brand-copy">
-            <strong>{{ t("common.appName") }}</strong>
-            <span>{{ t("common.appTagline") }}</span>
-          </div>
-        </div>
-
-        <nav class="side-nav">
-          <VBtn
-            class="side-nav-item"
-            :class="{ 'is-active': isAllArticlesActive }"
-            block
-            variant="text"
-            :color="isAllArticlesActive ? 'primary' : undefined"
-            @click="setAllArticles"
-          >
-            <template #prepend>
-              <Library :size="18" />
-            </template>
-            <span>{{ t("nav.allArticles") }}</span>
-            <strong>{{ store.counts.all }}</strong>
-          </VBtn>
-          <VBtn
-            class="side-nav-item"
-            :class="{ 'is-active': isUnreadActive }"
-            block
-            variant="text"
-            :color="isUnreadActive ? 'primary' : undefined"
-            @click="setStatus('UNREAD')"
-          >
-            <template #prepend>
-              <Circle :size="18" />
-            </template>
-            <span>{{ t("nav.unread") }}</span>
-            <strong>{{ store.counts.unread }}</strong>
-          </VBtn>
-          <VBtn
-            class="side-nav-item"
-            :class="{ 'is-active': isReadActive }"
-            block
-            variant="text"
-            :color="isReadActive ? 'primary' : undefined"
-            @click="setStatus('READ')"
-          >
-            <template #prepend>
-              <CheckCircle2 :size="18" />
-            </template>
-            <span>{{ t("nav.read") }}</span>
-            <strong>{{ store.counts.read }}</strong>
-          </VBtn>
-          <div class="side-nav-divider" aria-hidden="true" />
-          <VBtn
-            class="side-nav-item"
-            :class="{ 'is-active': isFavoriteActive }"
-            block
-            variant="text"
-            :color="isFavoriteActive ? 'primary' : undefined"
-            @click="setFavoriteOnly"
-          >
-            <template #prepend>
-              <Heart :size="18" />
-            </template>
-            <span>{{ t("nav.favorite") }}</span>
-          </VBtn>
-          <div class="side-nav-divider" aria-hidden="true" />
-          <VBtn
-            class="side-nav-item"
-            :class="{ 'is-active': isCalendarActive }"
-            block
-            variant="text"
-            :color="isCalendarActive ? 'primary' : undefined"
-            @click="showCalendar"
-          >
-            <template #prepend>
-              <CalendarDays :size="18" />
-            </template>
-            <span>{{ t("nav.calendar") }}</span>
-          </VBtn>
-          <VBtn
-            class="side-nav-item"
-            :class="{ 'is-active': isTagsActive }"
-            block
-            variant="text"
-            :color="isTagsActive ? 'primary' : undefined"
-            @click="showTags"
-          >
-            <template #prepend>
-              <Tags :size="18" />
-            </template>
-            <span>{{ t("nav.tagManagement") }}</span>
-          </VBtn>
-        </nav>
-
-        <div class="sidebar-account mobile-drawer-account">
-          <span>{{ authStore.user?.displayName || authStore.user?.username || "" }}</span>
-          <VBtnToggle
-            class="sidebar-language-toggle"
-            :model-value="getCurrentLocale()"
-            mandatory
-            divided
-            density="comfortable"
-            color="primary"
-            :aria-label="t('locale.label')"
-            @update:model-value="changeLocale"
-          >
-            <VBtn value="ja">{{ t("locale.ja") }}</VBtn>
-            <VBtn value="en">{{ t("locale.en") }}</VBtn>
-          </VBtnToggle>
-          <VBtn
-            block
-            variant="outlined"
-            color="primary"
-            class="sidebar-account-button"
-            @click="openAccountSettings"
-          >
-            <template #prepend>
-              <UserCog :size="17" />
-            </template>
-            {{ t("nav.account") }}
-          </VBtn>
-          <VBtn
-            block
-            variant="outlined"
-            color="primary"
-            class="sidebar-logout-button"
-            @click="logout"
-          >
-            <template #prepend>
-              <LogOut :size="17" />
-            </template>
-            {{ t("nav.logout") }}
-          </VBtn>
-        </div>
-      </div>
-    </VNavigationDrawer>
-
-    <main class="content">
+  <ArticleWorkspaceShell
+    :counts="store.counts"
+    :current-motivation="currentMotivation"
+    :is-all-articles-active="isAllArticlesActive"
+    :is-unread-active="isUnreadActive"
+    :is-read-active="isReadActive"
+    :is-favorite-active="isFavoriteActive"
+    :is-calendar-active="isCalendarNavigationActive"
+    :is-tags-active="isTagsActive"
+    :user-name="authStore.user?.displayName || authStore.user?.username || ''"
+    :drawer-open="mobileDrawerOpen"
+    :bottom-navigation-visible="mobileBottomNavigationVisible"
+    :current-locale="getCurrentLocale()"
+    :detail-shell="viewMode === 'detail'"
+    @update:drawer-open="mobileDrawerOpen = $event"
+    @all-articles="setAllArticles"
+    @status="setStatus"
+    @favorite-only="setFavoriteOnly"
+    @calendar="showCalendar"
+    @tags="showTags"
+    @help="openHelpDialog"
+    @account="openAccountSettings"
+    @logout="logout"
+    @change-locale="changeLocale"
+    @add-article="openArticleModalFromMobile"
+  >
+    <template v-if="viewMode === 'list'">
       <ArticleListView
-        v-if="viewMode === 'list'"
         :title="pageTitle"
         :search="searchDraft"
         :sort="store.filters.sort"
@@ -647,7 +517,10 @@ function isWorkspaceRoute(path: string): boolean {
         :active-filter-count="activeFilterCount"
         :error="store.error"
         :loading="store.loading"
-        :articles="store.sortedArticles"
+        :articles="store.articles"
+        :current-page="store.currentPage"
+        :has-next-page="store.hasNextPage"
+        :has-previous-page="store.hasPreviousPage"
         :selected-article-id="store.selectedArticle?.id"
         @update:search="searchDraft = $event"
         @update:sort="setSort"
@@ -657,19 +530,23 @@ function isWorkspaceRoute(path: string): boolean {
         @delete-article="requestDeleteArticle"
         @toggle-status="toggleArticleStatus"
         @toggle-favorite="toggleFavorite"
+        @previous-page="store.goToPreviousPage()"
+        @next-page="store.goToNextPage()"
         @retry="retryInitialLoad"
       />
+    </template>
 
+    <template v-else-if="viewMode === 'calendar'">
       <CalendarView
-        v-else-if="viewMode === 'calendar'"
         v-model:visible-month-key="calendarVisibleMonthKey"
         v-model:mode="calendarMode"
-        :articles="store.articles"
+        :articles="store.articleSnapshot"
         @open-article="openArticleFromCalendar"
       />
+    </template>
 
+    <template v-else-if="viewMode === 'tags'">
       <TagManagementView
-        v-else
         :tags="store.tags"
         :error="store.error"
         :loading="store.loading"
@@ -681,78 +558,30 @@ function isWorkspaceRoute(path: string): boolean {
         @open-tag-articles="openTagArticles"
         @retry="retryInitialLoad"
       />
-    </main>
+    </template>
 
-    <nav
-      v-if="mobileBottomNavigationVisible"
-      class="mobile-bottom-nav"
-      :aria-label="t('mobile.bottomNavigation')"
-    >
-      <button
-        class="mobile-bottom-nav-item"
-        :class="{ 'is-active': isUnreadActive }"
-        type="button"
-        @click="setStatus('UNREAD')"
-      >
-        <Circle :size="18" />
-        <span>{{ t("nav.unread") }}</span>
-      </button>
-      <button
-        class="mobile-bottom-nav-item"
-        :class="{ 'is-active': isAllArticlesActive }"
-        type="button"
-        @click="setAllArticles"
-      >
-        <Library :size="18" />
-        <span>{{ t("mobile.allArticles") }}</span>
-      </button>
-      <button
-        class="mobile-bottom-nav-item"
-        :class="{ 'is-active': isFavoriteActive }"
-        type="button"
-        @click="setFavoriteOnly"
-      >
-        <Heart :size="18" />
-        <span>{{ t("nav.favorite") }}</span>
-      </button>
-      <button
-        class="mobile-bottom-nav-item"
-        :class="{ 'is-active': isCalendarActive }"
-        type="button"
-        @click="showCalendar"
-      >
-        <CalendarDays :size="18" />
-        <span>{{ t("nav.calendar") }}</span>
-      </button>
-      <button
-        class="mobile-bottom-nav-item mobile-bottom-nav-add"
-        type="button"
-        @click="openArticleModalFromMobile"
-      >
-        <Plus :size="20" />
-        <span>{{ t("mobile.addArticle") }}</span>
-      </button>
-    </nav>
-  </div>
-
-  <ArticleDetail
-    v-else
-    :article="store.selectedArticle"
-    :tags="store.tags"
-    :saving="isSavingDetail"
-    :deleting="isDeletingArticle"
-    :error="detailFormError"
-    @update:dirty="detailHasUnsavedChanges = $event"
-    @back="showDetailReturnView"
-    @save="saveArticle"
-    @delete="deleteArticle"
-  />
+    <ArticleDetail
+      v-else
+      :article="store.selectedArticle"
+      :tags="store.tags"
+      :saving="isSavingDetail"
+      :deleting="isDeletingArticle"
+      :error="detailFormError"
+      :error-action-label="detailConflictArticleId ? t('detail.reloadLatest') : ''"
+      @update:dirty="detailHasUnsavedChanges = $event"
+      @back="showDetailReturnView"
+      @save="saveArticle"
+      @delete="deleteArticle"
+      @error-action="reloadConflictedArticle"
+    />
+  </ArticleWorkspaceShell>
 
   <ArticleFormModal
     :open="modalOpen"
     :tags="store.tags"
     :error="articleFormError"
     :duplicate-article-id="duplicateArticleId"
+    :initial-seed="articleFormSeed"
     :saving="isCreatingArticle"
     @close="closeArticleModal"
     @open-duplicate="openDuplicateArticleFromCurrentView"
@@ -809,5 +638,10 @@ function isWorkspaceRoute(path: string): boolean {
     @change-password="changePassword"
     @logout-all="logoutAll"
     @delete-account="deleteAccount"
+  />
+
+  <HelpDialog
+    :open="helpDialogOpen"
+    @close="helpDialogOpen = false"
   />
 </template>

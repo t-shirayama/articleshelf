@@ -13,6 +13,9 @@ defineProps<{
   error: string;
   loading: boolean;
   articles: Article[];
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
   selectedArticleId?: string;
 }>();
 
@@ -25,6 +28,8 @@ const emit = defineEmits<{
   deleteArticle: [article: Article];
   toggleStatus: [article: Article];
   toggleFavorite: [article: Article];
+  previousPage: [];
+  nextPage: [];
   retry: [];
 }>();
 
@@ -94,6 +99,30 @@ const { t } = useI18n();
           @toggle-status="emit('toggleStatus', article)"
           @toggle-favorite="emit('toggleFavorite', article)"
         />
+        <div
+          v-if="hasPreviousPage || hasNextPage"
+          class="article-list-pagination"
+        >
+          <VBtn
+            class="action-button action-button-secondary"
+            variant="outlined"
+            :disabled="!hasPreviousPage"
+            @click="emit('previousPage')"
+          >
+            {{ t("articles.previousPage") }}
+          </VBtn>
+          <span class="article-list-page-indicator">
+            {{ t("articles.pageLabel", { page: currentPage + 1 }) }}
+          </span>
+          <VBtn
+            class="action-button action-button-secondary"
+            variant="outlined"
+            :disabled="!hasNextPage"
+            @click="emit('nextPage')"
+          >
+            {{ t("articles.nextPage") }}
+          </VBtn>
+        </div>
       </template>
     </section>
 </template>

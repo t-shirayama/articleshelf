@@ -6,15 +6,6 @@ body,
   scrollbar-gutter: stable;
 }
 
-html:has(.detail-page),
-body:has(.detail-page),
-#app:has(.detail-page) {
-  height: auto;
-  min-height: 100%;
-  overflow: auto;
-  scrollbar-gutter: stable;
-}
-
 body {
   margin: 0;
   min-width: 320px;
@@ -55,6 +46,18 @@ button:disabled {
 
 a {
   color: inherit;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .article-list,
@@ -152,4 +155,3 @@ a {
 .action-button-danger-outline:hover {
   background: #fff8f6 !important;
 }
-

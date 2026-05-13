@@ -1,11 +1,19 @@
 package com.articleshelf.infrastructure.persistence;
 
 import com.articleshelf.domain.article.Article;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.Tag;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,13 +39,48 @@ public class JpaArticleRepository implements ArticleRepository {
     }
 
     @Override
-    public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
+    public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria, ArticleListQuery query) {
+        if (query.paged()) {
+            Pageable pageable = PageRequest.of(query.normalizedPage(), query.normalizedSize(), toSort(query));
+            return articleJpaRepository.searchByUserId(
+                    userId,
+                    criteria.status(),
+                    hasTags(criteria),
+                    parameterizedTags(criteria),
+                    toLikePattern(criteria.search()),
+                    criteria.favorite(),
+                    hasRatings(criteria),
+                    parameterizedRatings(criteria),
+                    hasCreatedFrom(criteria),
+                    parameterizedCreatedFrom(criteria),
+                    hasCreatedTo(criteria),
+                    parameterizedCreatedTo(criteria),
+                    hasReadFrom(criteria),
+                    parameterizedReadFrom(criteria),
+                    hasReadTo(criteria),
+                    parameterizedReadTo(criteria),
+                    pageable
+            ).stream().map(this::toDomain).toList();
+        }
+
         return articleJpaRepository.searchByUserId(
                 userId,
                 criteria.status(),
-                criteria.tag(),
+                hasTags(criteria),
+                parameterizedTags(criteria),
                 toLikePattern(criteria.search()),
-                criteria.favorite()
+                criteria.favorite(),
+                hasRatings(criteria),
+                parameterizedRatings(criteria),
+                hasCreatedFrom(criteria),
+                parameterizedCreatedFrom(criteria),
+                hasCreatedTo(criteria),
+                parameterizedCreatedTo(criteria),
+                hasReadFrom(criteria),
+                parameterizedReadFrom(criteria),
+                hasReadTo(criteria),
+                parameterizedReadTo(criteria),
+                toSort(query)
         ).stream().map(this::toDomain).toList();
     }
 
@@ -55,6 +98,12 @@ public class JpaArticleRepository implements ArticleRepository {
     public Article save(Article article) {
         ArticleEntity entity = articleJpaRepository.findByIdAndUserId(article.getId(), article.getUserId())
                 .orElseGet(ArticleEntity::new);
+        if (entity.getId() != null && !article.getId().equals(entity.getId())) {
+            throw new IllegalStateException("loaded wrong article entity");
+        }
+        if (entity.getVersion() != null && entity.getVersion() != article.getVersion()) {
+            throw new ArticleVersionConflictException(article.getId());
+        }
         entity.setId(article.getId());
         entity.setUserId(article.getUserId());
         entity.setUrl(article.getUrl());
@@ -67,7 +116,11 @@ public class JpaArticleRepository implements ArticleRepository {
         entity.setRating(article.getRating());
         entity.setNotes(article.getNotes());
         entity.setArticleTags(resolveArticleTagEntities(entity, article.getUserId(), article.getTags()));
-        return toDomain(articleJpaRepository.save(entity));
+        try {
+            return toDomain(articleJpaRepository.saveAndFlush(entity));
+        } catch (ObjectOptimisticLockingFailureException exception) {
+            throw new ArticleVersionConflictException(article.getId());
+        }
     }
 
     @Override
@@ -97,6 +150,7 @@ public class JpaArticleRepository implements ArticleRepository {
         return new Article(
                 entity.getId(),
                 entity.getUserId(),
+                entity.getVersion() == null ? 0L : entity.getVersion(),
                 entity.getUrl(),
                 entity.getTitle(),
                 entity.getSummary(),
@@ -128,5 +182,68 @@ public class JpaArticleRepository implements ArticleRepository {
                 .replace("!", "!!")
                 .replace("%", "!%")
                 .replace("_", "!_");
+    }
+
+    private Sort toSort(ArticleListQuery query) {
+        return switch (query.normalizedSort()) {
+            case CREATED_ASC -> Sort.by(Sort.Order.asc("createdAt"), Sort.Order.desc("id"));
+            case UPDATED_DESC -> Sort.by(Sort.Order.desc("updatedAt"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+            case READ_DATE_DESC -> Sort.by(
+                    Sort.Order.desc("readDate").nullsLast(),
+                    Sort.Order.desc("createdAt"),
+                    Sort.Order.desc("id")
+            );
+            case TITLE_ASC -> Sort.by(Sort.Order.asc("title"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+            case RATING_DESC -> Sort.by(Sort.Order.desc("rating"), Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+            case CREATED_DESC -> Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+        };
+    }
+
+    private boolean hasTags(ArticleSearchCriteria criteria) {
+        return criteria.tags() != null && !criteria.tags().isEmpty();
+    }
+
+    private List<String> parameterizedTags(ArticleSearchCriteria criteria) {
+        return hasTags(criteria) ? criteria.tags() : List.of("__unused_tag__");
+    }
+
+    private boolean hasRatings(ArticleSearchCriteria criteria) {
+        return criteria.ratings() != null && !criteria.ratings().isEmpty();
+    }
+
+    private List<Integer> parameterizedRatings(ArticleSearchCriteria criteria) {
+        return hasRatings(criteria) ? criteria.ratings() : List.of(-1);
+    }
+
+    private boolean hasCreatedFrom(ArticleSearchCriteria criteria) {
+        return criteria.createdFrom() != null;
+    }
+
+    private Instant parameterizedCreatedFrom(ArticleSearchCriteria criteria) {
+        return hasCreatedFrom(criteria) ? criteria.createdFrom() : Instant.EPOCH;
+    }
+
+    private boolean hasCreatedTo(ArticleSearchCriteria criteria) {
+        return criteria.createdToExclusive() != null;
+    }
+
+    private Instant parameterizedCreatedTo(ArticleSearchCriteria criteria) {
+        return hasCreatedTo(criteria) ? criteria.createdToExclusive() : Instant.EPOCH;
+    }
+
+    private boolean hasReadFrom(ArticleSearchCriteria criteria) {
+        return criteria.readFrom() != null;
+    }
+
+    private LocalDate parameterizedReadFrom(ArticleSearchCriteria criteria) {
+        return hasReadFrom(criteria) ? criteria.readFrom() : LocalDate.of(1970, 1, 1);
+    }
+
+    private boolean hasReadTo(ArticleSearchCriteria criteria) {
+        return criteria.readTo() != null;
+    }
+
+    private LocalDate parameterizedReadTo(ArticleSearchCriteria criteria) {
+        return hasReadTo(criteria) ? criteria.readTo() : LocalDate.of(1970, 1, 1);
     }
 }

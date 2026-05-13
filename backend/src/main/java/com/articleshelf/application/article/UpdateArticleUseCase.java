@@ -6,6 +6,7 @@ import com.articleshelf.domain.article.Article;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleUrlUnavailableException;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionOperations;
 
@@ -39,6 +40,9 @@ public class UpdateArticleUseCase {
 
     public ArticleResponse updateArticle(CurrentUser user, UUID id, UpdateArticleCommand command) {
         Article current = loadArticleAndValidateUrl(user, id, command.url());
+        if (command.version() != current.getVersion()) {
+            throw new ArticleVersionConflictException(id);
+        }
         boolean shouldRefreshMetadata = !command.url().equals(current.getUrl()) || current.getThumbnailUrl().isBlank();
         ArticleMetadata metadata = shouldRefreshMetadata ? metadataProvider.fetch(command.url()) : ArticleMetadata.empty();
         if (!metadata.accessible() && !command.url().equals(current.getUrl())) {

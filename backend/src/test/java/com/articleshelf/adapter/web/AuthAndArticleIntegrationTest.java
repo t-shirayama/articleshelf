@@ -90,6 +90,7 @@ class AuthAndArticleIntegrationTest {
                                 """.formatted(UUID.randomUUID())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.title").value("User A article"))
+                .andExpect(jsonPath("$.version").value(0))
                 .andReturn();
         String articleId = objectMapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
 
@@ -105,6 +106,7 @@ class AuthAndArticleIntegrationTest {
         mockMvc.perform(get("/api/articles/{id}", articleId)
                         .header("Authorization", userA.bearer()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.version").value(0))
                 .andExpect(jsonPath("$.notes").value("private memo"));
     }
 
@@ -381,6 +383,39 @@ class AuthAndArticleIntegrationTest {
     }
 
     @Test
+    void articleUpdateRejectsStaleVersionWithConflictCode() throws Exception {
+        when(metadataProvider.fetch(anyString()))
+                .thenReturn(new ArticleMetadata("", "", "", true));
+        AuthSession session = register(uniqueUsername("version"));
+        MvcResult createResult = mockMvc.perform(post("/api/articles")
+                        .header("Authorization", session.bearer())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJson("https://example.com/version-" + UUID.randomUUID(), "Versioned article")))
+                .andExpect(status().isCreated())
+                .andReturn();
+        JsonNode created = objectMapper.readTree(createResult.getResponse().getContentAsString());
+        String articleId = created.get("id").asText();
+        long currentVersion = created.get("version").asLong();
+
+        mockMvc.perform(put("/api/articles/{id}", articleId)
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJson("https://example.com/version-" + UUID.randomUUID(), "Updated elsewhere", currentVersion)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.version").value(currentVersion + 1));
+
+        mockMvc.perform(put("/api/articles/{id}", articleId)
+                        .header("Authorization", session.bearer())
+                        .header("Accept-Language", "en")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(articleJson("https://example.com/version-" + UUID.randomUUID(), "Stale update", currentVersion)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("ARTICLE_VERSION_CONFLICT"))
+                .andExpect(jsonPath("$.messages[0]").value("This article was updated in another tab or device. Reload the latest content, then apply your changes again."));
+    }
+
+    @Test
     void usersCanManageTheirOwnTags() throws Exception {
         when(metadataProvider.fetch(anyString()))
                 .thenReturn(new ArticleMetadata("", "", "", true));
@@ -526,7 +561,7 @@ class AuthAndArticleIntegrationTest {
         mockMvc.perform(put("/api/articles/{id}", articleId)
                         .header("Authorization", userB.bearer())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(articleJson("https://example.com/private-" + UUID.randomUUID(), "Hijacked article")))
+                        .content(articleJson("https://example.com/private-" + UUID.randomUUID(), "Hijacked article", 0L)))
                 .andExpect(status().isNotFound());
 
         mockMvc.perform(delete("/api/articles/{id}", articleId)
@@ -721,8 +756,16 @@ class AuthAndArticleIntegrationTest {
     }
 
     private String articleJson(String url, String title) {
+        return articleJson(url, title, null);
+    }
+
+    private String articleJson(String url, String title, Long version) {
+        String versionLine = version == null ? "" : """
+                  "version": %d,
+                """.formatted(version);
         return """
                 {
+                %s
                   "url": "%s",
                   "title": "%s",
                   "summary": "",
@@ -732,7 +775,7 @@ class AuthAndArticleIntegrationTest {
                   "notes": "",
                   "tags": []
                 }
-                """.formatted(url, title);
+                """.formatted(versionLine, url, title);
     }
 
     private String readAccessToken(MvcResult result) throws Exception {

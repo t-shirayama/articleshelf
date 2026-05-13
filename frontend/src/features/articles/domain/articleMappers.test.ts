@@ -34,6 +34,7 @@ describe('articleMappers', () => {
 function article(overrides: Partial<Article> = {}): Article {
   return {
     id: 'article',
+    version: 0,
     url: 'https://example.com',
     title: 'Article',
     summary: '',

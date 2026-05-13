@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArticleShelf Quick Add</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="popup-shell">
+      <section class="popup-section">
+        <p class="eyebrow">ArticleShelf</p>
+        <h1 id="popup-title">Quick Save</h1>
+        <p id="popup-copy" class="copy">Save the current page directly to ArticleShelf with a short-lived extension token.</p>
+        <p class="app-target"><span id="target-label">Target</span>: <span id="app-base-url-display">ArticleShelf</span></p>
+      </section>
+
+      <section class="popup-section">
+        <div class="preview-card">
+          <strong id="page-title">Loading current page...</strong>
+          <span id="page-url">Preparing draft...</span>
+        </div>
+        <p id="status-message" class="hint"></p>
+        <button id="login" class="button button-secondary" type="button">Log in to ArticleShelf</button>
+        <div class="button-row">
+          <button id="save-unread" class="button button-primary" type="button">Save unread</button>
+          <button id="save-read" class="button button-secondary" type="button">Save read</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

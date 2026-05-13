@@ -32,6 +32,7 @@ describe('calendar domain helpers', () => {
 function article(title: string, createdAt: string, readDate: string | null): Article {
   return {
     id: title,
+    version: 0,
     url: `https://example.com/${title}`,
     title,
     summary: '',

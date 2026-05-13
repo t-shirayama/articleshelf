@@ -4,6 +4,7 @@ import { createApp, defineComponent, h, nextTick, ref, type App, type Component 
 import { i18n } from '../../../shared/i18n'
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue'
 import TagAddDialog from './TagAddDialog.vue'
+import TagDeleteDialog from './TagDeleteDialog.vue'
 import UnsavedChangesDialog from './UnsavedChangesDialog.vue'
 import type { Article } from '../types'
 
@@ -79,6 +80,29 @@ describe('article dialogs', () => {
 
     expect(confirm).toHaveBeenCalled()
     expect(cancel).toHaveBeenCalled()
+
+    app.unmount()
+  })
+
+  it('shows tag add and delete processing labels while saving', () => {
+    const draft = ref('Vue')
+    const cancel = vi.fn()
+    const confirm = vi.fn()
+    const { root, app } = mountDialogComponent({
+      components: { TagAddDialog, TagDeleteDialog },
+      setup: () => ({ draft, candidate: { id: 'tag-1', name: 'Vue', articleCount: 0 }, cancel, confirm }),
+      template: `
+        <TagAddDialog open v-model:draft="draft" saving @cancel="cancel" @confirm="confirm" />
+        <TagDeleteDialog :candidate="candidate" saving @cancel="cancel" @confirm="confirm" />
+      `
+    })
+
+    expect(root.textContent).toContain('追加中...')
+    expect(root.textContent).toContain('削除中...')
+    expect(root.querySelectorAll<HTMLElement>('[role="status"]').length).toBe(2)
+    expect(root.querySelector<HTMLInputElement>('.dialog-text-field')?.disabled).toBe(true)
+    root.querySelectorAll<HTMLButtonElement>('.action-button-primary, .action-button-danger')
+      .forEach((button) => expect(button.disabled).toBe(true))
 
     app.unmount()
   })
@@ -172,6 +196,10 @@ function mountDialogComponent(rootComponent: {
       modelValue: {
         type: String,
         default: ''
+      },
+      disabled: {
+        type: Boolean,
+        default: false
       }
     },
     emits: ['update:modelValue', 'keyup.enter'],
@@ -179,6 +207,7 @@ function mountDialogComponent(rootComponent: {
       return () => h('input', {
         class: 'dialog-text-field',
         value: props.modelValue,
+        disabled: props.disabled,
         onInput: (event: Event) => emit('update:modelValue', (event.target as HTMLInputElement).value),
         onKeyup: (event: KeyboardEvent) => {
           if (event.key === 'Enter') emit('keyup.enter')
@@ -201,6 +230,7 @@ function setInput(root: HTMLElement, value: string): void {
 function article(): Article {
   return {
     id: 'article-1',
+    version: 0,
     url: 'https://example.com',
     title: 'Test article',
     summary: '',

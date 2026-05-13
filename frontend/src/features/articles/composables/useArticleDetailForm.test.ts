@@ -116,6 +116,7 @@ describe('useArticleDetailForm', () => {
 function article(overrides: Partial<Article> = {}): Article {
   return {
     id: 'article-1',
+    version: 0,
     url: 'https://example.com/article',
     title: 'Article',
     summary: '',

@@ -7,19 +7,21 @@ import StarRating from '../../../shared/components/StarRating.vue'
 import TagEditor from './TagEditor.vue'
 import { useArticleCreateForm } from '../composables/useArticleCreateForm'
 import { useArticlePreview } from '../composables/useArticlePreview'
-import type { ArticleInput, Tag } from '../types'
+import type { ArticleFormSeed, ArticleInput, Tag } from '../types'
 
 const props = withDefaults(defineProps<{
   open?: boolean
   tags?: Tag[]
   error?: string
   duplicateArticleId?: string
+  initialSeed?: ArticleFormSeed | null
   saving?: boolean
 }>(), {
   open: false,
   tags: () => [],
   error: '',
   duplicateArticleId: '',
+  initialSeed: null,
   saving: false
 })
 
@@ -34,6 +36,7 @@ const { form, submitted, urlInput, tagOptions, urlError, readDateError, createSu
   toRef(props, 'open'),
   toRef(props, 'tags'),
   t,
+  toRef(props, 'initialSeed'),
 )
 const {
   preview,
@@ -51,7 +54,10 @@ watch(() => props.open, (open) => {
   if (!open) {
     resetPreview()
     detailsPanel.value = null
+    return
   }
+  detailsPanel.value = props.initialSeed?.title.trim() ? 'details' : null
+  if (form.url.trim()) void requestPreview()
 })
 
 function cancel(): void {
@@ -78,16 +84,20 @@ function toggleDetailsPanel(): void {
 
 <template>
   <VDialog :model-value="props.open" max-width="640" content-class="article-modal-overlay" @update:model-value="handleDialogUpdate">
-    <VCard class="article-modal">
+      <VCard class="article-modal" :aria-busy="props.saving">
       <header class="article-modal-header">
         <h2>{{ t('articleForm.titleAdd') }}</h2>
         <div class="article-modal-header-actions">
           <VBtn class="action-button action-button-secondary" type="button" variant="outlined" :disabled="props.saving" @click.stop.prevent="cancel">{{ t('common.close') }}</VBtn>
-          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving || saveDisabledByPreview" @click="submit">{{ t('common.saveArticle') }}</VBtn>
+          <VBtn class="action-button action-button-primary" color="primary" variant="flat" type="button" :loading="props.saving" :disabled="props.saving || saveDisabledByPreview" @click="submit">{{ props.saving ? t('common.saving') : t('common.saveArticle') }}</VBtn>
         </div>
       </header>
 
       <VCardText class="article-modal-body">
+        <span v-if="props.saving" class="sr-only" role="status" aria-live="polite">
+          {{ t('common.saving') }}
+        </span>
+
         <div v-if="props.error" class="form-error-banner" role="alert" aria-live="assertive">
           <span>{{ props.error }}</span>
           <VBtn
@@ -112,6 +122,7 @@ function toggleDetailsPanel(): void {
             :placeholder="t('articleForm.urlPlaceholder')"
             hide-details="auto"
             :error-messages="submitted && urlError ? [urlError] : []"
+            :disabled="props.saving"
             @paste="schedulePreview"
             @blur="requestPreview"
           />
@@ -158,6 +169,7 @@ function toggleDetailsPanel(): void {
             class="article-form-details-trigger"
             type="button"
             :aria-expanded="detailsPanel === 'details'"
+            :disabled="props.saving"
             @click="toggleDetailsPanel"
           >
             <div class="article-form-details-title">
@@ -182,6 +194,7 @@ function toggleDetailsPanel(): void {
                   :label="t('articleForm.titleOptional')"
                   hide-details
                   :placeholder="t('articleForm.titlePlaceholder')"
+                  :disabled="props.saving"
                 />
                 <p>{{ t('articleForm.titleHelp') }}</p>
               </div>
@@ -193,6 +206,7 @@ function toggleDetailsPanel(): void {
                 <TagEditor
                   v-model="form.tags"
                   :options="tagOptions"
+                  :disabled="props.saving"
                 />
               </div>
 
@@ -200,12 +214,12 @@ function toggleDetailsPanel(): void {
                 <div class="modal-subsection-heading">
                   <span>{{ t('common.rating') }}</span>
                 </div>
-                <StarRating v-model="form.rating" />
+                <StarRating v-model="form.rating" :readonly="props.saving" />
               </div>
 
               <div class="modal-field field-row modal-status-row">
                 <label class="read-later-check">
-                  <input v-model="form.readLater" type="checkbox">
+                  <input v-model="form.readLater" type="checkbox" :disabled="props.saving">
                   <span class="read-later-box" aria-hidden="true" />
                   <span class="read-later-copy">
                     <strong>{{ t('articleForm.readLater') }}</strong>
@@ -216,7 +230,7 @@ function toggleDetailsPanel(): void {
                   v-model="form.readDate"
                   class="articleshelf-date-field"
                   :label="t('common.readDate')"
-                  :disabled="form.readLater"
+                  :disabled="form.readLater || props.saving"
                   clearable
                   :error-messages="submitted && readDateError ? [readDateError] : []"
                 />
@@ -231,6 +245,7 @@ function toggleDetailsPanel(): void {
                   auto-grow
                   hide-details
                   :placeholder="t('articleForm.notesPlaceholder')"
+                  :disabled="props.saving"
                 />
               </div>
             </div>

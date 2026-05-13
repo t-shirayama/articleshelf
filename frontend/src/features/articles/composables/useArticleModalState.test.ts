@@ -7,11 +7,15 @@ describe('useArticleModalState', () => {
     state.articleFormError.value = 'error'
     state.duplicateArticleId.value = 'article-1'
 
-    state.openArticleModal()
+    state.openArticleModal({ url: 'https://example.com', title: 'Example' })
 
     expect(state.modalOpen.value).toBe(true)
     expect(state.articleFormError.value).toBe('')
     expect(state.duplicateArticleId.value).toBe('')
+    expect(state.articleFormSeed.value).toEqual({
+      url: 'https://example.com',
+      title: 'Example'
+    })
   })
 
   it('does not close while an article is being created', () => {
@@ -36,5 +40,6 @@ describe('useArticleModalState', () => {
     expect(state.modalOpen.value).toBe(false)
     expect(state.articleFormError.value).toBe('')
     expect(state.duplicateArticleId.value).toBe('')
+    expect(state.articleFormSeed.value).toBeNull()
   })
 })

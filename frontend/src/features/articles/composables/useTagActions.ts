@@ -73,8 +73,9 @@ export function useTagActions(options: TagActionOptions) {
       options.navigateToList();
       options.searchDraft.value = "";
       options.store.setSearch("");
-      void options.store.setAllArticles();
+      options.store.setAllArticles();
       options.store.setTags([tagName]);
+      void options.store.fetchArticles();
     });
   }
 

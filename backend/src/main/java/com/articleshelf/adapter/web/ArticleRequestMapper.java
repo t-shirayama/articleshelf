@@ -22,6 +22,22 @@ public class ArticleRequestMapper {
 
     public UpdateArticleCommand toUpdateCommand(ArticleRequest request) {
         return new UpdateArticleCommand(
+                0L,
+                request.url(),
+                request.title(),
+                request.summary(),
+                request.status(),
+                request.readDate(),
+                request.favorite(),
+                request.rating(),
+                request.notes(),
+                request.tags()
+        );
+    }
+
+    public UpdateArticleCommand toUpdateCommand(UpdateArticleRequest request) {
+        return new UpdateArticleCommand(
+                request.version(),
                 request.url(),
                 request.title(),
                 request.summary(),

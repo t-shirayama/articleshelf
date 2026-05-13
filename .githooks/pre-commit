@@ -1,6 +1,14 @@
 #!/bin/sh
 set -eu
 
+git_path="$(command -v git || true)"
+git_dir="${git_path%/*}"
+git_usr_bin="$git_dir/../usr/bin"
+if [ -n "$git_path" ] && [ -d "$git_usr_bin" ]; then
+  PATH="$git_usr_bin:$PATH"
+  export PATH
+fi
+
 changed_files="$(git diff --cached --name-only)"
 
 if [ -z "$changed_files" ]; then
@@ -13,6 +21,18 @@ has_changed() {
 
 has_staged_content() {
   git diff --cached --name-only -- "$@" | grep -q .
+}
+
+print_warning() {
+  echo "WARNING: $1"
+}
+
+print_error() {
+  echo "ERROR: $1"
+}
+
+get_index_file() {
+  git show ":$1" 2>/dev/null || return 1
 }
 
 echo "Running ArticleShelf pre-commit checks..."
@@ -40,17 +60,42 @@ fi
 if has_changed '^(frontend/src/.*\.(vue|css)|docs/designs/README\.md|docs/specs/ui/README\.md|docs/designs/.*)$'; then
   echo "Design capture reminder:"
   echo "  - Preferred stack: docker compose -f docker-compose.e2e.yml up --build -d"
-  echo "  - Preferred URLs: http://localhost:5173 and http://localhost:8080"
+  echo "  - Preferred URLs: http://localhost:4173 and http://localhost:18080"
   echo "  - If visual docs/screenshots are affected, run: cd frontend && npm run capture:designs"
   echo "  - Keep current screenshots under docs/designs/screenshots/."
   echo "  - Follow .codex/skills/articleshelf-design-capture/SKILL.md for deterministic capture data and login."
+fi
+
+if has_changed '^(frontend/playwright\.config\.ts|frontend/scripts/e2e-webserver\.(mjs|sh)|docker-compose\.e2e\.yml)$'; then
+  echo "E2E infra changed: validating Playwright dedicated stack policy."
+  playwright_config="$(get_index_file frontend/playwright.config.ts)"
+
+  if [ -z "$playwright_config" ]; then
+    print_error "frontend/playwright.config.ts is missing from the index."
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$playwright_config" | grep -Fq "PLAYWRIGHT_USE_EXISTING_SERVER === '1'"; then
+    print_error "frontend/playwright.config.ts must keep PLAYWRIGHT_USE_EXISTING_SERVER opt-in."
+    exit 1
+  fi
+
+  if ! printf '%s\n' "$playwright_config" | grep -Fq 'reuseExistingServer: false'; then
+    print_error "frontend/playwright.config.ts must keep reuseExistingServer: false by default."
+    exit 1
+  fi
+
+  if ! has_changed '^(docs/testing/README\.md|docs/testing/e2e/README\.md)$'; then
+    print_warning "E2E infra files changed without docs/testing/README.md or docs/testing/e2e/README.md."
+    echo "         If the local Playwright / Compose contract changed, update the testing docs in the same task."
+  fi
 fi
 
 if has_staged_content '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd'; then
   if git diff --cached -U0 -- '*.md' '*.yml' '*.yaml' '*.sh' '*.ps1' '*.bat' '*.cmd' \
     | grep -E '^\+[^+].*(^|[^A-Za-z0-9_-])mvn([[:space:]]|$)' \
     | grep -Ev 'docker compose (exec|run).*mvn' >/dev/null; then
-    echo "ERROR: Local mvn command found in staged changes."
+    print_error "Local mvn command found in staged changes."
     echo "       Use Docker-based Maven commands, for example:"
     echo "       docker compose run --rm backend mvn test"
     exit 1

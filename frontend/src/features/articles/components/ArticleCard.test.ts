@@ -105,6 +105,7 @@ function mountArticleCard(handlers: {
 function createArticle(): Article {
   return {
     id: 'article-1',
+    version: 0,
     url: 'https://example.com/articles/vue-accessibility',
     title: 'Vue accessibility patterns',
     summary: 'Keep controls independent for keyboard users.',

@@ -542,6 +542,7 @@ test('user separation also blocks update and delete through the API', async ({ r
     },
     data: {
       ...created.payload,
+      version: created.version,
       title: 'Stolen title'
     }
   })
@@ -675,7 +676,7 @@ function monthOffsetDateKey(offset: number, day: number): string {
 }
 
 function apiUrl(path: string): string {
-  return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:8080'}${path}`
+  return `${process.env.E2E_API_BASE_URL ?? 'http://127.0.0.1:18080'}${path}`
 }
 
 async function registerByApi(request: APIRequestContext, username: string): Promise<{ accessToken: string }> {
@@ -730,7 +731,7 @@ async function createArticleByApi(
   url: string,
   title: string,
   overrides: Partial<Record<string, unknown>> = {}
-): Promise<{ id: string, payload: Record<string, unknown> }> {
+): Promise<{ id: string, version: number, payload: Record<string, unknown> }> {
   const payload = {
     url,
     title,
@@ -750,5 +751,5 @@ async function createArticleByApi(
   })
   expect(response.status()).toBe(201)
   const body = await response.json()
-  return { id: body.id as string, payload }
+  return { id: body.id as string, version: body.version as number, payload }
 }

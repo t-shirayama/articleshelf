@@ -4,12 +4,27 @@ import { createApp, defineComponent, h, nextTick, reactive, type App, type PropT
 import AuthScreen from './AuthScreen.vue'
 import { i18n } from '../../../shared/i18n'
 
+const routeState = reactive<{ path: string, query: Record<string, string> }>({ path: '/login', query: {} })
+type RouterPushTarget = string | { path: string, query?: Record<string, string> }
+const routerPush = vi.fn((target: RouterPushTarget) => {
+  routeState.path = typeof target === 'string' ? target : target.path
+  if (typeof target !== 'string') {
+    routeState.query = { ...target.query }
+  }
+  return Promise.resolve()
+})
+
 const authStore = reactive({
   loading: false,
   error: '',
   login: vi.fn(),
   register: vi.fn()
 })
+
+vi.mock('vue-router', () => ({
+  useRoute: () => routeState,
+  useRouter: () => ({ push: routerPush })
+}))
 
 vi.mock('../stores/auth', () => ({
   useAuthStore: () => authStore
@@ -19,6 +34,16 @@ describe('AuthScreen', () => {
   beforeEach(() => {
     const globalI18n = i18n.global as unknown as { locale: { value: string } }
     globalI18n.locale.value = 'ja'
+    routeState.path = '/login'
+    routeState.query = {}
+    routerPush.mockClear()
+    routerPush.mockImplementation((target: RouterPushTarget) => {
+      routeState.path = typeof target === 'string' ? target : target.path
+      if (typeof target !== 'string') {
+        routeState.query = { ...target.query }
+      }
+      return Promise.resolve()
+    })
     authStore.loading = false
     authStore.error = ''
     authStore.login = vi.fn().mockResolvedValue(undefined)
@@ -39,14 +64,43 @@ describe('AuthScreen', () => {
     modeButton(root, 'register')?.click()
     await nextTick()
 
+    expect(routerPush).toHaveBeenCalledWith({ path: '/register', query: {} })
     expect(root.textContent).toContain('ユーザー登録')
     expect(root.querySelector('#auth-display-name')).not.toBeNull()
 
     modeButton(root, 'login')?.click()
     await nextTick()
 
+    expect(routerPush).toHaveBeenCalledWith({ path: '/login', query: {} })
     expect(root.textContent).toContain('ログイン')
     expect(root.querySelector('#auth-display-name')).toBeNull()
+
+    app.unmount()
+  })
+
+  it('keeps returnTo when switching between login and registration', async () => {
+    routeState.query = { returnTo: '/extension/authorize?client_id=articleshelf-chrome-extension&state=abc' }
+    const { root, app } = mountAuthScreen()
+
+    modeButton(root, 'register')?.click()
+    await nextTick()
+
+    expect(routerPush).toHaveBeenCalledWith({
+      path: '/register',
+      query: {
+        returnTo: '/extension/authorize?client_id=articleshelf-chrome-extension&state=abc'
+      }
+    })
+
+    modeButton(root, 'login')?.click()
+    await nextTick()
+
+    expect(routerPush).toHaveBeenCalledWith({
+      path: '/login',
+      query: {
+        returnTo: '/extension/authorize?client_id=articleshelf-chrome-extension&state=abc'
+      }
+    })
 
     app.unmount()
   })
@@ -57,6 +111,8 @@ describe('AuthScreen', () => {
     setInput(root, '#auth-username', ' Reader_1 ')
     setInput(root, '#auth-password', 'password123')
     submit(root)
+    await nextTick()
+    await Promise.resolve()
     await nextTick()
 
     expect(authStore.login).toHaveBeenCalledWith({
@@ -80,13 +136,90 @@ describe('AuthScreen', () => {
 
     app.unmount()
   })
+
+  it('returns to the requested route after login', async () => {
+    routeState.query = { returnTo: '/articles?source=extension&articleUrl=https%3A%2F%2Fexample.com' }
+    const { root, app } = mountAuthScreen()
+
+    setInput(root, '#auth-username', 'reader_1')
+    setInput(root, '#auth-password', 'password123')
+    submit(root)
+    await nextTick()
+
+    expect(routerPush).toHaveBeenCalledWith('/articles?source=extension&articleUrl=https%3A%2F%2Fexample.com')
+
+    app.unmount()
+  })
+
+  it('shows processing labels and blocks repeated login submission while loading', async () => {
+    authStore.loading = true
+    const { root, app } = mountAuthScreen()
+
+    expect(root.textContent).toContain('ログイン中...')
+    expect(root.querySelector<HTMLFormElement>('form')?.getAttribute('aria-busy')).toBe('true')
+    expect(root.querySelector<HTMLElement>('[role="status"]')?.textContent).toContain('ログイン中...')
+
+    setInput(root, '#auth-username', 'reader_1')
+    setInput(root, '#auth-password', 'password123')
+    submit(root)
+    await nextTick()
+
+    expect(authStore.login).not.toHaveBeenCalled()
+    expect(root.querySelector<HTMLInputElement>('#auth-username')?.disabled).toBe(true)
+    expect(modeButton(root, 'register')?.disabled).toBe(true)
+
+    app.unmount()
+  })
+
+  it('shows the registration processing label while registering', async () => {
+    routeState.path = '/register'
+    authStore.loading = true
+    const { root, app } = mountAuthScreen({ mode: 'register' })
+
+    expect(root.textContent).toContain('登録中...')
+    expect(root.querySelector<HTMLElement>('[role="status"]')?.textContent).toContain('登録中...')
+    expect(root.querySelector<HTMLInputElement>('#auth-display-name')?.disabled).toBe(true)
+
+    app.unmount()
+  })
+
+  it('keeps registration locked until navigation completes', async () => {
+    routeState.path = '/register'
+    let resolveNavigation: () => void = () => {}
+    routerPush.mockImplementationOnce((target: RouterPushTarget) => {
+      routeState.path = typeof target === 'string' ? target : target.path
+      return new Promise<void>((resolve) => {
+        resolveNavigation = resolve
+      })
+    })
+    const { root, app } = mountAuthScreen({ mode: 'register' })
+
+    setInput(root, '#auth-username', 'new_user')
+    setInput(root, '#auth-display-name', 'New User')
+    setInput(root, '#auth-password', 'password123')
+    submit(root)
+    await nextTick()
+    await nextTick()
+
+    expect(authStore.register).toHaveBeenCalledOnce()
+    expect(root.textContent).toContain('登録中...')
+    expect(buttonByText(root, '登録中...')?.disabled).toBe(true)
+
+    submit(root)
+    await nextTick()
+    expect(authStore.register).toHaveBeenCalledOnce()
+
+    resolveNavigation()
+    await nextTick()
+    app.unmount()
+  })
 })
 
-function mountAuthScreen(): { root: HTMLElement, app: App<Element> } {
+function mountAuthScreen(props: Record<string, unknown> = {}): { root: HTMLElement, app: App<Element> } {
   const root = document.createElement('div')
   document.body.append(root)
 
-  const app = createApp(AuthScreen)
+  const app = createApp(AuthScreen, props)
   app.use(i18n)
   app.component('VBtnToggle', defineComponent({
     props: {
@@ -161,4 +294,9 @@ function submit(root: HTMLElement): void {
   root.querySelector<HTMLFormElement>('form')?.dispatchEvent(
     new Event('submit', { bubbles: true, cancelable: true })
   )
+}
+
+function buttonByText(root: HTMLElement, text: string): HTMLButtonElement | undefined {
+  return Array.from(root.querySelectorAll<HTMLButtonElement>('button'))
+    .find((button) => button.textContent?.includes(text))
 }

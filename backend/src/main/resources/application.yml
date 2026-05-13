@@ -58,3 +58,17 @@ articleshelf:
     login-window-seconds: ${ARTICLESHELF_LOGIN_RATE_LIMIT_WINDOW_SECONDS:60}
     register-capacity: ${ARTICLESHELF_REGISTER_RATE_LIMIT_CAPACITY:3}
     register-window-seconds: ${ARTICLESHELF_REGISTER_RATE_LIMIT_WINDOW_SECONDS:600}
+  extension-auth:
+    code-ttl-seconds: ${ARTICLESHELF_EXTENSION_AUTH_CODE_TTL_SECONDS:300}
+    access-token-ttl-seconds: ${ARTICLESHELF_EXTENSION_ACCESS_TOKEN_TTL_SECONDS:86400}
+    allowed-origins: ${ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS:chrome-extension://ncdpeooneagfjhgnhenhakjnfflmpdbj,chrome-extension://bpkppkfmcfdpfbododebdbaaoodglnde}
+    clients:
+      - client-id: articleshelf-chrome-extension
+        extension-id: bpkppkfmcfdpfbododebdbaaoodglnde
+        redirect-uri: https://bpkppkfmcfdpfbododebdbaaoodglnde.chromiumapp.org/
+      - client-id: articleshelf-chrome-extension-local
+        extension-id: ncdpeooneagfjhgnhenhakjnfflmpdbj
+        redirect-uri: https://ncdpeooneagfjhgnhenhakjnfflmpdbj.chromiumapp.org/
+  ogp:
+    proxy-url: ${ARTICLESHELF_OGP_PROXY_URL:}
+    require-proxy-in-prod: ${ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD:false}

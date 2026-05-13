@@ -46,6 +46,13 @@ ArticleShelf の品質属性と運用上守るべき仕様を定義する。
 ## 7. 観測性
 
 - backend は request ごとに `X-Request-Id` を受け取り、未指定時は UUID を生成して response header と logging MDC の `requestId` に設定する
+- 運用ログは request / response / exception / auth / OGP 取得の調査に必要な最小限の事実だけを構造化して残し、ユーザー向け履歴機能や将来の監査ログとは責務を分ける
+- backend の構造化ログは `requestId`、`method`、`path`、`status`、`durationMs`、`outcome`、`exceptionType`、認証済み user の内部識別子または anonymous 状態を基本項目にする
+- frontend は browser console を恒久的な記録先にせず、開発時の補助と割り切る。本番で継続収集する対象は API error、画面遷移失敗、想定外例外、重要操作失敗に限定し、`X-Request-Id` を使って backend 側の request / exception と突き合わせられる形を優先する
+- 認証失敗、rate limit、記事作成 / 更新 / 削除、タグ操作、OGP 取得失敗は調査価値が高いイベントとして、metrics だけで不足する場合は構造化ログでも追跡できるようにする
+- request / response body 全文、password、access token、refresh token、CSRF token、Cookie 値、記事本文、メモ本文、検索語全文、外部 URL の query 全文は運用ログへ出さない
+- 個人データや本文を含む可能性がある値は allowlist 方式で扱い、必要最小限の ID、件数、結果種別、長さ、boolean 状態だけを記録する
+- ログレベルは local development ではデバッグしやすさ、CI では失敗原因追跡、本番では安定運用を優先し、既定値は `INFO`、異常系の詳細は `WARN` / `ERROR` に寄せる
 - metrics は Actuator の `/actuator/metrics` で確認できる範囲に限定し、token、username、URL、メモ本文などの個人情報や secret を tag / value に含めない
 - OGP 取得は `articleshelf.ogp.fetch` timer で `accessible`、`unavailable`、`invalid_input`、`error` の outcome を記録する
 - 認証失敗は `articleshelf.auth.failure`、rate limit 超過は `articleshelf.auth.rate_limited` で理由や operation のみを記録する

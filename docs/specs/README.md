@@ -7,7 +7,7 @@ ArticleShelf の現在の実装仕様をまとめる入口文書です。
 
 ## 目次
 
-- [機能仕様](features/README.md): 記事、カレンダー、タグ、検索・フィルター
+- [機能仕様](features/README.md): 記事、カレンダー、タグ、検索・フィルター、Chrome 拡張機能
 - [API仕様](api/README.md): API 共通方針、記事 API、タグ API、エラーレスポンス
 - [認証仕様](auth/README.md): 認証方式、トークン、アカウント API、フロントエンド認証状態
 - [データモデル](data/README.md): User、RefreshToken、Article、Tag、ArticleTag

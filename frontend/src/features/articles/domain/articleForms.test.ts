@@ -61,6 +61,7 @@ describe('articleForms', () => {
   it('detects changed detail form and normalizes tags', () => {
     const article: Article = {
       id: 'a1',
+      version: 2,
       url: 'https://example.com',
       title: 'Title',
       summary: '',
@@ -75,6 +76,7 @@ describe('articleForms', () => {
     }
     const form: ArticleDetailForm = {
       id: 'a1',
+      version: 2,
       url: 'https://example.com',
       title: 'Title',
       summary: '',

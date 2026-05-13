@@ -52,8 +52,13 @@
 | favorite | favorite | boolean / BOOLEAN | お気に入り |
 | rating | rating | integer / INTEGER | `0` - `5`、未指定時は `0`。domain では範囲外入力を `0` - `5` に clamp する |
 | notes | notes | text / TEXT | 任意、API入力は最大20000文字 |
+| version | version | bigint / BIGINT | optimistic locking 用 version。作成時 0 で開始し、更新成功ごとに増える |
 | createdAt | created_at | timestamp / TIMESTAMP | 登録日時 |
 | updatedAt | updated_at | timestamp / TIMESTAMP | 更新日時 |
+
+記事一覧取得では、`user_id` を必須条件に `status`、単一 `tag`、`favorite`、`search` を組み合わせて検索する。
+`page` / `size` / `sort` は `ArticleListQuery` から repository 実装へ渡し、PostgreSQL の `LIMIT` / `OFFSET` / `ORDER BY` で適用する。
+`sort` の既定値は `CREATED_DESC` で、`TITLE_ASC` や `READ_DATE_DESC` でも tie-breaker として `created_at`、`id` を追加して順序を安定させる。
 
 ## Tag
 
@@ -83,5 +88,6 @@
 - schema は Flyway の versioned migration で更新する
 - `V1__baseline_schema.sql` は初回 schema と既存開発 DB の baseline 統合を兼ねるため、冪等な table / column 追加、既存制約の整理、既存データ補正を含む
 - `V2__username_auth_and_account_controls.sql` は username login、legacy email nullable 化、`token_valid_after` 追加を担当する
+- `V3__article_optimistic_locking.sql` は `articles.version` を追加し、記事更新で lost update を避ける optimistic locking 契約を支える
 - 共有環境や本番 DB に適用済みの migration は rewrite せず、以後の schema 変更は新しい migration として追加する
 - migration と JPA Entity の差分は JPA validate と PostgreSQL 実体を使った integration test で確認する

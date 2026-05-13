@@ -9,7 +9,7 @@
 
 - [未対応](pending/README.md): まだ着手していないタスク
 - [対応中](in-progress/README.md): 現在対応中のタスク
-- [完了アーカイブ](archive/README.md): 完了済みタスクの月別要約
+- [完了アーカイブ](archive/README.md): 完了済みタスクの日別要約
 
 ## Backlog Rules
 
@@ -28,7 +28,7 @@
 - 状態変更はファイル移動で表す
 - 未対応タスクは `pending/` に置く
 - 対応中タスクは `in-progress/` に置く
-- 完了タスクは `archive/YYYY-MM.md` へ要約を追記し、タスクファイルは削除する
+- 完了タスクは `archive/YYYY-MM-DD.md` へ要約を追記し、タスクファイルは削除する
 - 各フォルダの `README.md` は必ず索引として更新する
 - ドキュメント内に TODO、TBD、要確認、残作業 が出た場合は、原則 Backlog の具体的なタスクへ変換する
 

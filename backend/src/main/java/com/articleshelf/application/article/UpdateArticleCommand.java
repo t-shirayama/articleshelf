@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record UpdateArticleCommand(
+        long version,
         String url,
         String title,
         String summary,

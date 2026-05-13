@@ -1,0 +1,132 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", "Noto Sans JP", sans-serif;
+  color: #1f2a28;
+  background: #f5f3ed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  width: 340px;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(216, 239, 238, 0.8), transparent 36%),
+    linear-gradient(180deg, #fffdf9 0%, #f5f3ed 100%);
+}
+
+.popup-shell {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+}
+
+.popup-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  background: rgba(255, 253, 250, 0.92);
+  border: 1px solid rgba(222, 217, 206, 0.92);
+  border-radius: 14px;
+  box-shadow: 0 12px 24px rgba(27, 41, 39, 0.08);
+}
+
+.eyebrow {
+  margin: 0;
+  color: #186c74;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 1.2rem;
+}
+
+.copy,
+.hint,
+.preview-card span,
+.app-target {
+  color: #5a6763;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.preview-card strong {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+  font-weight: 700;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.app-target span {
+  font-weight: 700;
+  color: #186c74;
+  overflow-wrap: anywhere;
+}
+
+.preview-card {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px;
+  background: rgba(216, 239, 238, 0.34);
+  border-radius: 12px;
+}
+
+.preview-card span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.button {
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 14px;
+  overflow: hidden;
+  font: inherit;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.button-primary {
+  color: #ffffff;
+  background: #186c74;
+}
+
+.button-secondary {
+  color: #186c74;
+  background: #e8f4f3;
+  border: 1px solid rgba(24, 108, 116, 0.22);
+}

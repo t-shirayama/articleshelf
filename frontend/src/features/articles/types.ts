@@ -16,6 +16,7 @@ export interface Tag {
 
 export interface Article {
   id: string
+  version: number
   url: string
   title: string
   summary?: string | null
@@ -43,6 +44,7 @@ export interface ArticleFilters {
 
 export interface ArticleInput {
   id?: string
+  version?: number
   url: string
   title?: string
   summary?: string | null
@@ -63,12 +65,15 @@ export interface ArticlePreview {
   errorReason: string | null
 }
 
+export interface ArticleFormSeed {
+  url: string
+  title: string
+}
+
 export interface MotivationCardData {
   id: number
   title: string
   note: string
   illustration: string
-  background: string
-  accent: string
-  ink: string
+  paletteClass: string
 }

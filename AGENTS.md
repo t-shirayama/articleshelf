@@ -112,6 +112,8 @@
 - UI 部品の種類、アクセシブル名、文言、操作フロー、API レスポンス、エラー文言を変えたときは、関連するセレクタ、期待値、ヘルパーが古い前提のまま残っていないか確認する
 - 挙動変更を伴う修正では、確認手順または確認結果を残す
 - コミット前の軽い確認は `.githooks/pre-commit` で実行し、フロントエンド変更時は型チェック、UI 変更時は関連ドキュメント更新の注意喚起を行う
+- `.githooks/pre-push` は CI の代替ではなく早期検知用とし、変更パスに応じた targeted unit test / backend check を担わせる。E2E smoke は通常の develop push では実行せず、`main` push または `ARTICLESHELF_PRE_PUSH_E2E=1` の明示 opt-in に限定する
+- `.githooks/pre-push` や Playwright E2E smoke が `http://localhost:4173` / `http://localhost:18080` を使う場合、hook は E2E の前後で `docker compose -p articleshelf-e2e -f docker-compose.e2e.yml down -v --remove-orphans` を実行し、専用 stack を残さない。その後 TCP port 使用状況を確認し、HTTP 応答がない待受も検出する。Docker 停止直後の port 解放遅延には短時間待機し、それでも port が埋まる場合は、別の dev server や手動起動 process を止める。hook は ArticleShelf 専用 stack 以外の process を自動停止しない。`PLAYWRIGHT_USE_EXISTING_SERVER=1` は、意図して準備済み E2E server を再利用する場合だけ使う
 - API、永続化、検索、状態遷移のように壊れやすい箇所を変更する場合は、回帰確認を優先する
 - `mvn` コマンドを使った確認やビルドは、ローカル環境に Maven が入っている前提で実行しない
 - Maven が必要な確認は `docker compose exec backend mvn ...` または `docker compose run --rm backend mvn ...` のように Docker 経由で行う
@@ -125,7 +127,8 @@
 - 完了前に近接・整列・反復・対比の4原則で確認し、入力欄とボタンの右端/左端、セレクト値の見切れ、状態変化時の高さ変化、長い日本語/英語文言の収まりを確認する
 - 画面表示、見た目、レイアウト、文言、操作フロー、スクリーンショット対象コンポーネントに影響するコード変更では、同じ作業内で `docs/designs/screenshots/` を現行実装に合わせて更新する
 - UI スクリーンショットや `docs/designs/screenshots/` を更新する場合は、`npm run capture:designs` の撮影条件、`docs/designs/screenshots/README.md`、現行 UI 仕様がずれていないか確認する
-- UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:5173` / `localhost:8080` で起動し、キャプチャはローカルの Playwright から実行する
+- UI スクリーンショット更新では、原則として `docker-compose.e2e.yml` を使って `localhost:4173` / `localhost:18080` で起動し、キャプチャはローカルの Playwright から実行する
+- `frontend/playwright.config.ts`、`frontend/scripts/e2e-webserver.*`、`docker-compose.e2e.yml` など E2E 基盤を変える場合は、専用 stack 既定と docs を同じ作業内で同期し、`PLAYWRIGHT_USE_EXISTING_SERVER` opt-in と `reuseExistingServer: false` を崩さない
 - UI スクリーンショット更新では、`127.0.0.1` と `localhost` を混在させない
 - UI スクリーンショット更新で詰まった場合は、先に `docker compose -f docker-compose.e2e.yml ps`、backend health、frontend 応答、`npx playwright install chromium` を確認する
 - アプリ本体のコードを疑う前に、起動経路とブラウザ依存を切り分ける
@@ -154,7 +157,7 @@
 - 状態変更はファイル移動で表す
 - 未対応は `docs/requirements/backlog/pending/` に置く
 - 対応中は `docs/requirements/backlog/in-progress/` に置く
-- 完了時は `docs/requirements/backlog/archive/YYYY-MM.md` へ要約を追記し、タスクファイルは削除する
+- 完了時は `docs/requirements/backlog/archive/YYYY-MM-DD.md` へ要約を追記し、タスクファイルは削除する
 - `docs/requirements/backlog/README.md` と各状態フォルダの `README.md` は必ず索引として更新する
 - 各仕様書、設計書、運用文書には現在の仕様、設計、運用だけを書き、追加対応や構想段階の事項は Backlog タスクへ集約する
 - 一時対応、妥協実装、既知の制約を入れた場合は、現在仕様として必要な説明を該当 docs に反映し、残る作業だけ Backlog タスクにする

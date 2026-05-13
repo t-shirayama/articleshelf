@@ -58,6 +58,7 @@
   - secure cross-site production 設定を許可する
 - `JwtTokenServiceTest`
   - Spring Security JOSE 経由で HS256 access token を発行 / 検証する
+  - injected `Clock` / `IdGenerator` による `iat` / `exp` / `jti` の固定値発行を確認する
   - token 改ざん、期限切れ、`alg=none` のような想定外 header を拒否する
 
 ### フロントエンド

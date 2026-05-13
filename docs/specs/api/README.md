@@ -6,6 +6,7 @@ ArticleShelf の API 仕様の入口です。
 
 現行 API はユーザー登録・ログイン・JWT 認証を必須とします。
 記事 API / タグ API はすべて `Authorization: Bearer <accessToken>` が必要で、JWT の `sub` から確定したユーザー ID で記事・タグ・重複 URL 判定をスコープします。
+Chrome 拡張機能向け API は通常 Web JWT とは別の拡張機能専用 opaque token を使い、記事の lookup / create / status update だけを許可します。
 ログイン状態の復元には HttpOnly refresh cookie を使い、フロントエンドは access token をメモリ上に保持します。
 
 認証方式と認証 API は [認証仕様](../auth/README.md) と [アカウント API](../auth/account-api.md) を参照してください。

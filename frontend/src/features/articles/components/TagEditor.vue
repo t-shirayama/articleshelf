@@ -7,9 +7,11 @@ const props = withDefaults(defineProps<{
   modelValue: string[]
   options?: string[]
   allowCreate?: boolean
+  disabled?: boolean
 }>(), {
   options: () => [],
-  allowCreate: true
+  allowCreate: true,
+  disabled: false
 })
 
 const emit = defineEmits<{
@@ -28,6 +30,7 @@ const normalizedNewTag = computed(() => normalizeTag(newTag.value))
 const canAddNewTag = computed(() => Boolean(normalizedNewTag.value) && !selectedTags.value.includes(normalizedNewTag.value))
 
 async function addExistingTag(tag: string): Promise<void> {
+  if (props.disabled) return
   const normalized = normalizeTag(tag)
   if (!normalized || selectedTags.value.includes(normalized)) return
 
@@ -38,6 +41,7 @@ async function addExistingTag(tag: string): Promise<void> {
 }
 
 function addNewTag(): void {
+  if (props.disabled) return
   if (!canAddNewTag.value) return
 
   emit('update:modelValue', [...selectedTags.value, normalizedNewTag.value])
@@ -45,6 +49,7 @@ function addNewTag(): void {
 }
 
 function removeTag(tag: string): void {
+  if (props.disabled) return
   emit('update:modelValue', selectedTags.value.filter((selectedTag) => selectedTag !== tag))
 }
 
@@ -70,6 +75,7 @@ function normalizeTags(tags: string[]): string[] {
           color="secondary"
           size="small"
           variant="flat"
+          :disabled="props.disabled"
           @click:close="removeTag(tag)"
         >
           <template #prepend>
@@ -89,7 +95,7 @@ function normalizeTags(tags: string[]): string[] {
         v-model="selectedExistingTag"
         v-model:search="existingTagSearch"
         class="articleshelf-select tag-editor-existing"
-        :disabled="availableOptions.length === 0"
+        :disabled="props.disabled || availableOptions.length === 0"
         :items="availableOptions"
         clearable
         density="comfortable"
@@ -107,12 +113,13 @@ function normalizeTags(tags: string[]): string[] {
           hide-details
           :label="t('articleForm.newTag')"
           :placeholder="t('articleForm.newTagPlaceholder')"
+          :disabled="props.disabled"
           variant="outlined"
           @keydown.enter.prevent="addNewTag"
         />
         <VBtn
           class="action-button action-button-secondary tag-editor-add-button"
-          :disabled="!canAddNewTag"
+          :disabled="props.disabled || !canAddNewTag"
           type="button"
           variant="outlined"
           @click="addNewTag"

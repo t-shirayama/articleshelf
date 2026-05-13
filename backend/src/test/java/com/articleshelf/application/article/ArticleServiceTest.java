@@ -3,11 +3,13 @@ package com.articleshelf.application.article;
 import com.articleshelf.application.auth.CurrentUser;
 import com.articleshelf.application.observability.BackendMetrics;
 import com.articleshelf.domain.article.Article;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleNotFoundException;
 import com.articleshelf.domain.article.ArticleRepository;
 import com.articleshelf.domain.article.ArticleSearchCriteria;
 import com.articleshelf.domain.article.ArticleStatus;
 import com.articleshelf.domain.article.ArticleUrlUnavailableException;
+import com.articleshelf.domain.article.ArticleVersionConflictException;
 import com.articleshelf.domain.article.DuplicateArticleUrlException;
 import com.articleshelf.domain.article.Tag;
 import com.articleshelf.domain.article.TagNotFoundException;
@@ -19,6 +21,7 @@ import org.springframework.transaction.support.TransactionOperations;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -201,6 +204,7 @@ class ArticleServiceTest {
         metadataProvider.fetchCount = 0;
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 "https://example.com/original",
                 "Updated title",
                 "Updated summary",
@@ -224,6 +228,7 @@ class ArticleServiceTest {
         metadataProvider.next = new ArticleMetadata("Updated OGP", "Updated summary", "https://example.com/new-thumb.png", true);
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 "https://example.com/updated",
                 "Updated title",
                 "Updated summary",
@@ -246,6 +251,7 @@ class ArticleServiceTest {
         service.addArticle(user, command("https://example.com/second", "Second"));
 
         assertThatThrownBy(() -> service.updateArticle(user, first.id(), new UpdateArticleCommand(
+                first.version(),
                 "https://example.com/second",
                 "First",
                 "",
@@ -262,6 +268,7 @@ class ArticleServiceTest {
         ArticleResponse ownArticle = service.addArticle(user, command("https://example.com/user-owned", "Mine"));
 
         ArticleResponse updated = service.updateArticle(user, ownArticle.id(), new UpdateArticleCommand(
+                ownArticle.version(),
                 "https://example.com/shared",
                 "Mine updated",
                 "",
@@ -291,6 +298,7 @@ class ArticleServiceTest {
         ));
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 response.url(),
                 response.title(),
                 response.summary(),
@@ -321,6 +329,7 @@ class ArticleServiceTest {
         ));
 
         ArticleResponse updated = service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version(),
                 response.url(),
                 response.title(),
                 response.summary(),
@@ -335,6 +344,28 @@ class ArticleServiceTest {
         assertThat(updated.rating()).isZero();
         assertThat(updated.tags()).extracting(TagResponse::name).containsExactly("Vue");
         assertThat(updated.tags()).extracting(TagResponse::name).doesNotContain("Java", "Spring");
+    }
+
+    @Test
+    void updateArticleRejectsStaleVersionBeforeFetchingMetadata() {
+        metadataProvider.next = new ArticleMetadata("Original", "Summary", "https://example.com/thumb.png", true);
+        ArticleResponse response = service.addArticle(user, command("https://example.com/stale", "Original"));
+        metadataProvider.fetchCount = 0;
+
+        assertThatThrownBy(() -> service.updateArticle(user, response.id(), new UpdateArticleCommand(
+                response.version() - 1,
+                response.url(),
+                "Updated title",
+                response.summary(),
+                response.status(),
+                response.readDate(),
+                response.favorite(),
+                response.rating(),
+                response.notes(),
+                List.of()
+        ))).isInstanceOf(ArticleVersionConflictException.class);
+
+        assertThat(metadataProvider.fetchCount).isZero();
     }
 
     private AddArticleCommand command(String url, String title) {
@@ -385,15 +416,21 @@ class ArticleServiceTest {
         }
 
         @Override
-        public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria) {
-            return findAllByUserId(userId).stream()
+        public List<Article> searchByUserId(UUID userId, ArticleSearchCriteria criteria, ArticleListQuery query) {
+            List<Article> filtered = findAllByUserId(userId).stream()
                     .filter(article -> criteria.status() == null || article.getStatus() == criteria.status())
                     .filter(article -> criteria.favorite() == null || article.isFavorite() == criteria.favorite())
-                    .filter(article -> criteria.tag() == null || article.getTags().stream()
-                            .anyMatch(tag -> tag.getName().equalsIgnoreCase(criteria.tag())))
+                    .filter(article -> criteria.tags() == null || criteria.tags().isEmpty() || article.getTags().stream()
+                            .anyMatch(tag -> criteria.tags().stream().anyMatch(name -> tag.getName().equalsIgnoreCase(name))))
                     .filter(article -> criteria.search() == null || matchesSearch(article, criteria.search()))
                     .sorted(Comparator.comparing(Article::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                     .toList();
+            if (!query.paged()) {
+                return filtered;
+            }
+            int fromIndex = Math.min(filtered.size(), query.normalizedPage() * query.normalizedSize());
+            int toIndex = Math.min(filtered.size(), fromIndex + query.normalizedSize());
+            return new ArrayList<>(filtered.subList(fromIndex, toIndex));
         }
 
         @Override
@@ -415,6 +452,7 @@ class ArticleServiceTest {
             Article persisted = new Article(
                     article.getId(),
                     article.getUserId(),
+                    article.getVersion() + 1,
                     article.getUrl(),
                     article.getTitle(),
                     article.getSummary(),
@@ -540,6 +578,7 @@ class ArticleServiceTest {
             return new Article(
                     article.getId(),
                     article.getUserId(),
+                    article.getVersion(),
                     article.getUrl(),
                     article.getTitle(),
                     article.getSummary(),

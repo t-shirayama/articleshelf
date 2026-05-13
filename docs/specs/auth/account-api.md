@@ -3,7 +3,7 @@
 ## `POST /api/auth/register`
 
 - 認証: 不要
-- rate limit: `IP` 単位。既定は `3回 / 600秒`
+- rate limit: `IP` 単位。既定は `3回 / 600秒`。state は `auth_rate_limit_buckets` に保存し、backend instance 間で共有する
 - request: `username`, `password`, `displayName`
 - response: `user`, `accessToken`
 - side effect: refresh cookie と CSRF cookie を設定
@@ -16,7 +16,7 @@
 ## `POST /api/auth/login`
 
 - 認証: 不要
-- rate limit: `IP + username` 単位。username は trim / 小文字化後に扱う。既定は `5回 / 60秒`
+- rate limit: `IP + username` 単位。username は trim / 小文字化後に扱う。既定は `5回 / 60秒`。state は `auth_rate_limit_buckets` に保存し、backend instance 間で共有する
 - request: `username`, `password`
 - response: `user`, `accessToken`
 - side effect: refresh cookie と CSRF cookie を設定
@@ -27,20 +27,26 @@
 ## `POST /api/auth/refresh`
 
 - 認証: refresh cookie
+- CSRF: `@CookieCsrfProtected`。`ARTICLESHELF_CSRF` cookie と `X-CSRF-Token` header の一致が必要
 - response: `user`, `accessToken`
 - side effect: refresh token rotation と cookie 再設定
 - error:
   - `401`: refresh token 不正、期限切れ、失効済み、ユーザー inactive
+  - `403`: CSRF token 不一致または欠落
 
 ## `POST /api/auth/logout`
 
 - 認証: refresh cookie を主とする
+- CSRF: `@CookieCsrfProtected`。`ARTICLESHELF_CSRF` cookie と `X-CSRF-Token` header の一致が必要
 - response: `204 No Content`
 - side effect: 現在端末の refresh token を失効し、cookie を削除する
+- error:
+  - `403`: CSRF token 不一致または欠落
 
 ## `POST /api/auth/logout-all`
 
 - 認証: 必須
+- CSRF: 不要。Bearer access token 認証のため `@CookieCsrfProtected` の対象外
 - response: `204 No Content`
 - side effect: 現在ユーザーの refresh token を全失効し、`token_valid_after` を更新して既発行 access token も無効化し、cookie を削除する
 

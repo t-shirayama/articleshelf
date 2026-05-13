@@ -15,6 +15,7 @@
   - `jti`: token id
 
 `JwtTokenService` は Spring Security JOSE の `NimbusJwtEncoder` / `NimbusJwtDecoder` を使い、HS256 の発行・検証、期限、claim を検証する。
+access token の `iat` / `exp` は injected `Clock`、`jti` は injected `IdGenerator` に従って発行し、refresh token rotation と同じ deterministic testability 方針にそろえる。
 独自の JWT 署名・payload parse 実装は持たない。
 
 ## 2. Refresh Token
@@ -48,4 +49,16 @@ AUTH_REFRESH_TOKEN_HASH_SECRET=<long-random-secret>
 
 同一 site 配信なら `SameSite=Lax` も選択可能だが、production profile では CSRF は常に有効にする。
 
-refresh / CSRF cookie の発行と削除は `SessionCookieWriter`、CSRF cookie と `X-CSRF-Token` header の照合は `CsrfTokenValidator` に集約し、Controller は request handling と認証ユースケース呼び出しに集中する。
+refresh / CSRF cookie の発行と削除は `SessionCookieWriter` が担当する。cookie 認証を使う state-changing endpoint は `@CookieCsrfProtected` を付け、`CookieCsrfGuardInterceptor` が `CsrfTokenValidator` 経由で CSRF cookie と `X-CSRF-Token` header の一致を中央で検証する。Controller は request handling と認証ユースケース呼び出しに集中し、手動 `validate(...)` 呼び出しは追加しない。
+
+CSRF 保護対象:
+
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+
+CSRF 保護対象外:
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout-all`
+- Bearer access token を使う `/api/articles/**`、`/api/tags/**`、`/api/users/me/**`

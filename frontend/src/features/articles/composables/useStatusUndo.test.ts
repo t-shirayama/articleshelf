@@ -60,6 +60,7 @@ function createStore(articles: Article[]) {
 function createArticle(overrides: Partial<Article> = {}): Article {
   return {
     id: 'article-1',
+    version: 0,
     url: 'https://example.com',
     title: 'Article',
     summary: '',

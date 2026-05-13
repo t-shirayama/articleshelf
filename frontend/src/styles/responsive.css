@@ -86,12 +86,6 @@
     max-width: none;
   }
 
-  .detail-page,
-  .detail-page.is-editing {
-    width: min(1180px, calc(100% - 20px));
-    padding: 22px;
-  }
-
   .detail-layout {
     grid-template-columns: minmax(0, 1fr) 272px;
   }
@@ -134,13 +128,6 @@
 
   .article-card-body {
     grid-template-rows: 30px 25px 38px 26px;
-  }
-
-  .detail-page,
-  .detail-page.is-editing {
-    margin: 14px auto;
-    min-height: calc(100vh - 28px);
-    padding: 22px;
   }
 
   .detail-edit-notes-section {
@@ -515,6 +502,10 @@
     padding: 10px;
   }
 
+  .app-shell.is-detail-shell {
+    min-height: 100dvh;
+  }
+
   .app-shell > .sidebar {
     display: none;
   }
@@ -562,6 +553,10 @@
     min-height: 0;
     overflow: visible;
     padding: clamp(14px, 2.4vw, 20px);
+  }
+
+  .content.is-detail-shell {
+    padding: 0;
   }
 
   .page-header,
@@ -724,6 +719,16 @@
     flex: 1 1 100%;
     width: 100%;
     min-width: 0;
+  }
+
+  .article-list-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .article-list-page-indicator {
+    text-align: center;
   }
 
   .article-card-open {

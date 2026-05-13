@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const useExistingServerOnly = process.env.PLAYWRIGHT_USE_EXISTING_SERVER === '1'
+const e2eBaseUrl = 'http://localhost:4173'
 
 export default defineConfig({
   testDir: './e2e',
@@ -13,7 +14,7 @@ export default defineConfig({
     timeout: 10_000
   },
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: e2eBaseUrl,
     trace: 'retain-on-failure'
   },
   projects: [
@@ -33,8 +34,11 @@ export default defineConfig({
     : {
         command: 'node ./frontend/scripts/e2e-webserver.mjs',
         cwd: '..',
-        url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
+        url: e2eBaseUrl,
+        // Always start the dedicated E2E stack unless explicitly opted into
+        // PLAYWRIGHT_USE_EXISTING_SERVER=1. Reusing an arbitrary localhost dev
+        // server makes auth fixtures and runtime flags nondeterministic.
+        reuseExistingServer: false,
         timeout: 180_000
       }
 })

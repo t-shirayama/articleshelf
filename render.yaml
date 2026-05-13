@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: articleshelf-api
+    runtime: docker
+    plan: free
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: AUTH_REFRESH_TOKEN_HASH_SECRET
+        sync: false
+      - key: ARTICLESHELF_OGP_PROXY_URL
+        sync: false
+      - key: ARTICLESHELF_EXTENSION_ALLOWED_ORIGINS
+        sync: false
+      - key: AUTH_CSRF_ENABLED
+        value: "true"
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: AUTH_COOKIE_SAME_SITE
+        value: None
+      - key: ARTICLESHELF_INITIAL_USER_ENABLED
+        value: "false"
+      - key: ARTICLESHELF_AUTH_RATE_LIMIT_ENABLED
+        value: "true"
+      - key: ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD
+        value: "true"
+      - key: SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE
+        value: "3"

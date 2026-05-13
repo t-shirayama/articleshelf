@@ -587,6 +587,12 @@
   margin: 0 0 8px;
 }
 
+.detail-error-action {
+  flex: 0 0 auto;
+  min-width: 132px;
+  font-weight: 700;
+}
+
 .duplicate-article-link {
   flex: 0 0 auto;
   min-width: 158px;
@@ -774,6 +780,114 @@
 .account-settings-grid {
   display: grid;
   gap: 10px;
+}
+
+.help-dialog {
+  width: min(560px, 100%);
+}
+
+.help-dialog-header h2 {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.help-dialog-header h2 svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.help-dialog-body {
+  padding: 10px 24px 24px;
+}
+
+.help-dialog-section {
+  display: grid;
+  gap: 12px;
+}
+
+.help-dialog-section p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.help-dialog-section-heading {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--text);
+}
+
+.help-dialog-section-heading svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.help-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.help-dialog-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  margin-left: auto;
+  padding: 2px 10px;
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+  font-weight: 800;
+  background: rgba(216, 239, 238, 0.78);
+  border: 1px solid rgba(24, 108, 116, 0.16);
+  border-radius: 999px;
+}
+
+.help-dialog-subtitle {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.help-dialog-steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.extension-auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--surface);
+}
+
+.extension-auth-panel {
+  width: min(440px, 100%);
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+  padding: 28px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+}
+
+.extension-auth-panel h1,
+.extension-auth-panel p {
+  margin: 0;
+}
+
+.extension-auth-panel p:not(.eyebrow) {
+  color: var(--muted);
+  line-height: 1.7;
 }
 
 .account-settings-danger .account-settings-section-heading svg {

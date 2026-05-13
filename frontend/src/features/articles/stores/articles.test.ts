@@ -133,7 +133,7 @@ describe('articles store', () => {
     await store.deleteTag('t1')
 
     expect(articlesApi.findTags).toHaveBeenCalledTimes(4)
-    expect(articlesApi.findArticles).toHaveBeenCalledTimes(3)
+    expect(articlesApi.findArticles).toHaveBeenCalledTimes(6)
   })
 
   it('updates filters and derived counts', async () => {
@@ -142,6 +142,7 @@ describe('articles store', () => {
       article({ id: 'a1', status: 'UNREAD', favorite: true, rating: 5, tags: [{ name: 'Vue' }] }),
       article({ id: 'a2', status: 'READ', favorite: false, rating: 3, tags: [{ name: 'Java' }] })
     ]
+    store.articleSnapshot = [...store.articles]
 
     await store.setFavoriteOnly()
     store.setTags(['Vue'])
@@ -174,6 +175,7 @@ describe('articles store', () => {
 function article(overrides: Partial<Article>): Article {
   return {
     id: 'article',
+    version: 0,
     url: 'https://example.com/article',
     title: 'Article',
     summary: '',

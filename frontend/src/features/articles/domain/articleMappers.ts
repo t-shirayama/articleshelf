@@ -7,6 +7,7 @@ export function replaceArticle(articles: Article[], updated: Article): Article[]
 export function toArticleInput(article: Article): ArticleInput {
   return {
     id: article.id,
+    version: article.version,
     url: article.url,
     title: article.title,
     summary: article.summary || '',

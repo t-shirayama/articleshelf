@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CheckCircle2,
   Circle,
+  CircleHelp,
   Heart,
   Library,
   LogOut,
@@ -39,6 +40,7 @@ const emit = defineEmits<{
   favoriteOnly: [];
   calendar: [];
   tags: [];
+  help: [];
   account: [];
   logout: [];
 }>();
@@ -168,6 +170,18 @@ function changeLocale(value: unknown): void {
         <VBtn value="ja">{{ t("locale.ja") }}</VBtn>
         <VBtn value="en">{{ t("locale.en") }}</VBtn>
       </VBtnToggle>
+      <VBtn
+        block
+        variant="outlined"
+        color="primary"
+        class="sidebar-account-button"
+        @click="emit('help')"
+      >
+        <template #prepend>
+          <CircleHelp :size="17" />
+        </template>
+        {{ t("nav.help") }}
+      </VBtn>
       <VBtn
         block
         variant="outlined"

@@ -2,9 +2,9 @@ package com.articleshelf.adapter.web;
 
 import com.articleshelf.application.article.ArticleResponse;
 import com.articleshelf.application.article.ArticleService;
-import com.articleshelf.application.article.ArticleListQuery;
 import com.articleshelf.application.article.ArticlePreviewResponse;
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleStatus;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,14 +39,31 @@ public class ArticleController {
     public List<ArticleResponse> findArticles(
             @AuthenticationPrincipal CurrentUser user,
             @RequestParam(required = false) ArticleStatus status,
-            @RequestParam(required = false) String tag,
+            @RequestParam(required = false) List<String> tag,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Boolean favorite,
+            @RequestParam(required = false) List<Integer> rating,
+            @RequestParam(required = false) LocalDate createdFrom,
+            @RequestParam(required = false) LocalDate createdTo,
+            @RequestParam(required = false) LocalDate readFrom,
+            @RequestParam(required = false) LocalDate readTo,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false) String sort
     ) {
-        return articleService.findArticles(user, status, tag, search, favorite, new ArticleListQuery(page, size, sort));
+        return articleService.findArticles(
+                user,
+                status,
+                tag,
+                search,
+                favorite,
+                rating,
+                createdFrom,
+                createdTo,
+                readFrom,
+                readTo,
+                new ArticleListQuery(page, size, sort)
+        );
     }
 
     @GetMapping("/{id}")
@@ -71,7 +89,7 @@ public class ArticleController {
     public ArticleResponse updateArticle(
             @AuthenticationPrincipal CurrentUser user,
             @PathVariable UUID id,
-            @Valid @RequestBody ArticleRequest request
+            @Valid @RequestBody UpdateArticleRequest request
     ) {
         return articleService.updateArticle(user, id, articleRequestMapper.toUpdateCommand(request));
     }

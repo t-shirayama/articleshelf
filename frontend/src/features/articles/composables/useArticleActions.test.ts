@@ -54,6 +54,24 @@ describe('useArticleActions', () => {
     expect(actions.isDeletingArticle.value).toBe(false)
   })
 
+  it('keeps the draft visible and offers reload when version conflict happens', async () => {
+    const store = createStore()
+    store.updateArticle.mockRejectedValueOnce(new ApiRequestError('Conflict', null, 409, ['Conflict'], 'ARTICLE_VERSION_CONFLICT'))
+    const options = createOptions({ store })
+    const actions = useArticleActions(options)
+
+    await actions.saveArticle(articleInput({ id: 'article-1' }))
+
+    expect(options.detailFormError.value).toBe('Conflict')
+    expect(actions.detailConflictArticleId.value).toBe('article-1')
+
+    await actions.reloadConflictedArticle()
+
+    expect(store.selectArticleById).toHaveBeenCalledWith('article-1')
+    expect(actions.detailConflictArticleId.value).toBe('')
+    expect(options.detailFormError.value).toBe('')
+  })
+
   it('handles list deletion and open detail failures', async () => {
     const store = createStore()
     store.deleteArticle.mockRejectedValueOnce(new Error('delete failed'))
@@ -130,6 +148,7 @@ function createStore() {
 function articleInput(overrides: Partial<ArticleInput> = {}): ArticleInput {
   return {
     id: undefined,
+    version: undefined,
     url: 'https://example.com',
     title: 'Article',
     summary: '',
@@ -146,6 +165,7 @@ function articleInput(overrides: Partial<ArticleInput> = {}): ArticleInput {
 function createArticle(): Article {
   return {
     id: 'article-1',
+    version: 0,
     url: 'https://example.com',
     title: 'Article',
     summary: '',

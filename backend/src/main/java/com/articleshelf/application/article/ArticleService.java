@@ -1,9 +1,11 @@
 package com.articleshelf.application.article;
 
 import com.articleshelf.application.auth.CurrentUser;
+import com.articleshelf.domain.article.ArticleListQuery;
 import com.articleshelf.domain.article.ArticleStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,6 +41,34 @@ public class ArticleService {
     public List<ArticleResponse> findArticles(
             CurrentUser user,
             ArticleStatus status,
+            List<String> tags,
+            String search,
+            Boolean favorite,
+            List<Integer> ratings,
+            LocalDate createdFrom,
+            LocalDate createdTo,
+            LocalDate readFrom,
+            LocalDate readTo,
+            ArticleListQuery query
+    ) {
+        return searchArticlesQuery.findArticles(
+                user,
+                status,
+                tags,
+                search,
+                favorite,
+                ratings,
+                createdFrom,
+                createdTo,
+                readFrom,
+                readTo,
+                query
+        );
+    }
+
+    public List<ArticleResponse> findArticles(
+            CurrentUser user,
+            ArticleStatus status,
             String tag,
             String search,
             Boolean favorite,
@@ -49,6 +79,10 @@ public class ArticleService {
 
     public ArticleResponse findArticle(CurrentUser user, UUID id) {
         return findArticleQuery.findArticle(user, id);
+    }
+
+    public ArticleResponse findArticleByUrl(CurrentUser user, String url) {
+        return findArticleQuery.findArticleByUrl(user, url);
     }
 
     public ArticleResponse addArticle(CurrentUser user, AddArticleCommand command) {

@@ -8,6 +8,7 @@ defineProps<{
   form: ArticleDetailForm;
   articleRating: number;
   isEditing: boolean;
+  saving?: boolean;
   submitted: boolean;
   statusOptions: Array<{ label: string; value: Exclude<ArticleStatus, "ALL"> }>;
   readDateError: string;
@@ -26,7 +27,7 @@ defineProps<{
           item-title="label"
           item-value="value"
           density="comfortable"
-          :disabled="!isEditing"
+          :disabled="!isEditing || saving"
           hide-details
           variant="outlined"
         />
@@ -38,8 +39,8 @@ defineProps<{
           v-model="form.readDate"
           class="articleshelf-date-field detail-meta-control"
           density="comfortable"
-          :disabled="!isEditing"
-          :clearable="isEditing"
+          :disabled="!isEditing || saving"
+          :clearable="isEditing && !saving"
           :error-messages="submitted && readDateError ? [readDateError] : []"
         />
       </div>
@@ -48,7 +49,7 @@ defineProps<{
         <span class="detail-meta-label">{{ $t('common.rating') }}</span>
         <div class="rating-field detail-rating-field">
           <template v-if="isEditing">
-            <StarRating v-model="form.rating" :size="20" />
+            <StarRating v-model="form.rating" :readonly="saving" :size="20" />
           </template>
           <template v-else>
             <StarRating :model-value="articleRating" readonly :size="20" />

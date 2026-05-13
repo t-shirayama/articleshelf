@@ -16,9 +16,11 @@
 - アクセスできない URL は `400 Bad Request`
 - 存在しない記事 ID は `404 Not Found`
 - 重複 URL は `409 Conflict`
+- stale article version は `409 Conflict`
 - 重複タグ名、使用中タグの削除は `409 Conflict`
 - 想定外例外は `500 Internal Server Error` とし、ログへ詳細を残しつつ API には汎用メッセージだけを返す
 - 重複 URL の場合は、登録済み記事の詳細へ遷移できるよう `existingArticleId` を返す
+- stale article version の場合は `code = ARTICLE_VERSION_CONFLICT` を返し、frontend は競合専用 UI を分岐できるようにする
 - `status` の不正値、`id` の不正な UUID、`readDate` の不正な日付形式も `messages` 配列に説明文を入れて返す
 
 例:
