@@ -53,7 +53,7 @@ E2E は便利だが壊れやすく遅くなりやすい。細かい分岐は UT 
 - バックエンド確認: ローカル `mvn` ではなく Docker 経由で `docker compose run --rm backend mvn test` を実行する
 - バックエンド PR gate: `docker compose run --rm backend mvn test spotbugs:check` を CI で必須化し、JUnit / PostgreSQL IT / Clean Architecture dependency test / SpotBugs をまとめて確認する
 - backend の repository / port 変更では、domain package が application DTO / command / query type を import していないことを `CleanArchitectureDependencyTest` の通過で確認する
-- deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie 固定値、health check path を確認する
+- deployment config gate: `bash scripts/check-render-backend-config.sh` を CI の `Deployment config check` で実行し、`render.yaml` の `SPRING_PROFILES_ACTIVE=prod`、CSRF / secure cookie、現行 Render Free 運用の `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=false`、health check path を確認する
 - バックエンド UT coverage: `docker compose run --rm backend mvn -Pcoverage test -Dtest='ArticleTest,PasswordPolicyTest,UsernamePolicyTest,ArticleServiceTest,AuthRateLimiterTest,ApiExceptionHandlerTest,JwtTokenServiceTest,OgpRequestGuardTest,ProductionEnvironmentValidatorTest,AuthAndArticleIntegrationTest'`
 - Flyway migration、JPA Entity、DB 制約、Repository 検索条件を変更した場合は、JPA validate に加えて PostgreSQL 実体で persistence IT を実行する
 - optimistic locking を変更した場合は、`ArticleServiceTest`、`ApiExceptionHandlerTest`、`AuthAndArticleIntegrationTest`、`JpaArticleRepositoryPostgresIntegrationTest` で stale version の 409、machine-readable error code、PostgreSQL 実体の競合検知を確認する
@@ -91,7 +91,7 @@ Router 導入後の E2E / 手動確認では、未認証 protected route が rou
 server-driven article list query では、backend の `JpaArticleRepositoryPostgresIntegrationTest` で multi-tag OR、rating、created/read range、wildcard search、pagination / sort を PostgreSQL 実体で確認し、frontend E2E では検索、フィルタ、並び替え、詳細遷移、カレンダー、タグ管理の既存導線が回帰していないことを見る。
 article optimistic locking では、frontend の `useArticleActions.test.ts` と `useArticleDetailForm.test.ts` で version を含む detail save input と競合時の reload 導線を確認し、backend API integration で `ARTICLE_VERSION_CONFLICT` response を確認する。
 記事追加 preview は backend integration で OGP 成功、OGP 取得不可の partial success、重複 URL、URL validation を確認し、frontend unit で URL 変更、modal close、race condition、duplicate reset、空の title / summary を payload に含めないことを確認する。
-OGP egress control は `ProductionEnvironmentValidatorTest` で production 時の `ARTICLESHELF_OGP_PROXY_URL` 必須化を確認し、運用 smoke check では proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されることを確認する。
+OGP egress control は `ProductionEnvironmentValidatorTest` で `ARTICLESHELF_OGP_REQUIRE_PROXY_IN_PROD=true` のときだけ production 時の `ARTICLESHELF_OGP_PROXY_URL` 必須化を確認する。現行 Render Free 運用では app-level SSRF guard の unit test を維持し、dedicated outbound proxy 導入後の運用 smoke check では proxy / firewall の deny rule で metadata endpoint と private network 宛て egress が遮断されることを確認する。
 Markdown security unit test では、危険タグ、危険属性、危険 scheme、`data:` image、SVG / iframe、malformed HTML、外部リンクの `target` / `rel` を検証する。
 Supply chain security は Dependabot の更新 PR、Dependency Review の PR 差分検知、CodeQL の code scanning、Trivy の filesystem / backend image scan に分担する。
 Dependency Review は GitHub repository の Dependency graph が有効で、repository variable `DEPENDENCY_REVIEW_ENABLED=true` が設定されている場合に moderate 以上の既知脆弱性を PR gate として扱う。Dependency graph が使えない repository では job 内で skip notice を出し、Trivy / CodeQL / Dependabot を継続する。
